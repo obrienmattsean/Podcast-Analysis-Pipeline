@@ -36,4 +36,4 @@ jobs:
         done
 
     - name: Run tests
-      run: pytest --tb=short -p no:cacheprovider
+      run: pytest --tb=short
