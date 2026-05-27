@@ -29,13 +29,13 @@ Consult these instruction files when working on this repository:
 2. Follow TDD when it is possible. Always start new changes by writing new test cases (or changing existing tests).
    Remember to consult [testing-instructions.md](.github/instructions/testing-instructions.md) for details on how to write tests with pytest.
 
-3. Always run tests from the correct service directory. For the pipeline service, run `cd services/pipeline && uv run pytest` to verify that all tests pass before committing your changes.
+3. Always run tests from the correct service directory using this repository's actual test command to verify that all tests pass before committing your changes.
    Don't ask to run the tests, just do it. If you are not sure how to run the tests, ask for help.
-   You can also use `cd services/pipeline && uv run pytest-watch` to run the tests automatically when you change the code.
+   If the repository provides a watch mode for tests, you can also use that documented command to run the tests automatically when you change the code.
 
 4. Fix any linting errors (with ruff, pyrefly etc.) and type checking warnings before going to the next step.
 
-5. Ensure code coverage is maintained or improved. For the pipeline service, run `cd services/pipeline && uv run pytest --cov` to check coverage.
+5. Ensure code coverage is maintained or improved by running this repository's documented coverage command from the correct service directory.
 
 When you see paths like `/[project]/features/[feature]/` in rules, replace [project] with the name of the project you are working on (e.g. `ordering`), and `[feature]` with the name of the feature you are working on (e.g. `verify_or_add_payment`).
 
