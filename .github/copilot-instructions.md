@@ -24,7 +24,7 @@ Consult these instruction files when working on this repository:
 
 **IMPORTANT:** Always follow these steps when implementing new features:
 
-1. Consult any relevant instructions files listed above and start by listing which rule files have been used to guide the implementation (e.g. `Instructions used: [coding-style-instructions.md, testing-instructions.md]`).
+1. Consult any relevant instruction files listed above and start by listing which rule files have been used to guide the implementation (e.g. `Instructions used: [coding-style-instructions.md, testing-instructions.md]`).
 
 2. Follow TDD when it is possible. Always start new changes by writing new test cases (or changing existing tests).
    Remember to consult [testing-instructions.md](.github/instructions/testing-instructions.md) for details on how to write tests with pytest.
