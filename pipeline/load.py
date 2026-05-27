@@ -1,11 +1,12 @@
-"""Python module to load the extracted data into the database."""
+"""Python module to load validated episodes to S3 as JSON."""
 
+import json
 import logging
 import os
+from datetime import datetime
 
+import boto3
 from model import ValidatedEpisode
-from psycopg2 import connect
-from psycopg2.extensions import connection
 
 
 def get_logger() -> None:
@@ -20,52 +21,77 @@ def get_logger() -> None:
 logger = get_logger()
 
 
-def get_database_connection() -> connection:
-    """Establishes a connection to the PostgreSQL database using environment variables."""
+def get_s3_client():
+    """Initialize S3 client using AWS credentials from environment."""
 
     try:
-        logger.info(
-            "Connecting to PostgreSQL database at host: %s",
-            os.getenv("RDS_HOST"),
+        logger.info("Initializing S3 client")
+        s3_client = boto3.client(
+            "s3",
+            region_name=os.getenv("AWS_REGION", "eu-west-2"),
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
         )
-        conn = connect(
-            host=os.getenv("RDS_HOST"),
-            database=os.getenv("RDS_DB_NAME"),
-            user=os.getenv("RDS_USERNAME"),
-            password=os.getenv("RDS_PASSWORD"),
-        )
-        logger.info("Database connection established")
-        return conn
+        logger.info("S3 client initialized")
+        return s3_client
     except Exception:
-        logger.exception("Failed to connect to the database")
+        logger.exception("Failed to initialize S3 client")
         raise
 
 
-def insert_episode_into_database(conn, episode: ValidatedEpisode) -> None:
-    """Insert a single ValidatedEpisode row using an existing connection."""
+def serialize_episode(episode: ValidatedEpisode) -> dict:
+    """Convert ValidatedEpisode to a JSON-serializable dict."""
 
-    with conn.cursor() as cursor:
-        cursor.execute(
-            """
-            INSERT INTO episodes (
-            podcast_id, title, audio_url, published_at, transcribed
+    episode_dict = episode.model_dump()
+    # Convert datetime and URL objects to strings
+    if isinstance(episode_dict.get("published_at"), datetime):
+        episode_dict["published_at"] = episode_dict["published_at"].isoformat()
+    if episode_dict.get("audio_link"):
+        episode_dict["audio_link"] = str(episode_dict["audio_link"])
+    return episode_dict
+
+
+def upload_episodes_to_s3(
+    s3_client, bucket: str, episodes: list[ValidatedEpisode], podcast_id: int
+) -> None:
+    """Upload a list of ValidatedEpisode objects as JSON to S3."""
+
+    episodes_data = [serialize_episode(episode) for episode in episodes]
+    json_content = json.dumps(episodes_data, indent=2)
+    s3_key = f"podcasts/{podcast_id}/episodes.json"
+
+    try:
+        logger.info(
+            "Uploading %d episodes to S3 s3://%s/%s",
+            len(episodes),
+            bucket,
+            s3_key,
         )
-        VALUES (%s, %s, %s, %s, %s)
-        """,
-            (
-                episode.podcast_id,
-                episode.title,
-                str(episode.audio_link),
-                episode.published_at,
-                episode.transcribed,
-            ),
+        s3_client.put_object(
+            Bucket=bucket,
+            Key=s3_key,
+            Body=json_content,
+            ContentType="application/json",
         )
+        logger.info(
+            "Successfully uploaded %d episodes to s3://%s/%s",
+            len(episodes),
+            bucket,
+            s3_key,
+        )
+    except Exception:
+        logger.exception(
+            "Failed to upload episodes to S3. podcast_id=%s s3_key=%s",
+            podcast_id,
+            s3_key,
+        )
+        raise
 
 
-def insert_podcast_episodes(
-    conn: connection, podcast_episode_data: dict
+def load_podcast_episodes(
+    s3_client, bucket: str, podcast_episode_data: dict
 ) -> tuple[int, int]:
-    """Insert episodes for one podcast and return (inserted, failed)."""
+    """Load episodes for one podcast to S3 and return (uploaded, failed)."""
 
     podcast_title = podcast_episode_data.get("podcast_title", "unknown")
     podcast_id = podcast_episode_data.get("podcast_id")
@@ -78,59 +104,47 @@ def insert_podcast_episodes(
         len(episodes),
     )
 
-    inserted_count = 0
-    failed_count = 0
+    if not episodes:
+        logger.warning("No episodes to load for podcast id=%s", podcast_id)
+        return 0, 0
 
-    for episode in episodes:
-        try:
-            insert_episode_into_database(conn, episode)
-            inserted_count += 1
-        except Exception:
-            failed_count += 1
-            logger.exception(
-                "Failed to insert episode title=%s podcast=%s",
-                getattr(episode, "title", "unknown"),
-                podcast_title,
-            )
-
-    if failed_count:
-        conn.rollback()
-        logger.warning(
-            "Rolled back podcast batch due to insert failures. "
-            "podcast=%s inserted=%d failed=%d",
+    try:
+        upload_episodes_to_s3(s3_client, bucket, episodes, podcast_id)
+        logger.info(
+            "Podcast load complete title=%s id=%s uploaded=%d",
             podcast_title,
-            inserted_count,
-            failed_count,
+            podcast_id,
+            len(episodes),
         )
-        return 0, failed_count
-
-    conn.commit()
-    logger.info(
-        "Podcast load complete title=%s id=%s inserted=%d",
-        podcast_title,
-        podcast_id,
-        inserted_count,
-    )
-    return inserted_count, failed_count
+        return len(episodes), 0
+    except Exception:
+        logger.exception(
+            "Failed to load podcast episodes. title=%s id=%s",
+            podcast_title,
+            podcast_id,
+        )
+        return 0, len(episodes)
 
 
-def insert_all_episodes(conn: connection, enteries: list[dict]) -> None:
-    """Inserts all new episodes into the database."""
+def load_all_episodes(bucket: str, entries: list[dict]) -> None:
+    """Load all new episodes to S3 as JSON files."""
 
-    logger.info("Starting episode load for %d podcasts", len(enteries))
-    total_inserted = 0
+    logger.info("Starting episode load for %d podcasts", len(entries))
+    s3_client = get_s3_client()
+    total_uploaded = 0
     total_failed = 0
 
-    for podcast_episode_data in enteries:
-        inserted_count, failed_count = insert_podcast_episodes(
-            conn,
+    for podcast_episode_data in entries:
+        uploaded_count, failed_count = load_podcast_episodes(
+            s3_client,
+            bucket,
             podcast_episode_data,
         )
-        total_inserted += inserted_count
+        total_uploaded += uploaded_count
         total_failed += failed_count
 
     logger.info(
-        "Episode load complete. total_inserted=%d total_failed=%d",
-        total_inserted,
+        "Episode load complete. total_uploaded=%d total_failed=%d",
+        total_uploaded,
         total_failed,
     )
