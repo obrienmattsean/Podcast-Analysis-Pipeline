@@ -42,8 +42,8 @@ Examples:
 Aim for high coverage but focus on meaningful tests:
 
 ```bash
-# Run tests from the pipeline service
-cd services/pipeline && uv run pytest
+# Run tests from the repository root
+pytest
 ```
 
 ## Best Practices
