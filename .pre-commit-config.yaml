@@ -1,10 +1,22 @@
 repos:
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  # Ruff version.
-  rev: v0.15.14
+- repo: local
   hooks:
-    # Run the linter.
-    - id: ruff-check
-      args: [ --fix ]
-    # Run the formatter.
-    - id: ruff-format
+    - id: local-ruff-check
+      name: ruff check
+      entry: ruff check --force-exclude --fix --exit-non-zero-on-fix
+      require_serial: true
+      language: unsupported
+      types: [python]
+
+    - id: local-ruff-format
+      name: ruff format
+      entry: ruff format --force-exclude --exit-non-zero-on-format
+      require_serial: true
+      language: unsupported
+      types: [python]
+
+
+
+
+
+
