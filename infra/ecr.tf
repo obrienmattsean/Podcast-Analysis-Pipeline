@@ -8,7 +8,6 @@ resource "aws_ecr_repository" "repositories" {
   image_tag_mutability = "MUTABLE"
 
   tags = {
-    Environment = var.environment
-    Service     = "podcast-analysis"
+    Service = "podcast-analysis"
   }
 }
