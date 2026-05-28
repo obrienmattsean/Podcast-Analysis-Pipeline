@@ -16,7 +16,10 @@ resource "aws_ecr_repository" "repositories" {
   }
 
   tags = merge(
-    var.common_tags,
+    {
+      for key, value in var.common_tags : key => value
+      if key != "Project"
+    },
     {
       Service = "podcast-analysis"
     }
