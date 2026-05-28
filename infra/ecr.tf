@@ -1,5 +1,5 @@
 locals {
-  ecr_keys = ["extract"]
+  ecr_keys = ["extract", "upload"]
 }
 
 resource "aws_ecr_repository" "repositories" {
