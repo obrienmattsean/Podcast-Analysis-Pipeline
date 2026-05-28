@@ -3,10 +3,6 @@ name: CI
 on:
   push:
     branches: [main]
-    paths:
-      - "**.py"
-      - "**/requirements.txt"
-      - ".github/workflows/**"
   pull_request:
     branches: [main]
 
@@ -27,7 +23,9 @@ jobs:
           cache: "pip"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          if [ -f pipeline/requirements.txt ]; then pip install -r pipeline/requirements.txt; fi
 
       - name: Run Ruff
         run: ruff check .
@@ -48,7 +46,9 @@ jobs:
           cache: "pip"
 
       - name: Install dependencies
-      -  run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          if [ -f pipeline/requirements.txt ]; then pip install -r pipeline/requirements.txt; fi
 
       - name: Run tests
         run: pytest --tb=short -p no:cacheprovider
