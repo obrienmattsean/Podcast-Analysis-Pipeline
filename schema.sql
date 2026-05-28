@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS podcasts (
 -- Episodes table: stores individual podcast episodes
 CREATE TABLE IF NOT EXISTS episodes (
   id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  podcast_id INTEGER NOT NULL REFERENCES podcasts(id) ON DELETE CASCADE,
+  podcast_id INTEGER NOT NULL REFERENCES podcasts(podcast_id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
   audio_url VARCHAR(500) NOT NULL,
   duration_seconds INTEGER,
