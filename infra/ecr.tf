@@ -43,19 +43,6 @@ resource "aws_ecr_lifecycle_policy" "repositories" {
         action = {
           type = "expire"
         }
-      },
-      {
-        rulePriority = 2
-        description  = "Keep last ${var.ecr_keep_last_images} tagged images"
-        selection = {
-          tagStatus     = "tagged"
-          tagPrefixList = [""]
-          countType     = "imageCountMoreThan"
-          countNumber   = var.ecr_keep_last_images
-        }
-        action = {
-          type = "expire"
-        }
       }
     ]
   })
