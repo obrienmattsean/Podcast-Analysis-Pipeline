@@ -1,15 +1,3 @@
-# ==============================================================================
-# RDS PostgreSQL Database for Podcast Analysis Pipeline
-# ==============================================================================
-# This Terraform configuration creates a PostgreSQL RDS instance on AWS
-# with pgvector extension for vector storage capabilities.
-
-
-
-# ==============================================================================
-# Variables
-# ==============================================================================
-
 
 # ==============================================================================
 # Security Group for RDS
@@ -51,7 +39,7 @@ resource "aws_security_group" "rds" {
 # This groups the subnets where RDS is allowed to be deployed
 resource "aws_db_subnet_group" "podcast_analysis" {
   name       = "${var.project_name}-podcast-analysis-db-subnet-group"
-  subnet_ids = data.aws_subnet_ids.public_subnets.ids  # Auto-discovered private subnets
+  subnet_ids = data.aws_subnets.public_subnets.ids  # Auto-discovered public subnets (MVP - restrict in production)
 
   tags = {
     Name        = "${var.project_name}-podcast-analysis-db-subnet-group"
@@ -108,22 +96,10 @@ resource "aws_db_instance" "podcast_analysis" {
   depends_on = [aws_db_subnet_group.podcast_analysis]
 }
 
-## Deploy the Vector extention to the RDS instance after it's created
-
-resource "null_resource" "rds_ready" {
-  provisioner "local-exec" {
-    command = "echo 'Waiting 120 seconds for RDS to fully initialize...'; sleep 120"
-  }
-  depends_on = [aws_db_instance.podcast_analysis]
-}
-
-
-resource "postgresql_extension" "pgvector" {
-  provider = postgresql
-  name     = "vector"
-  database = var.rds_database_name
-  depends_on = [null_resource.rds_ready]
-}
+## PostgreSQL pgvector extension setup
+# For MVP, create the extension manually after RDS is ready:
+# psql -h <endpoint> -U postgres -d c23_podcast_analysis_db --set=sslmode=require
+# Then run: CREATE EXTENSION IF NOT EXISTS vector;
 
 # ==============================================================================
 # IAM Role for RDS Monitoring
