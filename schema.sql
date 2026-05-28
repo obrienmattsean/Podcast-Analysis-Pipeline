@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Podcasts table: stores podcast metadata
 CREATE TABLE IF NOT EXISTS podcasts (
-  id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  podcast_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
   rss_url VARCHAR(500) UNIQUE NOT NULL,
   description TEXT,
