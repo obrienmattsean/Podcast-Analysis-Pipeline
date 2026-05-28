@@ -42,8 +42,29 @@ When you see paths like `/[project]/features/[feature]/` in rules, replace [proj
 ## Python-specific guidelines
 
 - Use type hints for all function signatures and class attributes
+- Use Google-style docstrings for all public modules, classes, and functions
+- Include an `Example:` section in docstrings when behavior is non-trivial
 - Follow PEP 8 style guide (enforced by Ruff)
 - Use dataclasses or Pydantic models for data structures
 - Prefer composition over inheritance
 - Use context managers for resource management
 - Follow the Zen of Python principles
+
+### Google-style docstring example
+
+```python
+def normalize_title(title: str) -> str:
+   """Normalize a podcast title for downstream processing.
+
+   Args:
+      title: Raw podcast title from an external source.
+
+   Returns:
+      The normalized title with extra whitespace removed.
+
+   Example:
+      >>> normalize_title("  AI Weekly  ")
+      'AI Weekly'
+   """
+   return " ".join(title.split())
+```
