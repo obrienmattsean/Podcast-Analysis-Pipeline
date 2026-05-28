@@ -9,10 +9,6 @@ terraform {
       source  = "cyrilgdn/postgresql"
       version = "~> 1.20"
     }
-    null = {
-      source  = "hashicorp/null"
-      version = "~> 3.2"
-    }
   }
 }
 
