@@ -24,22 +24,22 @@ CREATE TABLE IF NOT EXISTS episodes (
 
 -- Entities table: stores entities (persons, organizations, concepts, etc.)
 CREATE TABLE IF NOT EXISTS entities (
-  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  entity_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   name VARCHAR(255) UNIQUE NOT NULL,
   entity_type VARCHAR(100) NOT NULL  -- e.g., "Person", "Organization", "Concept"
 );
 
 -- Episode_entities: stores the unique combination of entity and episode
 CREATE TABLE IF NOT EXISTS episode_entities (
-  episode_id INTEGER NOT NULL REFERENCES episodes(id) ON DELETE CASCADE,
-  entity_id INTEGER NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
+  episode_id INTEGER NOT NULL REFERENCES episodes(episode_id) ON DELETE CASCADE,
+  entity_id INTEGER NOT NULL REFERENCES entities(entity_id) ON DELETE CASCADE,
   UNIQUE(episode_id, entity_id)
 );
 
 -- Segments table: breaks episodes into chunks for analysis
 CREATE TABLE IF NOT EXISTS episode_chunks (
-  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  episode_id INTEGER NOT NULL REFERENCES episodes(id) ON DELETE CASCADE,
+  episode_chunk_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  episode_id INTEGER NOT NULL REFERENCES episodes(episode_id) ON DELETE CASCADE,
   chunk_index INTEGER NOT NULL,
   start_time_seconds INTEGER,
   end_time_seconds INTEGER,
