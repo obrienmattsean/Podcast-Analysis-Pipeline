@@ -1,7 +1,6 @@
 """Local runner for extract-transform-load pipeline smoke checks."""
 
 import logging
-from pathlib import Path
 
 from dotenv import load_dotenv
 from extract import (
@@ -13,13 +12,10 @@ from transform import transform_all_podcast_episodes
 from utility import get_database_connection, get_s3_client
 
 # Configure logging to file and console
-log_dir = Path(__file__).resolve().parents[1] / "logs"
-log_dir.mkdir(exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(log_dir / "podcast_pipeline.log"),
         logging.StreamHandler(),
     ],
 )
@@ -65,7 +61,7 @@ def lambda_handler(event=None, context=None):
     db_conn.close()
     s3_client.close()
 
-    # Return success response with detailed statistics
+    # Return success response with a list of uploaded S3 paths
     response_body = {
         "statusCode": 200,
         "message": "Daily episode pipeline completed successfully",
