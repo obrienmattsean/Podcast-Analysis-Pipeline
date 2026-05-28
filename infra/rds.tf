@@ -17,7 +17,7 @@
 resource "aws_security_group" "rds" {
   name        = "${var.project_name}-podcast-analysis-rds-sg"
   description = "Security group for Podcast Analysis RDS instance"
-  vpc_id      = var.vpc_id
+  vpc_id      = data.aws_vpc.main.id  # Auto-discovered VPC
 
 
 
@@ -51,7 +51,7 @@ resource "aws_security_group" "rds" {
 # This groups the subnets where RDS is allowed to be deployed
 resource "aws_db_subnet_group" "podcast_analysis" {
   name       = "${var.project_name}-podcast-analysis-db-subnet-group"
-  subnet_ids = var.db_subnet_ids
+  subnet_ids = data.aws_subnet_ids.public_subnets.ids  # Auto-discovered private subnets
 
   tags = {
     Name        = "${var.project_name}-podcast-analysis-db-subnet-group"
