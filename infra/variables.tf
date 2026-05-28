@@ -56,4 +56,40 @@ variable "rds_database_name" {
   description = "Name of the initial database to create in RDS"
   type        = string
   default     = "c23_podcast_analysis_db" # Replace with your desired database name
+variable "ecr_image_tag_mutability" {
+  description = "Image tag mutability for ECR repositories"
+  type        = string
+  default     = "MUTABLE"
+}
+
+variable "ecr_scan_on_push" {
+  description = "Enable image scanning on push"
+  type        = bool
+  default     = true
+}
+
+variable "ecr_image_retention_days" {
+  description = "Days to retain untagged images before expiration"
+  type        = number
+  default     = 5
+}
+
+variable "ecr_keep_last_images" {
+  description = "Number of tagged images to retain"
+  type        = number
+  default     = 10
+}
+
+variable "lambda_memory_size" {
+  description = "Lambda memory allocation in MB"
+  type        = number
+  default     = 1024
+}
+
+variable "common_tags" {
+  description = "Common tags to apply to all resources"
+  type        = map(string)
+  default = {
+    Team = "platform"
+  }
 }
