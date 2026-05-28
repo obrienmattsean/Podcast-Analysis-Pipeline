@@ -161,7 +161,7 @@ def upload_podcast_payload_to_s3(
     if not episodes_payload:
         return []
 
-    uploaded_paths: list[str] = []
+    uploaded_paths = []
 
     for episode in episodes_payload:
         try:
@@ -174,7 +174,6 @@ def upload_podcast_payload_to_s3(
                 episode.get("episode_id"),
                 podcast_id,
             )
-            raise
 
     logger.info("Uploaded %d episodes for podcast id=%s", len(episodes_payload), podcast_id)
     return uploaded_paths
@@ -216,10 +215,10 @@ def load_podcast_episodes(
 def load_all_episodes(
     conn: connection, s3_client, podcast_episodes_list: list, bucket: str = BUCKET_NAME
 ) -> list[str]:
-    """Loads episodes for all podcasts into the database
+    """Loads episodes for all podcasts into the database and S3.
 
     Main orchestration function that loads validated episodes from all podcasts
-    into the RDS database.
+    into the RDS database and S3.
 
     Args:
         conn: PostgreSQL database connection object
@@ -235,7 +234,7 @@ def load_all_episodes(
     """
     total_uploaded = 0
     total_failed = 0
-    all_uploaded_paths: list[str] = []
+    all_uploaded_paths = []
 
     for podcast_episode_data in podcast_episodes_list:
         uploaded_count, failed_count, uploaded_paths = load_podcast_episodes(
@@ -250,49 +249,3 @@ def load_all_episodes(
 
     logger.info("Episode load complete. uploaded=%d failed=%d", total_uploaded, total_failed)
     return all_uploaded_paths
-
-
-def get_staged_episodes_for_podcast(s3, podcast: dict) -> list[dict]:
-    """Fetch staged episodes from S3 for one podcast.
-
-    Args:
-        s3: Configured S3 client.
-        podcast (dict): Podcast metadata with id and title.
-
-    Returns:
-        list[dict]: Staged episode payloads, or an empty list if none exist.
-    """
-
-    podcast_id = podcast["id"]
-    podcast_title = podcast.get("title", "unknown")
-
-    logger.info(
-        "Fetching staged episodes for podcast id=%s title=%s from S3",
-        podcast_id,
-        podcast_title,
-    )
-
-    try:
-        episode_json = (
-            s3.get_object(
-                Bucket=BUCKET_NAME,
-                Key=f"podcasts/staging/{podcast_id}/episodes.json",
-            )["Body"]
-            .read()
-            .decode("utf-8")
-        )
-        episodes = json.loads(episode_json)
-        logger.info(
-            "Fetched %d unstaged episodes for podcast id=%s title=%s from S3",
-            len(episodes),
-            podcast_id,
-            podcast_title,
-        )
-        return episodes
-    except s3.exceptions.NoSuchKey:
-        logger.info(
-            "No staged episodes found in S3 for podcast id=%s title=%s.",
-            podcast_id,
-            podcast_title,
-        )
-        return []
