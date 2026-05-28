@@ -38,13 +38,4 @@ Create a file that will hold all your secrets by following the terraform.tfvars.
 ```bash
 terraform init
 terraform apply
-```
-
-### 4. Potential issues from deployment
-
-The use of two providers to enable postgres extensions has the potential to create the postgres extension before the Postgres resource has fully deployed, this can raise an error. If it does attempt to re-deploy the infrastructure.
-
-```bash
-terraform apply
-```
 
