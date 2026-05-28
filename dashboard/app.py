@@ -80,12 +80,16 @@ def render_feed() -> None:
         st.write("")
 
 
+from pathlib import Path
+
+PAGES_DIR = Path(__file__).parent / "pages"
+
 navigation = st.navigation(
     [
         st.Page(render_feed, title="Feed", default=True),
-        st.Page("pages/1_Library.py", title="Library"),
-        st.Page("pages/2_AI_Search.py", title="AI Search"),
-        st.Page("pages/3_Settings.py", title="Settings"),
+        st.Page(str(PAGES_DIR / "1_Library.py"), title="Library"),
+        st.Page(str(PAGES_DIR / "2_AI_Search.py"), title="AI Search"),
+        st.Page(str(PAGES_DIR / "3_Settings.py"), title="Settings"),
     ],
     position="sidebar",
 )
