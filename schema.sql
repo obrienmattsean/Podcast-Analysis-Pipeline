@@ -44,8 +44,8 @@ CREATE TABLE IF NOT EXISTS episode_chunks (
   start_time_seconds INTEGER,
   end_time_seconds INTEGER,
   content TEXT,
-  embedding vector(1536),  -- ALTER THE SIZE OF VECTOR
-  chunk_transcript TEXT
+  embedding_vector(1536) NOT NULL,  -- ALTER THE SIZE OF VECTOR
+  chunk_transcript TEXT NOT NULL
 );
 
 
