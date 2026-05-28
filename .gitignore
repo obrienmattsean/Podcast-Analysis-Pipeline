@@ -17,5 +17,3 @@ __pycache__/
 *.tfvars.json
 *.terraform
 *.terraform.lock.hcl
-
-extractor/lo
