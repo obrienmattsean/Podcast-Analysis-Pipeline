@@ -1,0 +1,10 @@
+#Required Variables:
+
+db_master_password = "EXAMPLE PASSWORD"
+db_master_username = "EXAMPLE USERNAME"
+
+
+#Variables with defaults:
+
+rds_database_name = "EXAMPLE DATABASE NAME"
+rds_ingress_cidr_blocks =["EXAMPLE CIDR BLOCK"]

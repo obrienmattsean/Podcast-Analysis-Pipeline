@@ -22,6 +22,31 @@ variable "s3_bucket_name" {
   default     =  "c23-podex-ai-bucket"
 }
 
+
+variable "db_master_username" {
+  description = "Master username for RDS"
+  type        = string
+  sensitive   = true
+}
+
+variable "db_master_password" {
+  description = "Master password for RDS"
+  type        = string
+  sensitive   = true
+}
+
+variable "rds_ingress_cidr_blocks" {
+  description = "CIDR blocks allowed to access RDS"
+  type        = list(string)
+  default     = ["0.0.0.0/0"] # Replace with specific CIDR blocks for better security when deploying.
+}
+
+variable "rds_database_name" {
+  description = "Name of the initial database to create in RDS"
+  type        = string
+  default     = "c23_podcast_analysis_db" # Replace with your desired database name
+}
+
 variable "ecr_image_tag_mutability" {
   description = "Image tag mutability for ECR repositories"
   type        = string

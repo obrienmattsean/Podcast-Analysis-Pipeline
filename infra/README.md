@@ -29,9 +29,13 @@ aws s3api put-public-access-block \
   --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
 ```
 
-### 2. Deploy the infrastructure
+### 2. Create a terraform.tfvars file
+
+Create a file that will hold all your secrets by following the terraform.tfvars.example file template.
+
+### 3. Deploy the infrastructure
 
 ```bash
 terraform init
 terraform apply
-```
+
