@@ -47,5 +47,5 @@ docker stop podcast-dashboard
 The app expects a `.env` file in the `dashboard` directory (alongside `run.sh`). Create one based on your configuration:
 
 ```bash
-cp .env.example .env  # if an example exists
+cp .env.example .env
 ```
