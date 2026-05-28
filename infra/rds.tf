@@ -15,7 +15,7 @@
 # Security Group for RDS
 # ==============================================================================
 resource "aws_security_group" "rds" {
-  name        = "podcast-analysis-rds-sg"
+  name        = "${var.project_name}-podcast-analysis-rds-sg"
   description = "Security group for Podcast Analysis RDS instance"
   vpc_id      = var.vpc_id
 
@@ -40,7 +40,7 @@ resource "aws_security_group" "rds" {
   }
 
   tags = {
-    Name        = "podcast-analysis-rds-sg"
+    Name        = "${var.project_name}-podcast-analysis-rds-sg"
     Environment = var.environment
   }
 }
@@ -50,11 +50,11 @@ resource "aws_security_group" "rds" {
 # ==============================================================================
 # This groups the subnets where RDS is allowed to be deployed
 resource "aws_db_subnet_group" "podcast_analysis" {
-  name       = "podcast-analysis-db-subnet-group"
+  name       = "${var.project_name}-podcast-analysis-db-subnet-group"
   subnet_ids = var.db_subnet_ids
 
   tags = {
-    Name        = "podcast-analysis-db-subnet-group"
+    Name        = "${var.project_name}-podcast-analysis-db-subnet-group"
     Environment = var.environment
   }
 }
@@ -63,7 +63,7 @@ resource "aws_db_subnet_group" "podcast_analysis" {
 # RDS PostgreSQL Instance
 # ==============================================================================
 resource "aws_db_instance" "podcast_analysis" {
-  identifier            = "c23-podcast-analysis-db"
+  identifier            = "${var.project_name}-podcast-analysis-db"
   engine                = "postgres"
   instance_class        = "db.t3.micro"  
   allocated_storage     = 20  
@@ -100,7 +100,7 @@ resource "aws_db_instance" "podcast_analysis" {
   auto_minor_version_upgrade = false  # Manual control over upgrades
 
   tags = {
-    Name        = "podcast-analysis-rds"
+    Name        = "${var.project_name}-rds"
     Environment = var.environment
     Purpose     = "Podcast Analysis Pipeline"
   }
@@ -129,7 +129,7 @@ resource "postgresql_extension" "pgvector" {
 # IAM Role for RDS Monitoring
 # ==============================================================================
 resource "aws_iam_role" "rds_monitoring" {
-  name = "podcast-analysis-rds-monitoring-role"
+  name = "${var.project_name}-rds-monitoring-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
