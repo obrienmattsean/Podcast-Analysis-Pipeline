@@ -118,9 +118,6 @@ def upload_episode_to_s3(s3_client, bucket: str, podcast_id: int, episode: dict)
 
     Returns:
         str | None: Uploaded object path in S3, or None if episode is missing an id.
-
-    Raises:
-        Exception: Raised when the S3 upload fails.
     """
 
     if not episode or not episode.get("episode_id"):
@@ -153,9 +150,6 @@ def upload_podcast_payload_to_s3(
 
     Returns:
         list[str]: Paths for uploaded episode metadata objects.
-
-    Raises:
-        Exception: Raised when the S3 upload fails.
     """
 
     if not episodes_payload:
@@ -231,6 +225,9 @@ def load_all_episodes(
                                    },
                                    ...
                                ]
+        bucket: Target S3 bucket name (default is set by environment variable)
+    Returns:
+        list: List of uploaded S3 paths for all episodes.
     """
     total_uploaded = 0
     total_failed = 0
