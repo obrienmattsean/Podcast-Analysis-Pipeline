@@ -1,0 +1,103 @@
+2026-05-28 23:09:53,867 - extract - INFO - Connecting to PostgreSQL database at host: c23-podex-ai-podcast-analysis-db.c57vkec7dkkx.eu-west-2.rds.amazonaws.com
+2026-05-28 23:09:54,086 - extract - INFO - Database connection established
+2026-05-28 23:09:54,118 - extract - INFO - Inserted podcast with RSS URL: https://media.rss.com/fluxcapacitor/feed.xml and title: Flux Capacitor
+2026-05-28 23:09:54,119 - root - INFO - Starting daily episode pipeline
+2026-05-28 23:09:54,119 - root - INFO - Step 1: Extracting episodes from RSS feeds
+2026-05-28 23:09:54,119 - extract - INFO - Connecting to PostgreSQL database at host: c23-podex-ai-podcast-analysis-db.c57vkec7dkkx.eu-west-2.rds.amazonaws.com
+2026-05-28 23:09:54,183 - extract - INFO - Database connection established
+2026-05-28 23:09:54,197 - botocore.credentials - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2026-05-28 23:09:54,286 - extract - INFO - Starting new episode extraction
+2026-05-28 23:09:54,286 - extract - INFO - Fetching podcasts from database
+2026-05-28 23:09:54,303 - extract - INFO - Fetched 3 podcasts from database
+2026-05-28 23:09:54,303 - extract - INFO - Checking podcast id=3 title=Flux Capacitor
+2026-05-28 23:09:54,311 - extract - INFO - No existing episodes found for podcast_id=3. Will collect up to 15 episodes
+2026-05-28 23:09:54,311 - extract - INFO - Fetching episodes from RSS feed: https://media.rss.com/fluxcapacitor/feed.xml
+2026-05-28 23:09:54,437 - extract - INFO - Fetched 145 episodes from RSS feed
+2026-05-28 23:09:54,438 - extract - INFO - Podcast id=3 title=Flux Capacitor has 15 new episodes
+2026-05-28 23:09:54,438 - extract - INFO - Checking podcast id=13 title=In vivo
+2026-05-28 23:09:54,499 - extract - INFO - No existing episodes found for podcast_id=13. Will collect up to 15 episodes
+2026-05-28 23:09:54,499 - extract - INFO - Fetching episodes from RSS feed: https://media.rss.com/podcasts/invivo/feed.xml
+2026-05-28 23:09:54,540 - extract - INFO - Fetched 0 episodes from RSS feed
+2026-05-28 23:09:54,541 - extract - INFO - Podcast id=13 title=In vivo has 0 new episodes
+2026-05-28 23:09:54,541 - extract - INFO - No new episodes found for podcast id=13 title=In vivo
+2026-05-28 23:09:54,541 - extract - INFO - Checking podcast id=14 title=Listen up
+2026-05-28 23:09:54,548 - extract - INFO - No existing episodes found for podcast_id=14. Will collect up to 15 episodes
+2026-05-28 23:09:54,548 - extract - INFO - Fetching episodes from RSS feed: https://media.rss.com/podcasts/lup/feed.xml
+2026-05-28 23:09:54,596 - extract - INFO - Fetched 0 episodes from RSS feed
+2026-05-28 23:09:54,596 - extract - INFO - Podcast id=14 title=Listen up has 0 new episodes
+2026-05-28 23:09:54,596 - extract - INFO - No new episodes found for podcast id=14 title=Listen up
+2026-05-28 23:09:54,596 - extract - INFO - Extraction complete. Processed podcasts=3, total_new_episodes=15
+2026-05-28 23:09:54,596 - root - INFO - Successfully extracted episodes for 1 podcasts
+2026-05-28 23:09:54,596 - root - INFO - Step 2: Transforming and validating episode data
+2026-05-28 23:09:54,596 - transform - INFO - Starting transform for 1 podcasts
+2026-05-28 23:09:54,596 - transform - INFO - Transforming episodes for podcast id=3 title=Flux Capacitor count=15
+2026-05-28 23:09:54,599 - transform - INFO - Transformed episodes for podcast id=3 title=Flux Capacitor successful=15 failed=0
+2026-05-28 23:09:54,599 - transform - INFO - Transform complete. Processed podcasts=1 total_episodes=15
+2026-05-28 23:09:54,599 - root - INFO - Successfully transformed 1 podcasts with validated episodes
+2026-05-28 23:09:54,599 - root - INFO - Step 3: Loading episodes into RDS database
+2026-05-28 23:09:55,164 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/46/metadata.json
+2026-05-28 23:09:55,203 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/47/metadata.json
+2026-05-28 23:09:55,250 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/48/metadata.json
+2026-05-28 23:09:55,293 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/49/metadata.json
+2026-05-28 23:09:55,336 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/50/metadata.json
+2026-05-28 23:09:55,410 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/51/metadata.json
+2026-05-28 23:09:55,451 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/52/metadata.json
+2026-05-28 23:09:55,585 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/53/metadata.json
+2026-05-28 23:09:55,631 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/54/metadata.json
+2026-05-28 23:09:55,675 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/55/metadata.json
+2026-05-28 23:09:55,723 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/56/metadata.json
+2026-05-28 23:09:55,773 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/57/metadata.json
+2026-05-28 23:09:55,812 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/58/metadata.json
+2026-05-28 23:09:55,855 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/59/metadata.json
+2026-05-28 23:09:55,900 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/3/60/metadata.json
+2026-05-28 23:09:55,900 - load - INFO - Uploaded 15 episodes for podcast id=3
+2026-05-28 23:09:55,900 - load - INFO - Episode load complete. uploaded=15 failed=0
+2026-05-28 23:09:55,900 - root - INFO - Pipeline completed successfully
+2026-05-28 23:19:31,177 - extract - INFO - Connecting to PostgreSQL database at host: c23-podex-ai-podcast-analysis-db.c57vkec7dkkx.eu-west-2.rds.amazonaws.com
+2026-05-28 23:19:31,471 - extract - INFO - Database connection established
+2026-05-28 23:19:31,493 - extract - INFO - Inserted podcast with RSS URL: https://media.rss.com/fluxcapacitor/feed.xml and title: Flux Capacitor
+2026-05-28 23:19:31,493 - root - INFO - Starting daily episode pipeline
+2026-05-28 23:19:31,493 - root - INFO - Step 1: Extracting episodes from RSS feeds
+2026-05-28 23:19:31,493 - extract - INFO - Connecting to PostgreSQL database at host: c23-podex-ai-podcast-analysis-db.c57vkec7dkkx.eu-west-2.rds.amazonaws.com
+2026-05-28 23:19:31,563 - extract - INFO - Database connection established
+2026-05-28 23:19:31,578 - botocore.credentials - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2026-05-28 23:19:31,662 - extract - INFO - Starting new episode extraction
+2026-05-28 23:19:31,662 - extract - INFO - Fetching podcasts from database
+2026-05-28 23:19:31,684 - extract - INFO - Fetched 2 podcasts from database
+2026-05-28 23:19:31,684 - extract - INFO - Checking podcast id=3 title=Flux Capacitor
+2026-05-28 23:19:31,693 - extract - INFO - Fetching episodes from RSS feed: https://media.rss.com/fluxcapacitor/feed.xml
+2026-05-28 23:19:32,490 - extract - INFO - Fetched 145 episodes from RSS feed
+2026-05-28 23:19:32,490 - extract - INFO - Podcast id=3 title=Flux Capacitor has 0 new episodes
+2026-05-28 23:19:32,490 - extract - INFO - No new episodes found for podcast id=3 title=Flux Capacitor
+2026-05-28 23:19:32,490 - extract - INFO - Checking podcast id=17 title=People of Culture
+2026-05-28 23:19:32,501 - extract - INFO - No existing episodes found for podcast_id=17. Will collect up to 15 episodes
+2026-05-28 23:19:32,502 - extract - INFO - Fetching episodes from RSS feed: https://media.rss.com/peopleofculture/feed.xml
+2026-05-28 23:19:33,007 - extract - INFO - Fetched 31 episodes from RSS feed
+2026-05-28 23:19:33,007 - extract - INFO - Podcast id=17 title=People of Culture has 15 new episodes
+2026-05-28 23:19:33,007 - extract - INFO - Extraction complete. Processed podcasts=2, total_new_episodes=15
+2026-05-28 23:19:33,007 - root - INFO - Successfully extracted episodes for 1 podcasts
+2026-05-28 23:19:33,007 - root - INFO - Step 2: Transforming and validating episode data
+2026-05-28 23:19:33,007 - transform - INFO - Starting transform for 1 podcasts
+2026-05-28 23:19:33,007 - transform - INFO - Transforming episodes for podcast id=17 title=People of Culture count=15
+2026-05-28 23:19:33,010 - transform - INFO - Transformed episodes for podcast id=17 title=People of Culture successful=15 failed=0
+2026-05-28 23:19:33,010 - transform - INFO - Transform complete. Processed podcasts=1 total_episodes=15
+2026-05-28 23:19:33,010 - root - INFO - Successfully transformed 1 podcasts with validated episodes
+2026-05-28 23:19:33,010 - root - INFO - Step 3: Loading episodes into RDS database
+2026-05-28 23:19:33,602 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/61/metadata.json
+2026-05-28 23:19:33,650 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/62/metadata.json
+2026-05-28 23:19:33,734 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/63/metadata.json
+2026-05-28 23:19:33,777 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/64/metadata.json
+2026-05-28 23:19:33,914 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/65/metadata.json
+2026-05-28 23:19:33,960 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/66/metadata.json
+2026-05-28 23:19:34,022 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/67/metadata.json
+2026-05-28 23:19:34,065 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/68/metadata.json
+2026-05-28 23:19:34,108 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/69/metadata.json
+2026-05-28 23:19:34,152 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/70/metadata.json
+2026-05-28 23:19:34,201 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/71/metadata.json
+2026-05-28 23:19:34,249 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/72/metadata.json
+2026-05-28 23:19:34,291 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/73/metadata.json
+2026-05-28 23:19:34,416 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/74/metadata.json
+2026-05-28 23:19:34,462 - load - INFO - Uploaded episode to s3://c23-podex-ai-bucket/podcasts/17/75/metadata.json
+2026-05-28 23:19:34,462 - load - INFO - Uploaded 15 episodes for podcast id=17
+2026-05-28 23:19:34,462 - load - INFO - Episode load complete. uploaded=15 failed=0
+2026-05-28 23:19:34,462 - root - INFO - Pipeline completed successfully
