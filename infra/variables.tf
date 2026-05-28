@@ -46,12 +46,6 @@ variable "ecr_keep_last_images" {
   default     = 10
 }
 
-variable "lambda_timeout" {
-  description = "Lambda function timeout in seconds"
-  type        = number
-  default     = 60
-}
-
 variable "lambda_memory_size" {
   description = "Lambda memory allocation in MB"
   type        = number
