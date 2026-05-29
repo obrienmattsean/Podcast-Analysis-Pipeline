@@ -80,7 +80,7 @@ python handler.py
 
 - `extract_new_episodes()`: Fetches and parses RSS feeds
 - `transform_all_podcast_episodes()`: Validates and formats episode data
-- `load_all_episodes()`: Inserts episodes with statistics
+- `load_all_episodes()`: Inserts episodes with upload paths to S3
 - `lambda_handler(event, context)`: Main entry point
 
 ## Lambda Response
