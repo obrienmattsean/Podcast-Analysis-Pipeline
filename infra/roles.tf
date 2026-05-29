@@ -24,7 +24,7 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring" {
 }
 
 # ==============================================================================
-# IAM Role for Transform Lambda
+# IAM Role for Transcribe Lambda
 # ==============================================================================
 resource "aws_iam_role" "transform_role" {
   name = "${var.project_name}-transform-role"
