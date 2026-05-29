@@ -43,7 +43,7 @@ resource "aws_iam_role" "transcribe_role" {
   })
 }
 
-resource "aws_iam_policy" "transform_policy" {
+resource "aws_iam_policy" "transcribe_policy" {
   name        = "${var.project_name}-transform-policy"
   description = "Policy for Transform Lambda function"
 
