@@ -1,6 +1,7 @@
 """Local runner for extract-transform-load pipeline smoke checks."""
 
 import logging
+from pprint import pprint
 
 from dotenv import load_dotenv
 from extract import (
@@ -34,9 +35,6 @@ def lambda_handler(event=None, context=None):
     Returns:
         dict: A response dictionary with status code and message.
     """
-    if event is not None:
-        print(f"Received event: {event}")
-        insert_podcast(event["rss_url"], event.get("title", "unknown"))
 
     logger.info("Starting daily episode pipeline")
 
@@ -44,6 +42,11 @@ def lambda_handler(event=None, context=None):
     logger.info("Step 1: Extracting episodes from RSS feeds")
     db_conn = get_database_connection()
     s3_client = get_s3_client()
+
+    if event is not None:
+        logger.info("Received event: %s", event)
+        insert_podcast(db_conn, event["rss_url"])
+
     extracted_data = extract_new_episodes(db_conn)
     logger.info("Successfully extracted episodes for %s podcasts", len(extracted_data))
 
@@ -72,6 +75,8 @@ def lambda_handler(event=None, context=None):
 
 
 if __name__ == "__main__":
+    # Run the Lambda handler locally for testing
     load_dotenv()
-    url = "https://media.rss.com/fluxcapacitor/feed.xml"
-    lambda_handler({"rss_url": url, "title": "Flux Capacitor"}, None)
+    url = "https://media.rss.com/space3dpodcast/feed.xml"
+    a = lambda_handler({"rss_url": url}, None)
+    pprint(a)

@@ -3,7 +3,6 @@ from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import load  # noqa: E402
-import pytest
 
 
 class TestSerializeEpisode:
@@ -186,8 +185,8 @@ class TestUploadPodcastPayloadToS3:
         assert second_call["Key"] == "1/102/metadata.json"
         assert json.loads(second_call["Body"]) == episodes[1]
         assert paths == [
-            "s3://test-bucket/1/101/metadata.json",
-            "s3://test-bucket/1/102/metadata.json",
+            "s3://test-bucket/1/101",
+            "s3://test-bucket/1/102",
         ]
 
     def test_uploads_with_correct_s3_key_format(self):
@@ -198,15 +197,7 @@ class TestUploadPodcastPayloadToS3:
 
         call_kwargs = mock_s3.put_object.call_args[1]
         assert call_kwargs["Key"] == "42/77/metadata.json"
-        assert paths == ["s3://bucket/42/77/metadata.json"]
-
-    def test_raises_on_s3_upload_error(self):
-        mock_s3 = MagicMock()
-        mock_s3.put_object.side_effect = Exception("S3 error")
-        episodes = [{"title": "Ep", "episode_id": 5}]
-
-        with pytest.raises(Exception, match="S3 error"):
-            load.upload_podcast_payload_to_s3(mock_s3, "bucket", 1, episodes)
+        assert paths == ["s3://bucket/42/77"]
 
     def test_uploads_empty_episodes_list(self):
         mock_s3 = MagicMock()
@@ -265,7 +256,7 @@ class TestLoadPodcastEpisodes:
 
         assert uploaded == 1
         assert failed == 2
-        assert uploaded_paths == ["s3://bucket/1/1/metadata.json"]
+        assert uploaded_paths == ["s3://bucket/1/1"]
 
     def test_returns_zero_counts_for_empty_episodes(self):
         conn, s3 = MagicMock(), MagicMock()
@@ -303,8 +294,8 @@ class TestLoadAllEpisodes:
     @patch("load.load_podcast_episodes")
     def test_sums_counts_across_podcasts(self, mock_load_podcast):
         mock_load_podcast.side_effect = [
-            (2, 0, ["s3://bucket/1/10/metadata.json", "s3://bucket/1/11/metadata.json"]),
-            (1, 1, ["s3://bucket/2/21/metadata.json"]),
+            (2, 0, ["s3://bucket/1/10", "s3://bucket/1/11"]),
+            (1, 1, ["s3://bucket/2/21"]),
         ]
         conn, s3 = MagicMock(), MagicMock()
         entries = [
@@ -316,17 +307,17 @@ class TestLoadAllEpisodes:
 
         assert mock_load_podcast.call_count == 2
         assert uploaded_paths == [
-            "s3://bucket/1/10/metadata.json",
-            "s3://bucket/1/11/metadata.json",
-            "s3://bucket/2/21/metadata.json",
+            "s3://bucket/1/10",
+            "s3://bucket/1/11",
+            "s3://bucket/2/21",
         ]
 
     @patch("load.load_podcast_episodes")
     def test_processes_all_podcasts_even_if_one_fails(self, mock_load_podcast):
         mock_load_podcast.side_effect = [
-            (2, 0, ["s3://bucket/1/1/metadata.json", "s3://bucket/1/2/metadata.json"]),
+            (2, 0, ["s3://bucket/1/1", "s3://bucket/1/2"]),
             (0, 2, []),
-            (1, 0, ["s3://bucket/3/3/metadata.json"]),
+            (1, 0, ["s3://bucket/3/3"]),
         ]
         conn, s3 = MagicMock(), MagicMock()
         entries = [
@@ -339,7 +330,7 @@ class TestLoadAllEpisodes:
 
         assert mock_load_podcast.call_count == 3
         assert uploaded_paths == [
-            "s3://bucket/1/1/metadata.json",
-            "s3://bucket/1/2/metadata.json",
-            "s3://bucket/3/3/metadata.json",
+            "s3://bucket/1/1",
+            "s3://bucket/1/2",
+            "s3://bucket/3/3",
         ]

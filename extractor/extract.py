@@ -2,16 +2,16 @@
 
 import logging
 from datetime import datetime
+from pprint import pprint
 
 import feedparser
 from psycopg2.extensions import connection
 from psycopg2.extras import RealDictCursor
-from utility import get_database_connection
 
 logger = logging.getLogger(__name__)
 
 
-def insert_podcast(rss_url: str, title: str) -> None:
+def insert_podcast(conn, rss_url: str) -> None:
     """Insert a new podcast into the database with the given RSS URL.
 
     Args:
@@ -29,7 +29,9 @@ def insert_podcast(rss_url: str, title: str) -> None:
     if not isinstance(rss_url, str) or not rss_url:
         raise ValueError("RSS URL must be a non-empty string.")
 
-    conn = get_database_connection()
+    parts = rss_url.split("/")
+    title = parts[-2] if len(parts) > 1 else "unknown"
+
     try:
         with conn.cursor() as cursor:
             cursor.execute(
@@ -39,10 +41,9 @@ def insert_podcast(rss_url: str, title: str) -> None:
             conn.commit()
             logger.info("Inserted podcast with RSS URL: %s and title: %s", rss_url, title)
     except Exception:
+        conn.rollback()
         logger.exception("Failed to insert podcast with RSS URL: %s", rss_url)
         raise
-    finally:
-        conn.close()
 
 
 def get_podcasts_from_database(conn: connection) -> list:
@@ -242,3 +243,10 @@ def extract_new_episodes(conn: connection):
         total_new_episodes,
     )
     return extracted_episodes
+
+
+if __name__ == "__main__":
+    # Run locally for testing
+    url = "https://media.rss.com/peopleofculture/feed.xml"
+    a = get_episodes_from_rss(url)
+    pprint(a)

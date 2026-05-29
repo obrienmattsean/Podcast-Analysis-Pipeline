@@ -124,12 +124,12 @@ def upload_episode_to_s3(s3_client, bucket: str, podcast_id: int, episode: dict)
         return None
 
     episode_id = episode["episode_id"]
-    s3_key = f"{podcast_id}/{episode_id}/metadata.json"
+    s3_key = f"{podcast_id}/{episode_id}"
     json_content = json.dumps(episode, indent=2)
 
     s3_client.put_object(
         Bucket=bucket,
-        Key=s3_key,
+        Key=s3_key + "/metadata.json",
         Body=json_content,
         ContentType="application/json",
     )
