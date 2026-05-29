@@ -8,7 +8,7 @@ from datetime import datetime
 from model import ValidatedEpisode
 from psycopg2.extensions import connection
 
-BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "c23-podex-ai-bucket")
+BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 
 
 logger = logging.getLogger(__name__)
