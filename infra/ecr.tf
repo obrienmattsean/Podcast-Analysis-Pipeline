@@ -1,5 +1,14 @@
 locals {
-  ecr_keys = ["extract"]
+  # The comprehensive list of all project container registries
+  ecr_keys = [
+    "extract", 
+    "transcribe",
+    "enrich",
+    "upload", 
+    "rag",
+    "email-notifications",
+    "streamlit-ui"
+  ]
 }
 
 resource "aws_ecr_repository" "repositories" {
