@@ -1,4 +1,8 @@
+from pathlib import Path
+
 import streamlit as st
+
+PAGES_DIR = Path(__file__).parent / "pages"
 
 st.set_page_config(page_title="Feed", layout="wide", initial_sidebar_state="expanded")
 st.markdown(
@@ -79,10 +83,6 @@ def render_feed() -> None:
 
         st.write("")
 
-
-from pathlib import Path
-
-PAGES_DIR = Path(__file__).parent / "pages"
 
 navigation = st.navigation(
     [
