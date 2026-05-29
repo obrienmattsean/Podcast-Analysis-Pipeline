@@ -49,6 +49,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           if [ -f pipeline/requirements.txt ]; then pip install -r pipeline/requirements.txt; fi
+          if [ -f extractor/requirements.txt ]; then pip install -r extractor/requirements.txt; fi
 
       - name: Run tests
         run: pytest --tb=short -p no:cacheprovider

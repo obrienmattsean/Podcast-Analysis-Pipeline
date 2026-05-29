@@ -1,5 +1,4 @@
-feedparser
-psycopg2-binary
-pydantic
-boto3
-python-dotenv
+pre-commit
+ruff
+pyrefly
+pytest
