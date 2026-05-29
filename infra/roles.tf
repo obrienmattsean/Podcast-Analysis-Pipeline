@@ -71,8 +71,7 @@ resource "aws_iam_policy" "extract_policy" {
         Sid    = "S3PutObject"
         Effect = "Allow"
         Action = [
-          "s3:PutObject",
-          "s3:PutObjectAcl"
+          "s3:PutObject"
         ]
         Resource = "${aws_s3_bucket.podcast_bucket.arn}/*"
       }
