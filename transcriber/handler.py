@@ -28,9 +28,6 @@ def lambda_handler(event: dict[str, Any] | None = None, context: Any = None) -> 
 
     Returns:
         dict[str, Any]: Response payload with statusCode, message, and episode_uri.
-            On success (statusCode 200): {'statusCode': 200, 'message': 'Transcription successful.', 'episode_uri': '...'}
-            On validation error (statusCode 400): {'statusCode': 400, 'message': '...', 'episode_uri': '...'}
-            On pipeline error (statusCode 500): {'statusCode': 500, 'message': '...', 'episode_uri': '...'}
 
     Example:
         >>> lambda_handler({"episode_s3_uri": "s3://c23-podex-ai-bucket/21/93/"}, None)
@@ -65,7 +62,7 @@ def lambda_handler(event: dict[str, Any] | None = None, context: Any = None) -> 
                 chunk_length_minutes=chunk_length_minutes,
             )
 
-        transcript_uri = upload_transcript_text(s3_client, location, transcript)
+        upload_transcript_text(s3_client, location, transcript)
         s3_client.close()
 
         return {
