@@ -74,6 +74,16 @@ resource "aws_iam_policy" "extract_policy" {
           "s3:PutObject"
         ]
         Resource = "${aws_s3_bucket.podcast_bucket.arn}/*"
+      },
+      {
+        Sid    = "EC2VPCNetworkInterface"
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface"
+        ]
+        Resource = "*"
       }
     ]
   })

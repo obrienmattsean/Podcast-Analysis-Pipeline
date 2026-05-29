@@ -10,6 +10,11 @@ resource "aws_lambda_function" "extract" {
   timeout     = 300
   memory_size = var.lambda_memory_size
 
+  vpc_config {
+    subnet_ids         = data.aws_subnets.private_subnets.ids
+    security_group_ids = [aws_security_group.rds.id]
+  }
+
   environment {
     variables = {
       S3_BUCKET_NAME = aws_s3_bucket.podcast_bucket.id
