@@ -10,7 +10,8 @@ from extract import (
 )
 from load import load_all_episodes
 from transform import transform_all_podcast_episodes
-from utility import get_database_connection, get_s3_client
+
+from extractor.utils import get_database_connection, get_s3_client
 
 # Configure logging to file and console
 logging.basicConfig(

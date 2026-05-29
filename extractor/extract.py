@@ -123,6 +123,39 @@ def get_episodes_from_rss(url: str) -> list:
     return feed.entries
 
 
+def filter_episodes_by_datetime(
+    episodes: list[dict], cutoff_datetime: datetime = None
+) -> list[dict]:
+    """Filter episodes to only include those published after a cutoff date.
+
+    Args:
+        episodes (list[dict]): List of episode entries with 'published_parsed' field.
+        cutoff_datetime (datetime | None): Datetime to filter episodes against.
+
+    Returns:
+        list[dict]: Filtered list of episodes published after the cutoff date.
+    """
+
+    new_episodes = []
+    for episode in episodes:
+        try:
+            published_at = datetime(*episode["published_parsed"][:6])
+        except Exception:
+            logger.warning("Skipping episode with invalid published date")
+            continue
+
+        if not cutoff_datetime:
+            if len(new_episodes) < 15:
+                new_episodes.append(episode)
+            else:
+                break
+        elif published_at > cutoff_datetime:
+            new_episodes.append(episode)
+        else:
+            continue
+    return new_episodes
+
+
 def get_new_episodes_for_podcast(conn: connection, podcast: dict) -> list[dict]:
     """Get new RSS episodes for a single podcast compared with DB state.
 
@@ -152,35 +185,15 @@ def get_new_episodes_for_podcast(conn: connection, podcast: dict) -> list[dict]:
         )
 
     episodes = get_episodes_from_rss(podcast["rss_url"])
-    new_episodes = []
-    for episode in episodes:
-        try:
-            published_at = datetime(*episode["published_parsed"][:6])
-        except Exception:
-            logger.warning(
-                "Skipping episode with invalid published date for podcast_id=%s title=%s",
-                podcast_id,
-                podcast_title,
-            )
-            continue
-
-        if not latest_episode_date:
-            if len(new_episodes) < 15:
-                new_episodes.append(episode)
-            else:
-                break
-        elif published_at > latest_episode_date:
-            new_episodes.append(episode)
-        else:
-            continue
+    filtered_episodes = filter_episodes_by_datetime(episodes, cutoff_datetime=latest_episode_date)
 
     logger.info(
         "Podcast id=%s title=%s has %d new episodes",
         podcast_id,
         podcast_title,
-        len(new_episodes),
+        len(filtered_episodes),
     )
-    return new_episodes
+    return filtered_episodes
 
 
 def extract_new_episodes(conn: connection) -> list[dict]:
