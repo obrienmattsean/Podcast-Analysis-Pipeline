@@ -1,5 +1,5 @@
 # ==============================================================================
-# Transform Lambda Function
+# Transcribe Lambda Function
 # ==============================================================================
 resource "aws_lambda_function" "transform" {
   function_name = "${var.project_name}-transform"
