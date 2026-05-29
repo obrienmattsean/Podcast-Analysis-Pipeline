@@ -65,6 +65,7 @@ export RDS_HOST=localhost
 export RDS_DBNAME=podexai
 export RDS_USERNAME=postgres
 export RDS_PASSWORD=password
+export S3_BUCKET_NAME=podexai
 
 python handler.py
 ```
