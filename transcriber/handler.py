@@ -84,10 +84,3 @@ def lambda_handler(event: dict[str, Any] | None = None, context: Any = None) -> 
             "message": "Transcription pipeline failed",
             "episode_uri": episode_s3_uri,
         }
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    test_event = {"episode_s3_uri": "s3://c23-podex-ai-bucket/21/93/"}
-    result = lambda_handler(test_event, None)
-    print(result)
