@@ -84,3 +84,4 @@ variable "common_tags" {
     Team = "platform"
   }
 }
+
