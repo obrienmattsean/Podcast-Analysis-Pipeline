@@ -1,7 +1,7 @@
 # ==============================================================================
 # Transcribe Lambda Function
 # ==============================================================================
-resource "aws_lambda_function" "transform" {
+resource "aws_lambda_function" "transcribe" {
   function_name = "${var.project_name}-transform"
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.repositories["transcribe"].repository_url}:latest"
