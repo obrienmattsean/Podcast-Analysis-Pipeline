@@ -45,7 +45,7 @@ resource "aws_iam_role" "transcribe_role" {
 
 resource "aws_iam_policy" "transcribe_policy" {
   name        = "${var.project_name}-transcribe-policy"
-  description = "Policy for Transform Lambda function"
+  description = "Policy for Transcribe Lambda function"
 
   policy = jsonencode({
     Version = "2012-10-17"
