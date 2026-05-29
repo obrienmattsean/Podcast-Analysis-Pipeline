@@ -8,7 +8,7 @@ resource "aws_lambda_function" "extract" {
   image_uri     = "${aws_ecr_repository.repositories["extract"].repository_url}:latest"
 
   timeout     = 300
-  memory_size = 512
+  memory_size = var.lambda_memory_size
 
   environment {
     variables = {
