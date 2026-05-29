@@ -5,6 +5,7 @@ import logging
 import os
 from datetime import datetime
 
+from botocore.client import BaseClient
 from model import ValidatedEpisode
 from psycopg2.extensions import connection
 
@@ -32,12 +33,13 @@ def serialize_episode(episode: ValidatedEpisode) -> dict:
     return episode_dict
 
 
-def _insert_episodes_to_db(conn, episodes: list[dict]) -> list[dict]:
+def _insert_episodes_to_db(conn: connection, episodes: list[dict]) -> list[dict]:
     """
     Insert episodes and return enriched payloads safely.
     Each result keeps its own episode_id (or None if failed).
 
     Args:
+        conn: Active psycopg2 database connection.
         episodes (list[dict]): List of serialized episode payloads.
 
     Returns:
@@ -82,7 +84,7 @@ def _insert_episodes_to_db(conn, episodes: list[dict]) -> list[dict]:
     return results
 
 
-def build_episode_list_payload(conn, podcast_episode_data: dict) -> list[dict]:
+def build_episode_list_payload(conn: connection, podcast_episode_data: dict) -> list[dict]:
     """Insert episodes and return enriched payload.
 
     Args:
@@ -107,7 +109,9 @@ def build_episode_list_payload(conn, podcast_episode_data: dict) -> list[dict]:
     return enriched
 
 
-def upload_episode_to_s3(s3_client, bucket: str, podcast_id: int, episode: dict) -> str | None:
+def upload_episode_to_s3(
+    s3_client: BaseClient, bucket: str, podcast_id: int, episode: dict
+) -> str | None:
     """Upload a single episode metadata to S3.
 
     Args:
@@ -138,7 +142,7 @@ def upload_episode_to_s3(s3_client, bucket: str, podcast_id: int, episode: dict)
 
 
 def upload_podcast_payload_to_s3(
-    s3_client, bucket: str, podcast_id: int, episodes_payload: list[dict]
+    s3_client: BaseClient, bucket: str, podcast_id: int, episodes_payload: list[dict]
 ) -> list[str]:
     """Upload episodes to S3 as individual metadata files.
 
@@ -174,7 +178,7 @@ def upload_podcast_payload_to_s3(
 
 
 def load_podcast_episodes(
-    conn: connection, s3_client, bucket: str, podcast_episode_data: dict
+    conn: connection, s3_client: BaseClient, bucket: str, podcast_episode_data: dict
 ) -> tuple[int, int, list[str]]:
     """Load one podcast's episodes to DB and S3.
 
@@ -207,7 +211,7 @@ def load_podcast_episodes(
 
 
 def load_all_episodes(
-    conn: connection, s3_client, podcast_episodes_list: list, bucket: str = BUCKET_NAME
+    conn: connection, s3_client: BaseClient, podcast_episodes_list: list, bucket: str = BUCKET_NAME
 ) -> list[str]:
     """Loads episodes for all podcasts into the database and S3.
 

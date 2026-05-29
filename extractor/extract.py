@@ -11,12 +11,12 @@ from psycopg2.extras import RealDictCursor
 logger = logging.getLogger(__name__)
 
 
-def insert_podcast(conn, rss_url: str) -> None:
+def insert_podcast(conn: connection, rss_url: str) -> None:
     """Insert a new podcast into the database with the given RSS URL.
 
     Args:
+        conn (connection): Active psycopg2 database connection.
         rss_url (str): The RSS feed URL of the podcast to insert.
-        title (str): The title of the podcast.
 
     Returns:
         None
@@ -46,7 +46,7 @@ def insert_podcast(conn, rss_url: str) -> None:
         raise
 
 
-def get_podcasts_from_database(conn: connection) -> list:
+def get_podcasts_from_database(conn: connection) -> list[dict]:
     """Fetch podcast metadata rows from the database.
 
     Args:
@@ -73,7 +73,7 @@ def get_latest_episode_date_from_podcast(conn: connection, podcast_id: int) -> d
         podcast_id (int): Podcast identifier.
 
     Returns:
-        Optional[datetime]: Latest publication datetime, or None if no rows exist.
+        datetime | None: Latest publication datetime, or None if no rows exist.
 
     Raises:
         ValueError: If podcast_id is not an integer.
@@ -138,10 +138,7 @@ def get_new_episodes_for_podcast(conn: connection, podcast: dict) -> list[dict]:
     podcast_title = podcast.get("title", "unknown")
     logger.info("Checking podcast id=%s title=%s", podcast_id, podcast_title)
 
-    latest_episode_date = get_latest_episode_date_from_podcast(
-        conn,
-        podcast["id"],
-    )
+    latest_episode_date = get_latest_episode_date_from_podcast(conn, podcast["id"])
     if latest_episode_date:
         logger.debug(
             "Latest stored episode date for podcast_id=%s is %s",
@@ -186,7 +183,7 @@ def get_new_episodes_for_podcast(conn: connection, podcast: dict) -> list[dict]:
     return new_episodes
 
 
-def extract_new_episodes(conn: connection):
+def extract_new_episodes(conn: connection) -> list[dict]:
     """Extract new episodes for all podcasts in the database
 
     This is the main orchestration function that:

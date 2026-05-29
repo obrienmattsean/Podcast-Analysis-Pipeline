@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, HttpUrl, PastDatetime, field_validator
 
 
 class ValidatedEpisode(BaseModel):
@@ -17,7 +15,7 @@ class ValidatedEpisode(BaseModel):
     podcast_id: int
     title: str
     audio_link: HttpUrl
-    published_at: datetime
+    published_at: PastDatetime
 
     @field_validator("audio_link")
     @classmethod
