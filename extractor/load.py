@@ -2,15 +2,11 @@
 
 import json
 import logging
-import os
 from datetime import datetime
 
 from botocore.client import BaseClient
 from model import ValidatedEpisode
 from psycopg2.extensions import connection
-
-BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
-
 
 logger = logging.getLogger(__name__)
 
@@ -138,7 +134,7 @@ def upload_episode_to_s3(
         ContentType="application/json",
     )
     logger.info("Uploaded episode to s3://%s/%s", bucket, s3_key)
-    return f"s3://{bucket}/{s3_key}"
+    return f"s3://{bucket}/{s3_key}/"
 
 
 def upload_podcast_payload_to_s3(
@@ -173,7 +169,7 @@ def upload_podcast_payload_to_s3(
                 podcast_id,
             )
 
-    logger.info("Uploaded %d episodes for podcast id=%s", len(episodes_payload), podcast_id)
+    logger.info("Uploaded %d episodes for podcast id=%s", len(uploaded_paths), podcast_id)
     return uploaded_paths
 
 
@@ -211,7 +207,7 @@ def load_podcast_episodes(
 
 
 def load_all_episodes(
-    conn: connection, s3_client: BaseClient, podcast_episodes_list: list, bucket: str = BUCKET_NAME
+    conn: connection, s3_client: BaseClient, podcast_episodes_list: list, bucket: str
 ) -> list[str]:
     """Loads episodes for all podcasts into the database and S3.
 
@@ -229,7 +225,7 @@ def load_all_episodes(
                                    },
                                    ...
                                ]
-        bucket: Target S3 bucket name (default is set by environment variable)
+        bucket: Target S3 bucket name
     Returns:
         list: List of uploaded S3 paths for all episodes.
     """
