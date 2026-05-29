@@ -1,7 +1,6 @@
 """S3 helper utilities for episode metadata and transcript object management."""
 
 import json
-import os
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlparse
@@ -41,12 +40,7 @@ def get_s3_client() -> Any:
         Any: A boto3 S3 client instance.
     """
 
-    return boto3.client(
-        "s3",
-        region_name=os.getenv("AWS_REGION", "eu-west-2"),
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-    )
+    return boto3.client("s3")
 
 
 def parse_episode_s3_uri(
