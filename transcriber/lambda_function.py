@@ -19,7 +19,7 @@ from transcribe import transcribe_audio_to_text
 logger = logging.getLogger(__name__)
 
 
-def lambda_handler(event: dict[str, Any] | None = None, context: Any = None) -> dict[str, Any]:
+def handler(event: dict[str, Any] | None = None, context: Any = None) -> dict[str, Any]:
     """Process an episode S3 URI and upload transcript text to the same prefix.
 
     Args:
@@ -30,7 +30,7 @@ def lambda_handler(event: dict[str, Any] | None = None, context: Any = None) -> 
         dict[str, Any]: Response payload with statusCode, message, and episode_uri.
 
     Example:
-        >>> lambda_handler({"episode_s3_uri": "s3://c23-podex-ai-bucket/21/93/"}, None)
+        >>> handler({"episode_s3_uri": "s3://c23-podex-ai-bucket/21/93/"}, None)
         {'statusCode': 200, 'message': 'Transcription successful.', 'episode_uri': 's3://c23-podex-ai-bucket/21/93/'}
     """
 
@@ -42,45 +42,30 @@ def lambda_handler(event: dict[str, Any] | None = None, context: Any = None) -> 
 
     episode_s3_uri = event["episode_s3_uri"]
 
-    try:
-        location = parse_episode_s3_uri(episode_s3_uri)
-        s3_client = get_s3_client()
+    location = parse_episode_s3_uri(episode_s3_uri)
+    s3_client = get_s3_client()
 
-        metadata = read_episode_metadata(s3_client, location)
-        audio_url = extract_audio_link(metadata)
+    metadata = read_episode_metadata(s3_client, location)
+    audio_url = extract_audio_link(metadata)
 
-        transcribe_model = os.getenv("TRANSCRIBE_MODEL", "whisper-1")
-        chunk_length_minutes = int(os.getenv("CHUNK_LENGTH_MINUTES", "10"))
+    transcribe_model = os.getenv("TRANSCRIBE_MODEL", "whisper-1")
+    chunk_length_minutes = int(os.getenv("CHUNK_LENGTH_MINUTES", "10"))
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
-            source_audio_path = download_audio_file(audio_url, temp_path / "audio.mp3")
-            transcript = transcribe_audio_to_text(
-                source_audio_path=source_audio_path,
-                chunks_output_dir=temp_path / "chunks",
-                transcribe_model=transcribe_model,
-                chunk_length_minutes=chunk_length_minutes,
-            )
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        source_audio_path = download_audio_file(audio_url, temp_path / "audio.mp3")
+        transcript = transcribe_audio_to_text(
+            source_audio_path=source_audio_path,
+            chunks_output_dir=temp_path / "chunks",
+            transcribe_model=transcribe_model,
+            chunk_length_minutes=chunk_length_minutes,
+        )
 
-        upload_transcript_text(s3_client, location, transcript)
-        s3_client.close()
+    upload_transcript_text(s3_client, location, transcript)
+    s3_client.close()
 
-        return {
-            "statusCode": 200,
-            "message": "Transcription successful.",
-            "episode_uri": episode_s3_uri,
-        }
-    except ValueError as exc:
-        logger.exception("Validation failed for episode_s3_uri=%s", episode_s3_uri)
-        return {
-            "statusCode": 400,
-            "message": str(exc),
-            "episode_uri": episode_s3_uri,
-        }
-    except Exception:
-        logger.exception("Transcription pipeline failed for episode_s3_uri=%s", episode_s3_uri)
-        return {
-            "statusCode": 500,
-            "message": "Transcription pipeline failed",
-            "episode_uri": episode_s3_uri,
-        }
+    return {
+        "statusCode": 200,
+        "message": "Transcription successful.",
+        "episode_uri": episode_s3_uri,
+    }
