@@ -14,10 +14,7 @@ resource "aws_secretsmanager_secret" "app_secrets" {
   )
 }
 
-resource "aws_secretsmanager_secret_version" "app_secrets_version" {
-  secret_id = aws_secretsmanager_secret.app_secrets.id
-  secret_string = jsonencode({
-    DATABASE_URL    = "postgresql://user:password@hostname:5432/dbname"
-    OPENAI_API_KEY  = "sk-placeholder-api-key"
-  })
-}
+# NOTE: Do not manage secret values in Terraform state or commit them to VCS.
+# Populate the secret value out-of-band (e.g., via CI or:
+#   aws secretsmanager put-secret-value --secret-id ${var.project_name}-app-secrets --secret-string '{"DATABASE_URL":"...","OPENAI_API_KEY":"..."}'
+# ).
