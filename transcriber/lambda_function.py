@@ -76,10 +76,3 @@ def handler(event: str | dict[str, Any] | None = None, context: Any = None) -> d
         "message": "Transcription successful.",
         "episode_uri": episode_s3_uri,
     }
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    example_event = "s3://c23-podex-ai-bucket/26/199/"
-    result = handler(example_event, None)
-    print(result)
