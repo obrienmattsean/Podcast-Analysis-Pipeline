@@ -185,8 +185,8 @@ class TestUploadPodcastPayloadToS3:
         assert second_call["Key"] == "1/102/metadata.json"
         assert json.loads(second_call["Body"]) == episodes[1]
         assert paths == [
-            "s3://test-bucket/1/101",
-            "s3://test-bucket/1/102",
+            "s3://test-bucket/1/101/",
+            "s3://test-bucket/1/102/",
         ]
 
     def test_uploads_with_correct_s3_key_format(self):
@@ -197,7 +197,7 @@ class TestUploadPodcastPayloadToS3:
 
         call_kwargs = mock_s3.put_object.call_args[1]
         assert call_kwargs["Key"] == "42/77/metadata.json"
-        assert paths == ["s3://bucket/42/77"]
+        assert paths == ["s3://bucket/42/77/"]
 
     def test_uploads_empty_episodes_list(self):
         mock_s3 = MagicMock()
@@ -256,7 +256,7 @@ class TestLoadPodcastEpisodes:
 
         assert uploaded == 1
         assert failed == 2
-        assert uploaded_paths == ["s3://bucket/1/1"]
+        assert uploaded_paths == ["s3://bucket/1/1/"]
 
     def test_returns_zero_counts_for_empty_episodes(self):
         conn, s3 = MagicMock(), MagicMock()

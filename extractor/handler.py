@@ -1,6 +1,7 @@
 """Local runner for extract-transform-load pipeline smoke checks."""
 
 import logging
+import os
 from pprint import pprint
 
 from dotenv import load_dotenv
@@ -10,8 +11,7 @@ from extract import (
 )
 from load import load_all_episodes
 from transform import transform_all_podcast_episodes
-
-from extractor.utils import get_database_connection, get_s3_client
+from utils import get_database_connection, get_s3_client
 
 # Configure logging to file and console
 logging.basicConfig(
@@ -22,6 +22,8 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger()
+load_dotenv()
+BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 
 
 def lambda_handler(event=None, context=None):
@@ -60,7 +62,7 @@ def lambda_handler(event=None, context=None):
 
     # Step 3: Load validated episodes into database
     logger.info("Step 3: Loading episodes into RDS database")
-    uploaded_paths = load_all_episodes(db_conn, s3_client, transformed_data)
+    uploaded_paths = load_all_episodes(db_conn, s3_client, transformed_data, BUCKET_NAME)
     # Close database connection
     db_conn.close()
     s3_client.close()
@@ -77,7 +79,6 @@ def lambda_handler(event=None, context=None):
 
 if __name__ == "__main__":
     # Run the Lambda handler locally for testing
-    load_dotenv()
-    url = "https://media.rss.com/space3dpodcast/feed.xml"
+    url = "https://media.rss.com/waitdontdoit/feed.xml"
     a = lambda_handler({"rss_url": url}, None)
     pprint(a)
