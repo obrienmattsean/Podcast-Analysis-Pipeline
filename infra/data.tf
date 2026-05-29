@@ -28,3 +28,10 @@ data "aws_subnets" "public_subnets" {
     values = ["*public*"]  # Discovers subnets with "public" in their name
   }
 }
+
+data "aws_vpc" "existing" {
+  filter {
+    name   = "tag:Name"
+    values = ["c23-vpc"]
+  }
+}
