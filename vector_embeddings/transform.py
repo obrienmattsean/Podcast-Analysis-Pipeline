@@ -172,8 +172,6 @@ def process_transcript(client: OpenAI, transcript: str) -> list[dict]:
             - embedding: The embedding vector as a list of floats.
             - text: The chunk text content.
 
-    Raises:
-        OpenAIError: If embedding generation fails.
     """
     logger.info(
         "Transforming transcript into %d-token chunks with %d-token overlap",
