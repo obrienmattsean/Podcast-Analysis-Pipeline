@@ -1,4 +1,8 @@
-"""Script to load vector embeddings into the database."""
+"""Load vector embeddings into PostgreSQL database.
+
+This module handles database operations for storing episode chunks
+and their corresponding embedding vectors for RAG pipeline retrieval.
+"""
 
 import logging
 import os
@@ -17,7 +21,13 @@ RDS_PORT = int(os.getenv("RDS_PORT", 5432))
 
 
 def get_db_connection() -> connection:
-    """Create database connection."""
+    """Create a PostgreSQL database connection.
+
+    Connects to RDS PostgreSQL instance using credentials from environment variables.
+
+    Returns:
+        An active psycopg2 connection object.
+    """
     logger.info("Connecting to database: %s:%s/%s", RDS_HOST, RDS_PORT, RDS_DB_NAME)
 
     conn = psycopg2.connect(
@@ -28,8 +38,30 @@ def get_db_connection() -> connection:
     return conn
 
 
-def insert_embeddings(conn: connection, episode_id: int, chunks: list[dict[str, any]]) -> None:
-    """Insert embedding vectors into the database."""
+def insert_embeddings(conn: connection, episode_id: int, chunks: list[dict]) -> None:
+    """Insert episode chunks and their embedding vectors into the database.
+
+    Args:
+        conn: Active PostgreSQL database connection.
+        episode_id: The ID of the episode being processed.
+        chunks: List of chunk dictionaries with keys:
+            - chunk_index: Integer index of the chunk.
+            - text: Text content of the chunk.
+            - embedding: List of floats representing the embedding vector.
+
+    Raises:
+        Exception: If database insertion fails. Connection is rolled back on error.
+
+    Example:
+        >>> chunks = [
+        ...     {
+        ...         "chunk_index": 0,
+        ...         "text": "Introduction text...",
+        ...         "embedding": [0.1, 0.2, ...]
+        ...     }
+        ... ]
+        >>> insert_embeddings(conn, 199, chunks)
+    """
     records = [
         (episode_id, chunk["chunk_index"], chunk["text"], chunk["embedding"]) for chunk in chunks
     ]
