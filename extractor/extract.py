@@ -6,7 +6,7 @@ from pprint import pprint
 
 import feedparser
 from psycopg2.extensions import connection
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import RealDictCursor, RealDictRow
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ def insert_podcast(conn: connection, rss_url: str) -> None:
         raise
 
 
-def get_podcasts_from_database(conn: connection) -> list[dict]:
+def get_podcasts_from_database(conn: connection) -> list[RealDictRow]:
     """Fetch podcast metadata rows from the database.
 
     Args:
