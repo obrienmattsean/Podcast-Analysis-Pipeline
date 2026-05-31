@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.14"]
+        app: [extractor, dashboard, transcriber]
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -25,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements-dev.txt
-          if [ -f pipeline/requirements.txt ]; then pip install -r pipeline/requirements.txt; fi
+          if [ -f ${{ matrix.app }}/requirements.txt ]; then pip install -r ${{ matrix.app }}/requirements.txt; fi
 
       - name: Run Ruff
         run: ruff check .
@@ -36,6 +37,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.14"]
+        app: [extractor, dashboard, transcriber]
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -49,11 +51,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements-dev.txt
-          if [ -f pipeline/requirements.txt ]; then pip install -r pipeline/requirements.txt; fi
-          if [ -f extractor/requirements.txt ]; then pip install -r extractor/requirements.txt; fi
+          if [ -f ${{ matrix.app }}/requirements.txt ]; then pip install -r ${{ matrix.app }}/requirements.txt; fi
 
       - name: Run ty
-        run: ty check .
+        run: ty check ${{ matrix.app }}
 
   test:
     runs-on: ubuntu-latest
@@ -61,6 +62,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.14"]
+        app: [extractor, dashboard, transcriber]
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -74,8 +76,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements-dev.txt
-          if [ -f pipeline/requirements.txt ]; then pip install -r pipeline/requirements.txt; fi
-          if [ -f extractor/requirements.txt ]; then pip install -r extractor/requirements.txt; fi
+          if [ -f ${{ matrix.app }}/requirements.txt ]; then pip install -r ${{ matrix.app }}/requirements.txt; fi
 
       - name: Run tests
-        run: pytest --tb=short -p no:cacheprovider --cov --cov-fail-under=70
+        run: pytest ${{ matrix.app }}/tests --tb=short -p no:cacheprovider --cov=${{ matrix.app }} --cov-fail-under=70
