@@ -18,11 +18,14 @@ def transcribe(
 ) -> str:
     """Transcribe an audio file using the OpenAI API.
 
+    Automatically splits files longer than ``chunk_length_minutes`` into
+    smaller chunks and concatenates the results.
+
     Args:
         audio_path: Path to the audio file to transcribe.
-        openai_client: Initialized OpenAI client.
         model: Transcription model identifier.
-        chunk_length_minutes: Length of each audio chunk in minutes.
+        chunk_length_minutes: Maximum chunk duration in minutes before the
+            audio is split for transcription.
 
     Returns:
         str: Transcribed text from the audio.
