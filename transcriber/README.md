@@ -51,20 +51,6 @@ Validation error:
 
 - `OPENAI_API_KEY`: OpenAI API key.
 
-## Optional Environment Variables
-
-- `TRANSCRIBE_MODEL` (default: `whisper-1`)
-- `CHUNK_LENGTH_MINUTES` (default: `10`)
-
-## AWS Permissions
-
-Attach an execution role that allows:
-
-- `s3:GetObject` for episode metadata objects
-- `s3:PutObject` for transcript upload
-
-Use Lambda execution role credentials (recommended) instead of hardcoded static access keys.
-
 ## Local Run
 
 From this folder:
