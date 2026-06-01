@@ -11,7 +11,11 @@ load_dotenv()
 
 
 def get_db_connection() -> connection:
-    """Establish a connection to the PostgreSQL database using environment variables."""
+    """Establish a connection to the PostgreSQL database using environment variables.
+
+    Returns:
+        connection: An open psycopg2 connection to the configured PostgreSQL database.
+    """
     return connect(
         host=os.getenv("RDS_HOST"),
         database=os.getenv("RDS_DBNAME"),
@@ -22,13 +26,29 @@ def get_db_connection() -> connection:
 
 
 def get_days_since_published(pub_date: datetime) -> int:
-    """Calculate the number of days since the episode was published."""
+    """Calculate the number of days since the episode was published.
+
+    Args:
+        pub_date: The publication date of the episode.
+
+    Returns:
+        int: Number of whole days elapsed since ``pub_date``.
+    """
     today = datetime.today()
     return (today - pub_date).days
 
 
 def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
-    """Fetches the most recent episodes from the database."""
+    """Fetch the most recent episodes from the database.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        limit: Maximum number of episodes to return. Defaults to 10.
+
+    Returns:
+        list[dict]: List of episode dicts, each containing ``title``,
+            ``podcast_title``, and ``days_since_published``.
+    """
     with conn.cursor() as cursor:
         cursor.execute(
             """
@@ -46,7 +66,6 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
                 "title": row[0],
                 "podcast_title": row[1],
                 "days_since_published": get_days_since_published(row[2]),
-                "link"
             }
             for row in rows
         ]
