@@ -84,7 +84,7 @@ def upload_to_rds(enrichment_dict: dict, db_connection: psycopg2.extensions.conn
             UPDATE episodes
             SET sentiment_score = %s,
             summary = %s
-            WHERE id = %s;
+            WHERE episode_id = %s;
         """,
             (episode_data["sentiment_score"], episode_data["summary"], episode_data["episode_id"]),
         )
