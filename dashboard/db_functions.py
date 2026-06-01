@@ -1,6 +1,7 @@
 """Database utility functions for the dashboard."""
 
 import os
+from datetime import datetime
 
 from dotenv import load_dotenv
 from psycopg2 import connect
@@ -20,17 +21,40 @@ def get_db_connection() -> connection:
     )
 
 
-def get_all_podcast_titles(conn: connection) -> list[dict]:
-    """Fetches all podcasts from the database."""
+def get_days_since_published(pub_date: datetime) -> int:
+    """Calculate the number of days since the episode was published."""
+    today = datetime.today()
+    return (today - pub_date).days
+
+
+def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
+    """Fetches the most recent episodes from the database."""
     with conn.cursor() as cursor:
-        cursor.execute("SELECT title FROM podcasts;")
+        cursor.execute(
+            """
+            SELECT e.title, p.title AS podcast_title, e.pub_date
+            FROM episodes e
+            JOIN podcasts p ON e.podcast_id = p.id
+            ORDER BY e.pub_date DESC
+            LIMIT %s;
+            """,
+            (limit,),
+        )
         rows = cursor.fetchall()
-        return [row[0] for row in rows]
+        return [
+            {
+                "title": row[0],
+                "podcast_title": row[1],
+                "days_since_published": get_days_since_published(row[2]),
+                "link"
+            }
+            for row in rows
+        ]
 
 
 if __name__ == "__main__":
     conn = get_db_connection()
     print("Database connection established successfully.")
-    podcasts = get_all_podcast_titles(conn)
-    print("Sample podcasts:", podcasts[:5])
+    recent_episodes = get_recent_episodes(conn)
+    print("Sample recent episodes:", recent_episodes[:5])
     conn.close()
