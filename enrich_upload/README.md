@@ -45,11 +45,11 @@ Validation error:
 - `OPENAI_API_KEY`: OpenAI API key.
 - `AWS_ACCESS_KEY_ID`: AWS access key.
 - `AWS_SECRET_ACCESS_KEY`: AWS secret access key.
-- `DB_HOST`: AWS host.
-- `DB_PORT`: 5432.
-- `DB_NAME`: Database name.
-- `DB_USER`: postgres.
-- `DB_PASSWORD`: Database password.
+- `RDS_HOST`: AWS host.
+- `RDS_PORT`: 5432.
+- `RDS_DBNAME`: Database name.
+- `RDS_USER`: postgres.
+- `RDS_PASSWORD`: Database password.
 - `REGION_NAME`: AWS region name.
 
 ## AWS Permissions

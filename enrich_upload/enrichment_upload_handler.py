@@ -80,11 +80,11 @@ def lambda_handler(event, context):
             secrets.get("REGION_NAME"),
         )
         db_connection = get_db_connection(
-            secrets.get("DB_HOST"),
-            secrets.get("DB_NAME"),
-            secrets.get("DB_USER"),
-            secrets.get("DB_PASSWORD"),
-            secrets.get("DB_PORT"),
+            secrets.get("RDS_HOST"),
+            secrets.get("RDS_DBNAME"),
+            secrets.get("RDS_USER"),
+            secrets.get("RDS_PASSWORD"),
+            secrets.get("RDS_PORT"),
         )
         logger.info("Connections established successfully.")
 
