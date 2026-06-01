@@ -14,6 +14,7 @@ resource "aws_lambda_function" "transcribe" {
       ENVIRONMENT    = var.environment
       S3_BUCKET_NAME = aws_s3_bucket.podcast_bucket.id
       SECRETS_ARN    = aws_secretsmanager_secret.app_secrets.arn
+      OPENAI_API_KEY = jsondecode(data.aws_secretsmanager_secret_version.app_secrets.secret_string)["OPENAI_API_KEY"]
     }
   }
 }
