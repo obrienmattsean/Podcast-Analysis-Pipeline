@@ -22,10 +22,10 @@ def get_database_connection() -> connection:
                 "RDS_HOST",
                 "c23-podex-ai-podcast-analysis-db.c57vkec7dkkx.eu-west-2.rds.amazonaws.com",
             ),
-            database=os.getenv("RDS_DBNAME", "c23_podcast_analysis_db"),
-            user=os.getenv("RDS_USER", "postgres"),
-            password=os.getenv("RDS_PASSWORD", "Pasword123!"),
-            port=int(os.getenv("RDS_PORT", "5432")),
+            database=os.getenv("RDS_DBNAME"),
+            user=os.getenv("RDS_USER"),
+            password=os.getenv("RDS_PASSWORD"),
+            port=int(os.getenv("RDS_PORT", 5432)),
         )
     except Exception:
         logging.exception("Failed to connect to database")
