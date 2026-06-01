@@ -37,7 +37,7 @@ class TestGetLatestEpisodeDateFromPodcast:
     def test_raises_for_non_int_id(self, make_conn):
         conn, _ = make_conn()
         with pytest.raises(ValueError):
-            extract.get_latest_episode_date_from_podcast(conn, podcast_id="bad")  # type: ignore[arg-type]
+            extract.get_latest_episode_date_from_podcast(conn, podcast_id="bad")  # type: ignore[invalid-argument-type]
 
 
 class TestGetNewEpisodesForPodcast:
