@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -18,3 +19,12 @@ def mock_read_metadata_response():
         "title": "Test Episode",
         "description": "A test episode for unit testing.",
     }
+
+
+@pytest.fixture
+def mock_urlopen_response():
+    mock_response = MagicMock()
+    mock_response.__enter__ = lambda s: s
+    mock_response.__exit__ = MagicMock(return_value=False)
+    mock_response.read.return_value = b""
+    return mock_response
