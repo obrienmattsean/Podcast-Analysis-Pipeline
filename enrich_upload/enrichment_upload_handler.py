@@ -9,9 +9,10 @@ established and that errors are handled gracefully throughout the process.
 
 """
 
+import json
 import logging
-import os
 
+import boto3
 from connection_functions import get_db_connection, get_llm_client, get_s3_client
 from dotenv import load_dotenv
 from enrichment_functions import (
@@ -25,6 +26,32 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+
+
+def get_secrets() -> dict:
+    """Retrieves secrets from AWS Secrets Manager.
+
+    Returns:
+        dict: A dictionary containing the retrieved secrets.
+
+    Raises:
+        json.JSONDecodeError: If the secret string is not valid JSON.
+        Exception: If retrieval fails.
+    """
+    secrets_client = boto3.client("secretsmanager", region_name="eu-west-2")
+    try:
+        logger.info("Retrieving secrets from AWS Secrets Manager...")
+        response = secrets_client.get_secret_value(SecretId="c23-podex-ai-app-secrets")
+        secret_string = response["SecretString"]
+        secrets = json.loads(secret_string)
+        logger.info("Secrets retrieved and parsed successfully.")
+        return secrets
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse secret as JSON: {e}")
+        raise ValueError(f"Secret is not valid JSON: {e}") from e
+    except Exception as e:
+        logger.error(f"Failed to retrieve secrets from Secrets Manager: {e}")
+        raise
 
 
 load_dotenv()
@@ -51,20 +78,38 @@ def lambda_handler(event, context):
     if "episode_uri" not in event:
         logger.error("Missing 'episode_uri' in event data.")
         raise ValueError("Missing 'episode_uri' in event data.")
+
+    db_connection = None
     try:
-        # Step 1: Establish connections
-        logger.info("Retrieving secrets for database connection.")
+        # Step 1: Retrieve secrets from Secrets Manager
+        logger.info("Retrieving secrets for database and API connections.")
+        secrets = get_secrets()
+
+        # Validate all required secrets are present
+        required_keys = [
+            "OPENAI_API_KEY",
+            "RDS_HOST",
+            "RDS_DBNAME",
+            "RDS_USER",
+            "RDS_PASSWORD",
+            "RDS_PORT",
+        ]
+        missing_keys = [key for key in required_keys if key not in secrets or not secrets.get(key)]
+        if missing_keys:
+            raise ValueError(
+                f"Missing required secrets in Secrets Manager: {', '.join(missing_keys)}"
+            )
 
         logger.info("Establishing connections to OpenAI, S3, and RDS.")
-        llm_client = get_llm_client(os.getenv("OPENAI_API_KEY"))
+        llm_client = get_llm_client(secrets["OPENAI_API_KEY"])
         # S3 client uses IAM role in Lambda, no credentials needed
         s3_client = get_s3_client("eu-west-2")
         db_connection = get_db_connection(
-            os.getenv("RDS_HOST"),
-            os.getenv("RDS_DBNAME"),
-            os.getenv("RDS_USER"),
-            os.getenv("RDS_PASSWORD"),
-            os.getenv("RDS_PORT"),
+            secrets["RDS_HOST"],
+            secrets["RDS_DBNAME"],
+            secrets["RDS_USER"],
+            secrets["RDS_PASSWORD"],
+            secrets["RDS_PORT"],
         )
         logger.info("Connections established successfully.")
 
@@ -93,3 +138,9 @@ def lambda_handler(event, context):
         if db_connection:
             db_connection.close()
             logger.info("Database connection closed.")
+
+
+if __name__ == "__main__":
+    # Example event for local testing
+    test_event = {"episode_uri": "s3://c23-podex-ai-bucket/17/1956"}
+    print(lambda_handler(test_event, None))

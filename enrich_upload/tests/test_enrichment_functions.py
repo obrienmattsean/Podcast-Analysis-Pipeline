@@ -63,13 +63,13 @@ class TestPromptLlmForEnrichment:
         assert result["guests"] == []
 
     def test_prompt_llm_for_enrichment_invalid_json_response(self):
-        """Test that invalid JSON response raises exception."""
+        """Test that invalid JSON response raises ValueError."""
         mock_llm_client = MagicMock()
         mock_llm_client.chat.completions.create.return_value.choices[
             0
         ].message.content = "Invalid JSON"
 
-        with pytest.raises(json.JSONDecodeError):
+        with pytest.raises(ValueError, match="LLM response is not valid JSON"):
             prompt_llm_for_enrichment(mock_llm_client, "Valid transcript")
 
     def test_prompt_llm_for_enrichment_none_client(self):
@@ -96,6 +96,28 @@ class TestPromptLlmForEnrichment:
         # Should work because None is converted to string in f-string
         result = prompt_llm_for_enrichment(mock_llm_client, None)
         assert isinstance(result, dict)
+
+    def test_prompt_llm_for_enrichment_markdown_wrapped_response(self):
+        """Test that markdown-wrapped JSON response is cleaned and parsed correctly."""
+        mock_llm_client = MagicMock()
+        enrichment_response = {
+            "sentiment score": 4.0,
+            "classification": "positive",
+            "summary": "A fascinating podcast discussion.",
+            "hosts": ["Host One"],
+            "guests": ["Guest One"],
+            "keywords": [["innovation", "concept"], ["tech", "topic"]],
+        }
+        # Simulate LLM response wrapped in markdown code blocks
+        markdown_wrapped = f"```json\n{json.dumps(enrichment_response)}\n```"
+        mock_llm_client.chat.completions.create.return_value.choices[
+            0
+        ].message.content = markdown_wrapped
+
+        result = prompt_llm_for_enrichment(mock_llm_client, "Valid transcript")
+
+        assert result == enrichment_response
+        assert result["keywords"] == [["innovation", "concept"], ["tech", "topic"]]
 
 
 class TestGetEpisodeMetadataFromS3:

@@ -37,7 +37,7 @@ outro text. Use the exact JSON structure defined below:
     "summary": "string",
     "hosts": ["string"],
     "guests": ["string"],
-    "keywords": [("string", "string")]
+    "keywords": [["string", "string"]]
 }
 
 Strictly adhere to the following rules for the data fields:
@@ -55,10 +55,9 @@ sentiment of the transcript.
 If no hosts are explicitly mentioned, return an empty list.
 5. **guests**: Extract the names of the guests mentioned in the transcript as a list of strings.
 If no guests are explicitly mentioned, return an empty list.
-6. **keywords**: A flat array of tuples of length 2, containing a lowercase keyword capturing
-a general topic, location, overarching theme, or individuals discussed.
-And containing a category for that keyword from the white list below.
-To assist in future aggregation.
+6. **keywords**: A JSON array where each element is a 2-element array containing a lowercase keyword
+and its category. Each keyword should capture a general topic, location, overarching theme, or
+individual discussed. The category should be from the white list below.
 
 Category White List:
 - "topic": A general topic or subject matter discussed in the episode
@@ -93,7 +92,6 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
     Returns:
         dict: A dictionary containing the enriched information from the podcast transcript.
 
-
     Raises:
         Exception: If there is an error generating the enrichment from the OpenAI API,
         an exception will be raised with the error message.
@@ -112,7 +110,23 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
             ],
         )
         logging.info("Transcript analysis completed successfully.")
-        return json.loads(response.choices[0].message.content)
+
+        # Extract content and clean markdown formatting if present
+        content = response.choices[0].message.content.strip()
+
+        # Remove markdown code blocks if present
+        if content.startswith("```"):
+            # Remove ```json or ``` from start and ``` from end
+            content = content.lstrip("`")  # Remove leading backticks
+            if content.startswith("json"):
+                content = content[4:].lstrip()  # Remove "json" prefix
+            content = content.rstrip("`").strip()  # Remove trailing backticks
+
+        logging.info(f"Cleaned response content: {content[:100]}...")
+        return json.loads(content)
+    except json.JSONDecodeError as e:
+        logging.error(f"Failed to parse LLM response as JSON: {e}. Response: {content}")
+        raise ValueError(f"LLM response is not valid JSON: {e}") from e
     except Exception as e:
         logging.error(f"Failed to analyze transcript: {e}")
         raise

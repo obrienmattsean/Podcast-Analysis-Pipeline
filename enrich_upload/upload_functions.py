@@ -76,6 +76,7 @@ def upload_to_rds(enrichment_dict: dict, db_connection: psycopg2.extensions.conn
     cursor = None
     try:
         cursor = db_connection.cursor()
+        print(enrichment_dict)
 
         # Insert episode data
         episode_data = enrichment_dict["episode"]
