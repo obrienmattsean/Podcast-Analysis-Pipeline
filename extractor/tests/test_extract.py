@@ -14,10 +14,21 @@ class TestGetPodcastsFromDatabase:
 
         assert result == rows
         cursor.execute.assert_called_once_with("SELECT id, title, rss_url FROM podcasts")
+        conn.commit.assert_called_once()
 
     def test_returns_empty_when_no_rows(self, make_conn):
         conn, _ = make_conn(rows=[])
         assert extract.get_podcasts_from_database(conn) == []
+        conn.commit.assert_called_once()
+
+    def test_rolls_back_when_query_fails(self, make_conn):
+        conn, cursor = make_conn(rows=[])
+        cursor.execute.side_effect = RuntimeError("db error")
+
+        with pytest.raises(RuntimeError):
+            extract.get_podcasts_from_database(conn)
+
+        conn.rollback.assert_called_once()
 
 
 class TestGetLatestEpisodeDateFromPodcast:
@@ -28,16 +39,27 @@ class TestGetLatestEpisodeDateFromPodcast:
         result = extract.get_latest_episode_date_from_podcast(conn, podcast_id=1)
 
         assert result == pub
+        conn.commit.assert_called_once()
 
     def test_returns_none_when_no_rows(self, make_conn):
         conn, _ = make_conn(fetchone_result=None)
         result = extract.get_latest_episode_date_from_podcast(conn, podcast_id=1)
         assert result is None
+        conn.commit.assert_called_once()
 
     def test_raises_for_non_int_id(self, make_conn):
         conn, _ = make_conn()
         with pytest.raises(ValueError):
             extract.get_latest_episode_date_from_podcast(conn, podcast_id="bad")  # type: ignore[invalid-argument-type]
+
+    def test_rolls_back_when_query_fails(self, make_conn):
+        conn, cursor = make_conn(fetchone_result=None)
+        cursor.execute.side_effect = RuntimeError("db error")
+
+        with pytest.raises(RuntimeError):
+            extract.get_latest_episode_date_from_podcast(conn, podcast_id=1)
+
+        conn.rollback.assert_called_once()
 
 
 class TestGetNewEpisodesForPodcast:

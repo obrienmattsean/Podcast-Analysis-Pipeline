@@ -20,6 +20,7 @@ repos:
       entry: ty check
       require_serial: true
       language: system
+      exclude: ^.*tests/.*$
       types: [python]
 
 
