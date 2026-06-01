@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+from pydantic import HttpUrl
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -66,7 +67,7 @@ def validated_episode():
     def _factory(
         podcast_id=1,
         title="Test Episode",
-        audio_link="https://example.com/ep.mp3",
+        audio_link: str = "https://example.com/ep.mp3",
         published_at=None,
     ):
         if published_at is None:
@@ -74,7 +75,7 @@ def validated_episode():
         return ValidatedEpisode(
             podcast_id=podcast_id,
             title=title,
-            audio_link=audio_link,
+            audio_link=HttpUrl(audio_link),
             published_at=published_at,
         )
 
