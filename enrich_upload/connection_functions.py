@@ -22,8 +22,7 @@ from dotenv import load_dotenv
 from psycopg2 import connect
 from psycopg2.extensions import connection as Connection
 
-load_dotenv()  # Load environment variables from .env file
-logger = logging.getLogger(__name__)
+load_dotenv()
 
 
 def get_llm_client(openai_api_key) -> oa.OpenAI:
@@ -51,17 +50,17 @@ def get_llm_client(openai_api_key) -> oa.OpenAI:
         Exception: If there is an error initializing the OpenAI client.
 
     """
-    logger.info("Initializing OpenAI client.")
+    logging.info("Initializing OpenAI client.")
     try:
         if not isinstance(openai_api_key, str):
             raise TypeError("API key is required to initialize OpenAI client")
         if not openai_api_key:
             raise ValueError("API key cannot be empty to initialize OpenAI client")
         client = oa.OpenAI(api_key=openai_api_key)
-        logger.info("OpenAI client initialized successfully.")
+        logging.info("OpenAI client initialized successfully.")
         return client
     except Exception as e:
-        logger.error(f"Failed to initialize OpenAI client: {e}")
+        logging.error(f"Failed to initialize OpenAI client: {e}")
         raise
 
 
@@ -92,7 +91,7 @@ def get_s3_client(
         Exception: If there is an error initializing the S3 client.
 
     """
-    logger.info("Initializing S3 client.")
+    logging.info("Initializing S3 client.")
 
     if not isinstance(region_name, str):
         raise TypeError("Region name is required as a string to initialize S3 client")
@@ -108,10 +107,10 @@ def get_s3_client(
             client_kwargs["aws_secret_access_key"] = aws_secret_access_key
 
         s3_client = boto3.client("s3", **client_kwargs)
-        logger.info("S3 client initialized successfully.")
+        logging.info("S3 client initialized successfully.")
         return s3_client
     except Exception as e:
-        logger.error(f"Failed to initialize S3 client: {e}")
+        logging.error(f"Failed to initialize S3 client: {e}")
         raise
 
 
@@ -145,8 +144,8 @@ def get_db_connection(host: str, database: str, user: str, password: str, port: 
                 "Database connection parameters must be strings in environment variables"
             )
         connection = connect(host=host, port=port, database=database, user=user, password=password)
-        logger.info("Database connection established successfully.")
+        logging.info("Database connection established successfully.")
         return connection
     except Exception as e:
-        logger.error(f"Failed to connect to the database: {e}")
+        logging.error(f"Failed to connect to the database: {e}")
         raise

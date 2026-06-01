@@ -19,8 +19,6 @@ import boto3
 import openai as oa
 from dotenv import load_dotenv
 
-logger = logging.getLogger(__name__)
-
 load_dotenv()  # Load environment variables from .env file
 
 
@@ -132,34 +130,6 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
     except Exception as e:
         logging.error(f"Failed to analyze transcript: {e}")
         raise
-
-
-# def prompt_llm_for_transcript_embedding(llm_client: oa.OpenAI, transcript: str) -> list[float]:
-#     """Generates an embedding of the podcast transcript using the OpenAI API.
-#     Distinctly uses a model that is specialized to create embeddings.
-
-#     Args:
-#         llm_client (oa.OpenAI): The initialized OpenAI client.
-#         transcript (str): The podcast transcript to be embedded.
-
-#     Returns:
-#         list[float]: An embedding of the podcast transcript with length 1536.
-
-#     Raises:
-#         Exception: If there is an error generating the embedding from the OpenAI API, an exception
-
-#     """
-#     try:
-#         logging.info("Generating embedding for transcript with OpenAI client.")
-#         response = llm_client.embeddings.create(
-#             input=transcript,
-#             model="text-embedding-3-small"
-#         )
-#         embedding = response.data[0].embedding
-#         return embedding
-#     except Exception as e:
-#         logging.error(f"Failed to generate embedding: {e}")
-#         raise
 
 
 def get_episode_metadata_from_s3(s3_client: boto3.client, s3_path: str) -> dict:
