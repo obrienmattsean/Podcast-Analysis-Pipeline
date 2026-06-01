@@ -75,6 +75,16 @@ resource "aws_iam_policy" "transcribe_policy" {
         ]
       },
       {
+        Sid    = "VPCNetworkCardManagement"
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface"
+        ]
+        Resource = "*"
+      },
+      {
         Sid    = "SecretsManagerRead"
         Effect = "Allow"
         Action = [
