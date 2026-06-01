@@ -124,7 +124,7 @@ def get_episodes_from_rss(url: str) -> list:
 
 
 def filter_episodes_by_datetime(
-    episodes: list[dict], cutoff_datetime: datetime = None
+    episodes: list[dict], cutoff_datetime: datetime | None = None
 ) -> list[dict]:
     """Filter episodes to only include those published after a cutoff date.
 

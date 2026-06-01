@@ -23,7 +23,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger()
 load_dotenv()
-BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+BUCKET_NAME: str = os.environ["S3_BUCKET_NAME"]
 
 
 def lambda_handler(event=None, context=None):
