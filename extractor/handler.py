@@ -41,40 +41,47 @@ def lambda_handler(event=None, context=None):
 
     logger.info("Starting daily episode pipeline")
 
-    # Step 1: Extract new episodes from RSS feeds
-    logger.info("Step 1: Extracting episodes from RSS feeds")
-    db_conn = get_database_connection()
-    s3_client = get_s3_client()
+    db_conn = None
+    s3_client = None
 
-    if event is not None:
-        logger.info("Received event: %s", event)
-        insert_podcast(db_conn, event["rss_url"])
+    try:
+        # Step 1: Extract new episodes from RSS feeds
+        logger.info("Step 1: Extracting episodes from RSS feeds")
+        db_conn = get_database_connection()
+        s3_client = get_s3_client()
 
-    extracted_data = extract_new_episodes(db_conn)
-    logger.info("Successfully extracted episodes for %s podcasts", len(extracted_data))
+        if event is not None and "rss_url" in event:
+            logger.info("Received event: %s", event)
+            insert_podcast(db_conn, event["rss_url"])
 
-    # Step 2: Transform and validate episode data
-    logger.info("Step 2: Transforming and validating episode data")
-    transformed_data = transform_all_podcast_episodes(extracted_data)
-    logger.info(
-        "Successfully transformed %s podcasts with validated episodes", len(transformed_data)
-    )
+        extracted_data = extract_new_episodes(db_conn)
+        logger.info("Successfully extracted episodes for %s podcasts", len(extracted_data))
 
-    # Step 3: Load validated episodes into database
-    logger.info("Step 3: Loading episodes into RDS database")
-    uploaded_paths = load_all_episodes(db_conn, s3_client, transformed_data, BUCKET_NAME)
-    # Close database connection
-    db_conn.close()
-    s3_client.close()
+        # Step 2: Transform and validate episode data
+        logger.info("Step 2: Transforming and validating episode data")
+        transformed_data = transform_all_podcast_episodes(extracted_data)
+        logger.info(
+            "Successfully transformed %s podcasts with validated episodes",
+            len(transformed_data),
+        )
 
-    # Return success response with a list of uploaded S3 paths
-    response_body = {
-        "statusCode": 200,
-        "message": "Daily episode pipeline completed successfully",
-        "uploaded_paths": uploaded_paths,
-    }
-    logger.info("Pipeline completed successfully")
-    return response_body
+        # Step 3: Load validated episodes into database
+        logger.info("Step 3: Loading episodes into RDS database")
+        uploaded_paths = load_all_episodes(db_conn, s3_client, transformed_data, BUCKET_NAME)
+
+        # Return success response with a list of uploaded S3 paths
+        response_body = {
+            "statusCode": 200,
+            "message": "Daily episode pipeline completed successfully",
+            "uploaded_paths": uploaded_paths,
+        }
+        logger.info("Pipeline completed successfully")
+        return response_body
+    finally:
+        if db_conn is not None:
+            db_conn.close()
+        if s3_client is not None:
+            s3_client.close()
 
 
 if __name__ == "__main__":
