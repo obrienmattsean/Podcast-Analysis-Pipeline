@@ -24,10 +24,10 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring" {
 }
 
 # ==============================================================================
-# IAM Role for Extract Lambda
+# IAM Role for Transcribe Lambda
 # ==============================================================================
-resource "aws_iam_role" "extract_role" {
-  name = "${var.project_name}-extract-role"
+resource "aws_iam_role" "transcribe_role" {
+  name = "${var.project_name}-transcribe-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -43,9 +43,9 @@ resource "aws_iam_role" "extract_role" {
   })
 }
 
-resource "aws_iam_policy" "extract_policy" {
-  name        = "${var.project_name}-extract-policy"
-  description = "Policy for Extract Lambda function"
+resource "aws_iam_policy" "transcribe_policy" {
+  name        = "${var.project_name}-transcribe-policy"
+  description = "Policy for Transcribe Lambda function"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -61,12 +61,12 @@ resource "aws_iam_policy" "extract_policy" {
         Resource = "arn:aws:logs:*:*:*"
       },
       {
-        Sid    = "S3StorageReadWrite"
+        Sid    = "S3ReadWrite"
         Effect = "Allow"
         Action = [
+          "s3:GetObject",
           "s3:PutObject",
           "s3:PutObjectAcl",
-          "s3:GetObject",
           "s3:ListBucket"
         ]
         Resource = [
@@ -96,9 +96,9 @@ resource "aws_iam_policy" "extract_policy" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "extract_attach" {
-  role       = aws_iam_role.extract_role.name
-  policy_arn = aws_iam_policy.extract_policy.arn
+resource "aws_iam_role_policy_attachment" "transform_attach" {
+  role       = aws_iam_role.transform_role.name
+  policy_arn = aws_iam_policy.transform_policy.arn
 }
 
 # ==============================================================================
