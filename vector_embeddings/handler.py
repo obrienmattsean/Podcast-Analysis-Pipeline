@@ -4,7 +4,6 @@ Orchestrates the ETL (Extract, Transform, Load) process for converting
 podcast transcripts to vector embeddings and storing them in the database.
 """
 
-import json
 import logging
 
 from botocore.exceptions import ClientError
@@ -27,12 +26,18 @@ def lambda_handler(event: dict, context: dict = None) -> dict:
 
     Args:
         event: Lambda event containing upload_path (S3 URI of transcript).
-        context: Lambda context object (unused, provided by AWS Lambda runtime).
+        context: Lambda context object (unused, provided by AWS
+            Lambda runtime).
 
     Returns:
         Response dict with statusCode and body message.
         - 200: Embeddings successfully inserted.
         - 400: Missing required upload_path parameter.
+
+    Raises:
+        ClientError: If S3 transcript retrieval fails.
+        OpenAIError: If embedding generation fails.
+        Exception: If any unexpected processing error occurs.
 
     Example:
         >>> event = {"upload_path": "s3://bucket/26/199/"}
@@ -44,6 +49,11 @@ def lambda_handler(event: dict, context: dict = None) -> dict:
     upload_path = event.get("upload_path")
     if not upload_path:
         return {"statusCode": 400, "body": "Missing upload_path in event"}
+
+    s3_client = None
+    openai_client = None
+    conn = None
+
     try:
         s3_client = get_s3_client()
         openai_client = get_openai_client()
@@ -63,33 +73,23 @@ def lambda_handler(event: dict, context: dict = None) -> dict:
 
     except ClientError as e:
         logger.error("Error occurred when fetching transcript from S3: %s", str(e))
-        return {
-            "statusCode": 404,
-            "body": json.dumps(
-                {"status": "error", "error": "Transcript not found", "message": str(e)}
-            ),
-        }
+        raise
 
     except OpenAIError as e:
         logger.error("Error occurred when generating embeddings: %s", str(e))
-        return {
-            "statusCode": 400,
-            "body": json.dumps(
-                {"status": "error", "error": "Embedding generation error", "message": str(e)}
-            ),
-        }
+        raise
 
     except Exception as e:
         logger.error("Unexpected error: %s", str(e), exc_info=True)
-        return {
-            "statusCode": 500,
-            "body": json.dumps(
-                {"status": "error", "error": "Internal server error", "message": str(e)}
-            ),
-        }
+        raise
+
     finally:
-        s3_client.close()
-        conn.close()
+        if s3_client is not None:
+            s3_client.close()
+        if openai_client is not None:
+            openai_client.close()
+        if conn is not None:
+            conn.close()
 
 
 if __name__ == "__main__":

@@ -46,8 +46,7 @@ def parse_s3_path(s3_path: str) -> str:
     parsed_url = urlparse(s3_path)
     if parsed_url.scheme != "s3":
         raise ValueError(f"Invalid S3 path: {s3_path}")
-    key = parsed_url.path.lstrip("/")
-    return key
+    return parsed_url.path.lstrip("/")
 
 
 def extract_episode_id(s3_path: str) -> int:

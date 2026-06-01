@@ -48,8 +48,7 @@ def get_tokenizer(model: str = EMBEDDING_MODEL) -> tiktoken.Encoding:
     Returns:
         A tiktoken encoding instance for the model.
     """
-    encoding = tiktoken.encoding_for_model(model)
-    return encoding
+    return tiktoken.encoding_for_model(model)
 
 
 def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[dict]:
@@ -73,8 +72,8 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
     while start < len(tokens):
         end = min(start + chunk_size, len(tokens))
         chunk_tokens = tokens[start:end]
-        chunk_text = tokenizer.decode(chunk_tokens)
-        chunk = {"text": chunk_text, "chunk_index": chunk_index}
+        chunk_str = tokenizer.decode(chunk_tokens)
+        chunk = {"text": chunk_str, "chunk_index": chunk_index}
         chunks.append(chunk)
         start += chunk_size - overlap  # Move start forward with overlap
         chunk_index += 1
