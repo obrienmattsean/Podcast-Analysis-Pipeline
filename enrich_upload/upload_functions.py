@@ -110,9 +110,9 @@ def upload_to_rds(enrichment_dict: dict, db_connection: psycopg2.extensions.conn
             cursor.execute(
                 """
             INSERT INTO episode_entities (episode_id, entity_id)
-            VALUES (%s, (SELECT entity_id FROM entities WHERE name = %s AND entity_type = %s))
+            VALUES (%s, (SELECT entity_id FROM entities WHERE name = %s))
             ON CONFLICT DO NOTHING;""",
-                (enrichment_dict["episode"]["episode_id"], entity["name"], entity["entity_type"]),
+                (enrichment_dict["episode"]["episode_id"], entity["name"]),
             )
 
         db_connection.commit()
