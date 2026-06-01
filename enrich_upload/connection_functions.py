@@ -65,48 +65,48 @@ def get_llm_client(openai_api_key) -> oa.OpenAI:
 
 
 def get_s3_client(
-    aws_access_key_id: str, aws_secret_access_key: str, region_name: str
+    region_name: str,
+    aws_access_key_id: str = None,
+    aws_secret_access_key: str = None,
 ) -> BaseClient:
     """Creates the S3 client to interact with AWS S3.
 
+    When running in AWS Lambda, credentials are provided automatically via the
+    IAM execution role, so aws_access_key_id and aws_secret_access_key can be omitted.
+    For local testing, provide explicit credentials or use ~/.aws/credentials.
+
     Args:
-        aws_access_key_id(str): The AWS access key ID. This should be stored
-        as an environment variable and passed to the function.
-        aws_secret_access_key(str): The AWS secret access key. This should be stored
-        as an environment variable and passed to the function.
-        region_name(str): The AWS region name. This should be stored
-        as an environment variable and passed to the function.
+        region_name(str): The AWS region name (required).
+        aws_access_key_id(str, optional): The AWS access key ID. If not provided,
+            boto3 will use IAM role credentials (Lambda) or ~/.aws/credentials.
+        aws_secret_access_key(str, optional): The AWS secret access key. If not provided,
+            boto3 will use IAM role credentials (Lambda) or ~/.aws/credentials.
 
     Returns:
-        client: The initialized S3 client.
+        BaseClient: The initialized S3 client.
 
     Raises:
-        TypeError: If any of the required parameters are not strings.
-        ValueError: If any of the required parameters are empty.
+        TypeError: If region_name is not a string.
+        ValueError: If region_name is empty.
         Exception: If there is an error initializing the S3 client.
 
     """
     logging.info("Initializing S3 client.")
 
-    if (
-        not isinstance(aws_access_key_id, str)
-        or not isinstance(aws_secret_access_key, str)
-        or not isinstance(region_name, str)
-    ):
-        raise TypeError(
-            """AWS access key ID, secret access key, and region name are required
-            as strings to initialize S3 client"""
-        )
+    if not isinstance(region_name, str):
+        raise TypeError("Region name is required as a string to initialize S3 client")
 
-    if not aws_access_key_id or not aws_secret_access_key or not region_name:
-        raise ValueError("AWS access key ID, secret access key, and region name cannot be empty")
+    if not region_name:
+        raise ValueError("Region name cannot be empty")
+
     try:
-        s3_client = boto3.client(
-            "s3",
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            region_name=region_name,
-        )
+        # Build kwargs only with provided credentials
+        client_kwargs = {"region_name": region_name}
+        if aws_access_key_id is not None and aws_secret_access_key is not None:
+            client_kwargs["aws_access_key_id"] = aws_access_key_id
+            client_kwargs["aws_secret_access_key"] = aws_secret_access_key
+
+        s3_client = boto3.client("s3", **client_kwargs)
         logging.info("S3 client initialized successfully.")
         return s3_client
     except Exception as e:

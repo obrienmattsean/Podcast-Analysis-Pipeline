@@ -47,52 +47,45 @@ class TestGetS3Client:
     """Tests for get_s3_client function."""
 
     @patch("connection_functions.boto3.client")
-    def test_get_s3_client_success(self, mock_boto3_client):
-        """Test successful S3 client initialization with valid credentials."""
+    def test_get_s3_client_with_iam_role(self, mock_boto3_client):
+        """Test S3 client initialization using IAM role (Lambda default)."""
+        mock_s3 = MagicMock()
+        mock_boto3_client.return_value = mock_s3
+
+        result = get_s3_client("eu-west-2")
+
+        assert result == mock_s3
+        mock_boto3_client.assert_called_once_with("s3", region_name="eu-west-2")
+
+    @patch("connection_functions.boto3.client")
+    def test_get_s3_client_with_explicit_credentials(self, mock_boto3_client):
+        """Test S3 client initialization with explicit AWS credentials."""
         mock_s3 = MagicMock()
         mock_boto3_client.return_value = mock_s3
 
         result = get_s3_client(
-            "AKIAIOSFODNN7EXAMPLE", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY", "eu-west-2"
+            "eu-west-2",
+            aws_access_key_id="AKIAIOSFODNN7EXAMPLE",
+            aws_secret_access_key="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
         )
 
         assert result == mock_s3
         mock_boto3_client.assert_called_once_with(
             "s3",
+            region_name="eu-west-2",
             aws_access_key_id="AKIAIOSFODNN7EXAMPLE",
             aws_secret_access_key="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-            region_name="eu-west-2",
         )
-
-    def test_get_s3_client_empty_access_key(self):
-        """Test that empty access key raises ValueError."""
-        with pytest.raises(ValueError, match="cannot be empty"):
-            get_s3_client("", "secret-key", "eu-west-2")
-
-    def test_get_s3_client_empty_secret_key(self):
-        """Test that empty secret key raises ValueError."""
-        with pytest.raises(ValueError, match="cannot be empty"):
-            get_s3_client("access-key", "", "eu-west-2")
 
     def test_get_s3_client_empty_region(self):
         """Test that empty region raises ValueError."""
-        with pytest.raises(ValueError, match="cannot be empty"):
-            get_s3_client("access-key", "secret-key", "")
-
-    def test_get_s3_client_non_string_access_key(self):
-        """Test that non-string access key raises TypeError."""
-        with pytest.raises(TypeError, match="are required"):
-            get_s3_client(12345, "secret-key", "eu-west-2")
-
-    def test_get_s3_client_non_string_secret_key(self):
-        """Test that non-string secret key raises TypeError."""
-        with pytest.raises(TypeError, match="are required"):
-            get_s3_client("access-key", None, "eu-west-2")
+        with pytest.raises(ValueError, match="Region name cannot be empty"):
+            get_s3_client("")
 
     def test_get_s3_client_non_string_region(self):
         """Test that non-string region raises TypeError."""
-        with pytest.raises(TypeError, match="are required"):
-            get_s3_client("access-key", "secret-key", ["eu-west-2"])
+        with pytest.raises(TypeError, match="Region name is required as a string"):
+            get_s3_client(["eu-west-2"])
 
     @patch("connection_functions.boto3.client")
     def test_get_s3_client_boto3_error(self, mock_boto3_client):
@@ -100,7 +93,7 @@ class TestGetS3Client:
         mock_boto3_client.side_effect = Exception("boto3 connection failed")
 
         with pytest.raises(Exception, match="boto3 connection failed"):
-            get_s3_client("access-key", "secret-key", "eu-west-2")
+            get_s3_client("eu-west-2")
 
 
 class TestGetDbConnection:

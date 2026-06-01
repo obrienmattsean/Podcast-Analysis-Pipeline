@@ -74,11 +74,8 @@ def lambda_handler(event, context):
         secrets = get_secrets()
         logger.info("Establishing connections to OpenAI, S3, and RDS.")
         llm_client = get_llm_client(secrets.get("OPENAI_API_KEY"))
-        s3_client = get_s3_client(
-            secrets.get("AWS_ACCESS_KEY_ID"),
-            secrets.get("AWS_SECRET_ACCESS_KEY"),
-            "eu-west-2",
-        )
+        # S3 client uses IAM role in Lambda, no credentials needed
+        s3_client = get_s3_client("eu-west-2")
         db_connection = get_db_connection(
             secrets.get("RDS_HOST"),
             secrets.get("RDS_DBNAME"),
