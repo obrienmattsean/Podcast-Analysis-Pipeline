@@ -9,14 +9,14 @@ from pydantic import ValidationError
 logger = logging.getLogger(__name__)
 
 
-def get_audio_link_from_entry(entry: dict) -> str | None:
+def get_audio_link_from_entry(entry: dict) -> str:
     """Extract the first audio link from an RSS entry.
 
     Args:
         entry (dict): RSS entry payload.
 
     Returns:
-        Optional[str]: First audio URL found in links, or None.
+        str: First audio URL found in links.
 
     Raises:
         ValueError: If entry is not a dictionary.
@@ -31,8 +31,7 @@ def get_audio_link_from_entry(entry: dict) -> str | None:
             audio_link = link.get("href")
             logger.debug("Found audio link: %s", audio_link)
             return audio_link
-    logger.debug("No audio link found in entry, total_links=%d", len(links))
-    return None
+    raise ValueError("No audio link found in entry")
 
 
 def parse_episode(episode: dict, podcast_id: int) -> ValidatedEpisode:
@@ -68,7 +67,7 @@ def parse_episode(episode: dict, podcast_id: int) -> ValidatedEpisode:
     return ValidatedEpisode(
         podcast_id=podcast_id,
         title=title,
-        audio_link=get_audio_link_from_entry(episode),  # type: ignore[arg-type]
+        audio_link=get_audio_link_from_entry(episode),  # ty: ignore[invalid-argument-type]
         published_at=published_at,
     )
 
@@ -181,7 +180,7 @@ def transform_all_podcast_episodes(podcast_episodes_list: list[dict]) -> list[di
                 podcast_data.get("podcast_title", "unknown"),
             )
 
-    total_transformed = sum(len(p.get("new_episodes", [])) for p in transformed_all)
+    total_transformed = sum(len(p.get("new_episodes") or []) for p in transformed_all)
     logger.info(
         "Transform complete. Processed podcasts=%d total_episodes=%d",
         len(podcast_episodes_list),
