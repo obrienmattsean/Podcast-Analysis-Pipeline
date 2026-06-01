@@ -1,8 +1,6 @@
 """Unit tests for transcribe module."""
 
-import pytest
 from pydub import AudioSegment
-
 from transcribe import _split_audio_into_chunks
 
 
