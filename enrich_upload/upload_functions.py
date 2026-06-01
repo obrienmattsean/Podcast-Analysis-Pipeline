@@ -18,8 +18,6 @@ from datetime import datetime
 import dotenv
 import psycopg2
 
-logger = logging.getLogger(__name__)
-
 dotenv.load_dotenv()
 
 
@@ -81,7 +79,7 @@ def upload_to_rds(enrichment_dict: dict, db_connection: psycopg2.extensions.conn
 
         # Insert episode data
         episode_data = enrichment_dict["episode"]
-        logger.info(f"Episode data uploading: {episode_data['episode_id']}")
+        logging.info(f"Episode data uploading: {episode_data['episode_id']}")
         cursor.execute(
             """
             UPDATE episodes
@@ -94,7 +92,7 @@ def upload_to_rds(enrichment_dict: dict, db_connection: psycopg2.extensions.conn
 
         # Insert entities data
         entities_data = enrichment_dict["entities"]
-        logger.info("Entities data uploading")
+        logging.info("Entities data uploading")
         for entity_info in entities_data.values():
             cursor.execute(
                 """
@@ -107,7 +105,7 @@ def upload_to_rds(enrichment_dict: dict, db_connection: psycopg2.extensions.conn
 
         # Insert episode_entities data
         episode_entities = enrichment_dict["entities"]
-        logger.info("Episode entities data uploading")
+        logging.info("Episode entities data uploading")
         for entity in episode_entities.values():
             cursor.execute(
                 """
@@ -121,7 +119,7 @@ def upload_to_rds(enrichment_dict: dict, db_connection: psycopg2.extensions.conn
         cursor.close()
 
     except Exception as e:
-        logger.error(f"Failed to upload data to RDS: {e}")
+        logging.error(f"Failed to upload data to RDS: {e}")
         if cursor:
             cursor.close()
         if db_connection:

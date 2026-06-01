@@ -19,9 +19,6 @@ import boto3
 import openai as oa
 from dotenv import load_dotenv
 
-logger = logging.getLogger(__name__)
-
-
 load_dotenv()  # Load environment variables from .env file
 
 
@@ -103,7 +100,7 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
     """
 
     try:
-        logger.info("Analyzing podcast transcript for enriched data.")
+        logging.info("Analyzing podcast transcript for enriched data.")
         response = llm_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -114,10 +111,10 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
                 {"role": "user", "content": f"This is your text to analyze: {transcript}"},
             ],
         )
-        logger.info("Transcript analysis completed successfully.")
+        logging.info("Transcript analysis completed successfully.")
         return json.loads(response.choices[0].message.content)
     except Exception as e:
-        logger.error(f"Failed to analyze transcript: {e}")
+        logging.error(f"Failed to analyze transcript: {e}")
         raise
 
 
@@ -137,7 +134,7 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
 
 #     """
 #     try:
-#         logger.info("Generating embedding for transcript with OpenAI client.")
+#         logging.info("Generating embedding for transcript with OpenAI client.")
 #         response = llm_client.embeddings.create(
 #             input=transcript,
 #             model="text-embedding-3-small"
@@ -145,7 +142,7 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
 #         embedding = response.data[0].embedding
 #         return embedding
 #     except Exception as e:
-#         logger.error(f"Failed to generate embedding: {e}")
+#         logging.error(f"Failed to generate embedding: {e}")
 #         raise
 
 
@@ -179,11 +176,11 @@ def get_episode_metadata_from_s3(s3_client: boto3.client, s3_path: str) -> dict:
             object_key += "/"
 
         metadata = s3_client.get_object(Bucket=bucket_name, Key=f"{object_key}metadata.json")
-        logger.info("Metadata retrieved successfully from S3.")
+        logging.info("Metadata retrieved successfully from S3.")
 
         return json.loads(metadata["Body"].read().decode("utf-8"))
     except Exception as e:
-        logger.error(f"Failed to retrieve metadata from S3: {e}")
+        logging.error(f"Failed to retrieve metadata from S3: {e}")
         raise
 
 
@@ -217,9 +214,9 @@ def get_episode_transcript_from_s3(s3_client: boto3.client, s3_path: str) -> str
             object_key += "/"
 
         transcript = s3_client.get_object(Bucket=bucket_name, Key=f"{object_key}transcript.txt")
-        logger.info("Transcript retrieved successfully from S3.")
+        logging.info("Transcript retrieved successfully from S3.")
 
         return transcript["Body"].read().decode("utf-8")
     except Exception as e:
-        logger.error(f"Failed to retrieve transcript from S3: {e}")
+        logging.error(f"Failed to retrieve transcript from S3: {e}")
         raise
