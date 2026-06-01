@@ -9,10 +9,9 @@ established and that errors are handled gracefully throughout the process.
 
 """
 
-import json
 import logging
+import os
 
-import boto3
 from connection_functions import get_db_connection, get_llm_client, get_s3_client
 from dotenv import load_dotenv
 from enrichment_functions import (
@@ -26,22 +25,6 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
-
-
-def get_secrets() -> dict:
-    """Retrieves secrets from AWS Secrets Manager.
-
-    Returns:
-        dict: A dictionary containing the retrieved secrets.
-    """
-
-    secrets_client = boto3.client("secretsmanager", region_name="eu-west-2")
-    try:
-        response = secrets_client.get_secret_value(SecretId="c23-podex-ai-app-secrets")
-        return json.loads(response["SecretString"])
-    except Exception as e:
-        logger.error(f"Failed to retrieve secrets: {e}")
-        raise
 
 
 load_dotenv()
@@ -71,17 +54,17 @@ def lambda_handler(event, context):
     try:
         # Step 1: Establish connections
         logger.info("Retrieving secrets for database connection.")
-        secrets = get_secrets()
+
         logger.info("Establishing connections to OpenAI, S3, and RDS.")
-        llm_client = get_llm_client(secrets.get("OPENAI_API_KEY"))
+        llm_client = get_llm_client(os.getenv("OPENAI_API_KEY"))
         # S3 client uses IAM role in Lambda, no credentials needed
         s3_client = get_s3_client("eu-west-2")
         db_connection = get_db_connection(
-            secrets.get("RDS_HOST"),
-            secrets.get("RDS_DBNAME"),
-            secrets.get("RDS_USER"),
-            secrets.get("RDS_PASSWORD"),
-            secrets.get("RDS_PORT"),
+            os.getenv("RDS_HOST"),
+            os.getenv("RDS_DBNAME"),
+            os.getenv("RDS_USER"),
+            os.getenv("RDS_PASSWORD"),
+            os.getenv("RDS_PORT"),
         )
         logger.info("Connections established successfully.")
 
