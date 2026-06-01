@@ -39,6 +39,14 @@ class TestEpisodeS3:
             with pytest.raises(ValueError, match="metadata.json is missing a valid audio_link"):
                 episode.get_audio_link(mock_s3)
 
+    def test_get_audio_link_invalid_type(self, mock_episode_s3_uri):
+        episode = EpisodeS3(uri=mock_episode_s3_uri)
+        mock_s3 = MagicMock()
+
+        with patch.object(episode, "read_metadata", return_value={"audio_link": 123}):
+            with pytest.raises(ValueError, match="metadata.json is missing a valid audio_link"):
+                episode.get_audio_link(mock_s3)
+
     def test_upload_transcript_calls_put_object_with_correct_args(self, mock_episode_s3_uri):
         episode = EpisodeS3(uri=mock_episode_s3_uri)
         mock_s3 = MagicMock()
