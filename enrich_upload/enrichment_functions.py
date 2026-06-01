@@ -19,6 +19,8 @@ import boto3
 import openai as oa
 from dotenv import load_dotenv
 
+logger = logging.getLogger(__name__)
+
 load_dotenv()  # Load environment variables from .env file
 
 

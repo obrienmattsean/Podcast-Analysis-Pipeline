@@ -22,7 +22,7 @@ from enrichment_functions import (
 )
 from upload_functions import combine_enrichments, upload_to_rds
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
