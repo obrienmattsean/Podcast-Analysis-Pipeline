@@ -17,19 +17,14 @@ import logging
 import os
 
 import boto3
-import dotenv
 import openai as oa
-import psycopg2
+from botocore.client import BaseClient
+from dotenv import load_dotenv
+from psycopg2 import Connection, connect
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-# TODO: Ensure consistency in logging across different sections of the pipeline
 
-dotenv.load_dotenv()  # Load environment variables from .env file
+load_dotenv()  # Load environment variables from .env file
 
 
 def get_llm_client() -> oa.OpenAI:
@@ -66,7 +61,7 @@ def get_llm_client() -> oa.OpenAI:
 
 def get_s3_client(
     aws_access_key_id: str, aws_secret_access_key: str, region_name: str
-) -> boto3.client:
+) -> BaseClient:
     """Creates the S3 client to interact with AWS S3.
 
     Args:
@@ -78,7 +73,7 @@ def get_s3_client(
         as an environment variable and passed to the function.
 
     Returns:
-        boto3.client: The initialized S3 client.
+        client: The initialized S3 client.
 
     Raises:
         TypeError: If any of the required parameters are not strings.
@@ -87,21 +82,20 @@ def get_s3_client(
 
     """
 
-    logger.info("Initializing S3 client.")
+    if (
+        not isinstance(aws_access_key_id, str)
+        or not isinstance(aws_secret_access_key, str)
+        or not isinstance(region_name, str)
+    ):
+        raise TypeError(
+            """AWS access key ID, secret access key, and region name are
+                    required as strings to initialize S3 client"""
+        )
+        logger.info("Initializing S3 client.")
+
+    if not aws_access_key_id or not aws_secret_access_key or not region_name:
+        raise ValueError("AWS access key ID, secret access key, and region name cannot be empty")
     try:
-        if (
-            not isinstance(aws_access_key_id, str)
-            or not isinstance(aws_secret_access_key, str)
-            or not isinstance(region_name, str)
-        ):
-            raise TypeError(
-                """AWS access key ID, secret access key, and region name are
-                required as strings to initialize S3 client"""
-            )
-        if not aws_access_key_id or not aws_secret_access_key or not region_name:
-            raise ValueError(
-                "AWS access key ID, secret access key, and region name cannot be empty"
-            )
         s3_client = boto3.client(
             "s3",
             aws_access_key_id=aws_access_key_id,
@@ -115,7 +109,7 @@ def get_s3_client(
         raise
 
 
-def get_db_connection() -> psycopg2.extensions.connection:
+def get_db_connection() -> Connection:
     """Creates the connection to interact with the RDS hosted on AWS.
 
     Args:
@@ -145,9 +139,7 @@ def get_db_connection() -> psycopg2.extensions.connection:
             raise TypeError(
                 "Database connection parameters must be strings in environment variables"
             )
-        connection = psycopg2.connect(
-            host=host, port=port, database=database, user=user, password=password
-        )
+        connection = connect(host=host, port=port, database=database, user=user, password=password)
         logger.info("Database connection established successfully.")
         return connection
     except Exception as e:

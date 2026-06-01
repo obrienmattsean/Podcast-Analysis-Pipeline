@@ -10,38 +10,19 @@ Example:
         from enrich_upload.enrichment_functions import some_function
         result = some_function(input_data)
 
-
-Todo:
-# * Create open AI connection function
-# * Create functions to retrieve transcript and additional metadata from S3
-# * Generate Summary of transcript
-# * Generate Sentiment Analysis of transcript
-# * Generate the Keywords of transcript, topics, individuals discussed, and other relevant metadata
-# * Generate Who the speakers are in the transcript, who the host(s) and guest(s) are.
-# * Generate an embedding of the transcript for semantic search
-# * Create function to upload enrichments to RDS
-# * Implement logging and error handling for all functions
-    * Ensure logging consistency with other scripts in the pipeline
-# * Ensure the get_episode_transcript_from_s3 has the correct file extention and is
-# correctly retrieving the transcript from S3
-
 """
 
 import json
 import logging
 
 import boto3
-import dotenv
 import openai as oa
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
-dotenv.load_dotenv()  # Load environment variables from .env file
+
+load_dotenv()  # Load environment variables from .env file
 
 
 prompt = """
@@ -79,10 +60,28 @@ If no hosts are explicitly mentioned, return an empty list.
 If no guests are explicitly mentioned, return an empty list.
 6. **keywords**: A flat array of tuples of length 2, containing a lowercase keyword capturing
 a general topic, location, overarching theme, or individuals discussed.
-And containing a category for that keyword, it could be topic, person, location, time-period,
-organisation, concept etc.
+And containing a category for that keyword from the white list below.
 To assist in future aggregation.
 
+Category White List:
+- "topic": A general topic or subject matter discussed in the episode
+    (e.g., "technology", "health", "sports").
+- "location": A specific location mentioned in the episode
+    (e.g., "New York", "Paris", "Tokyo").
+- "concept": An overarching theme, idea, or concept discussed in the episode
+    (e.g., "innovation", "sustainability", "leadership").
+- "individual": A specific person mentioned in the episode
+    (e.g., "Elon Musk", "Oprah Winfrey", "Barack Obama").
+- "product and IP": A specific product, company, or intellectual property mentioned
+    in the episode (e.g., "iPhone", "Tesla", "Marvel Cinematic Universe").
+- "role and sector": A specific role, industry, or sector mentioned in the episode
+    (e.g., "software engineer", "finance", "healthcare").
+- "advert": A specific advertisement or brand mentioned in the episode, and explicitly stated
+    as a sponsor / partnership (e.g., "Nike", "Coca-Cola", "Amazon").
+- "current event": A specific current event mentioned in the episode
+    (e.g., "2024 Olympics", "2024 US Presidential Election", "COVID-19 pandemic").
+- "other": A keyword that does not fit into any of the above categories,
+    but is still a significant and relevant keyword from the episode.
 
 """
 
