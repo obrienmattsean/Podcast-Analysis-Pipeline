@@ -100,3 +100,88 @@ resource "aws_iam_role_policy_attachment" "extract_attach" {
   role       = aws_iam_role.extract_role.name
   policy_arn = aws_iam_policy.extract_policy.arn
 }
+
+# ==============================================================================
+# IAM Role for Enrich Lambda
+# ==============================================================================
+resource "aws_iam_role" "enrich_role" {
+  name = "${var.project_name}-enrich-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "enrich_policy" {
+  name        = "${var.project_name}-enrich-policy"
+  description = "Policy for Enrich Lambda function"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "CloudWatchLogging"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Sid    = "S3StorageRead"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          aws_s3_bucket.podcast_bucket.arn,
+          "${aws_s3_bucket.podcast_bucket.arn}/*"
+        ]
+      },
+      {
+        Sid    = "VPCNetworkManagement"
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "SESEmailAlerts"
+        Effect = "Allow"
+        Action = [
+          "ses:SendEmail",
+          "ses:SendRawEmail"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "SecretsManagerRead"
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = aws_secretsmanager_secret.app_secrets.arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "enrich_attach" {
+  role       = aws_iam_role.enrich_role.name
+  policy_arn = aws_iam_policy.enrich_policy.arn
+}
