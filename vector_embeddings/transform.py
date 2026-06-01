@@ -48,8 +48,7 @@ def get_tokenizer(model: str = EMBEDDING_MODEL) -> tiktoken.Encoding:
     Returns:
         A tiktoken encoding instance for the model.
     """
-    encoding = tiktoken.encoding_for_model(model)
-    return encoding
+    return tiktoken.encoding_for_model(model)
 
 
 def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[dict]:
