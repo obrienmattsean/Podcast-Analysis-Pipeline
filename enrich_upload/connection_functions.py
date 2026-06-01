@@ -14,7 +14,6 @@ Example:
 """
 
 import logging
-import os
 
 import boto3
 import openai as oa
@@ -26,12 +25,20 @@ from psycopg2.extensions import connection as Connection
 load_dotenv()  # Load environment variables from .env file
 
 
-def get_llm_client() -> oa.OpenAI:
+def get_llm_client(openai_api_key) -> oa.OpenAI:
     """Creates the OpenAI client to make requests to the OpenAI API.
 
     Args:
-        None: no arguments are required for this function.
-        But environment variables are used within the function.
+        openai_api_key (str): The OpenAI API key.
+
+    Returns:
+        oa.OpenAI: The initialized OpenAI client.
+
+    Raises:
+        TypeError: If the API key is missing or not a string.
+        ValueError: If the API key is an empty string.
+        Exception: If there is an error initializing the OpenAI client.
+
 
 
     Returns:
@@ -45,7 +52,6 @@ def get_llm_client() -> oa.OpenAI:
     """
     logging.info("Initializing OpenAI client.")
     try:
-        openai_api_key = os.getenv("OPENAI_API_KEY")
         if not isinstance(openai_api_key, str):
             raise TypeError("API key is required to initialize OpenAI client")
         if not openai_api_key:
@@ -108,12 +114,16 @@ def get_s3_client(
         raise
 
 
-def get_db_connection() -> Connection:
+def get_db_connection(host: str, database: str, user: str, password: str, port: str) -> Connection:
     """Creates the connection to interact with the RDS hosted on AWS.
 
     Args:
-        None: no arguments are required for this function.
-        But environment variables are used withing the function.
+        host (str): The database host.
+        database (str): The database name.
+        user (str): The database user.
+        password (str): The database password.
+        port (str): The database port.
+
 
     Returns:
         Connection: A connection object to the PostgreSQL database
@@ -127,11 +137,6 @@ def get_db_connection() -> Connection:
 
     """
     try:
-        host = os.getenv("DB_HOST")
-        port = os.getenv("DB_PORT")
-        database = os.getenv("DB_NAME")
-        user = os.getenv("DB_USER")
-        password = os.getenv("DB_PASSWORD")
         if not host or not port or not database or not user or not password:
             raise ValueError("Database connection parameters are missing in environment variables")
         if not all(isinstance(param, str) for param in [host, port, database, user, password]):
