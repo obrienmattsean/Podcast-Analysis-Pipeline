@@ -10,8 +10,6 @@ from audio_utils import download_audio_file
 from s3_utils import EpisodeS3
 from transcribe import transcribe
 
-logger = logging.getLogger(__name__)
-
 
 def handler(event: dict, context: Any) -> dict[str, Any]:
     """Process an episode S3 URI and upload transcript text to the same prefix.
@@ -31,19 +29,19 @@ def handler(event: dict, context: Any) -> dict[str, Any]:
         episode_s3_uri = event["episode_s3_url"]
         episode_s3 = EpisodeS3(episode_s3_uri)
 
-        logger.info("Starting transcription for episode: %s", episode_s3_uri)
+        logging.info("Starting transcription for episode: %s", episode_s3_uri)
 
         audio_url = episode_s3.get_audio_link(s3_client)
-        logger.info("Resolved audio URL: %s", audio_url)
+        logging.info("Resolved audio URL: %s", audio_url)
 
         audio_path = download_audio_file(audio_url, Path(temp_dir) / "audio.mp3")
-        logger.info("Audio downloaded to: %s", audio_path)
+        logging.info("Audio downloaded to: %s", audio_path)
 
         transcript = transcribe(audio_path)
-        logger.info("Transcription complete (%d characters)", len(transcript))
+        logging.info("Transcription complete (%d characters)", len(transcript))
 
         episode_s3.upload_transcript(s3_client, transcript)
-        logger.info("Transcript uploaded to S3: %s", episode_s3_uri)
+        logging.info("Transcript uploaded to S3: %s", episode_s3_uri)
 
         s3_client.close()
 
