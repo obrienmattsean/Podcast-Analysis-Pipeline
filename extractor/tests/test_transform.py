@@ -27,19 +27,19 @@ class TestGetAudioLinkFromEntry:
         result = transform.get_audio_link_from_entry(entry)
         assert result == "https://example.com/ep1.mp3"
 
-    def test_returns_none_when_no_audio_links(self):
+    def test_raises_when_no_audio_links(self):
         entry = {
             "links": [
                 {"type": "text/html", "href": "https://example.com"},
             ]
         }
-        result = transform.get_audio_link_from_entry(entry)
-        assert result is None
+        with pytest.raises(ValueError, match="No audio link found in entry"):
+            transform.get_audio_link_from_entry(entry)
 
-    def test_returns_none_when_no_links(self):
+    def test_raises_when_no_links(self):
         entry = {"title": "Episode"}
-        result = transform.get_audio_link_from_entry(entry)
-        assert result is None
+        with pytest.raises(ValueError, match="No audio link found in entry"):
+            transform.get_audio_link_from_entry(entry)
 
     def test_raises_when_entry_not_dict(self):
         with pytest.raises(ValueError, match="Entry must be a dictionary"):
