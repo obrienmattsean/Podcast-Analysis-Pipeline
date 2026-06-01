@@ -77,7 +77,7 @@ def lambda_handler(event, context):
         s3_client = get_s3_client(
             secrets.get("AWS_ACCESS_KEY_ID"),
             secrets.get("AWS_SECRET_ACCESS_KEY"),
-            secrets.get("REGION_NAME"),
+            "eu-west-2",
         )
         db_connection = get_db_connection(
             secrets.get("RDS_HOST"),
