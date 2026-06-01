@@ -7,7 +7,7 @@ error handling and validation of input parameters.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "enrich_upload"))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from unittest.mock import MagicMock, patch
 
@@ -17,6 +17,8 @@ from connection_functions import (
     get_llm_client,
     get_s3_client,
 )
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 class TestGetLlmClient:

@@ -5,18 +5,14 @@ handling and validation of input parameters.
 """
 
 import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "enrich_upload"))
-
 from datetime import datetime
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from upload_functions import (
-    combine_enrichments,
-    upload_to_rds,
-)
+from upload_functions import combine_enrichments, upload_to_rds
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 class TestCombineEnrichments:
