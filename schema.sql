@@ -1,70 +1,80 @@
-
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Podcasts table: stores podcast metadata
+
 CREATE TABLE IF NOT EXISTS podcasts (
-  podcast_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  rss_url VARCHAR(500) UNIQUE NOT NULL,
-  description TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    podcast_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    rss_url VARCHAR(500) NOT NULL UNIQUE,
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Episodes table: stores individual podcast episodes
+
 CREATE TABLE IF NOT EXISTS episodes (
-  id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  podcast_id INTEGER NOT NULL REFERENCES podcasts(podcast_id) ON DELETE CASCADE,
-  title VARCHAR(255) NOT NULL,
-  audio_url VARCHAR(500) NOT NULL,
-  duration_seconds INTEGER,
-  pub_date TIMESTAMP NOT NULL,
-  sentient_score FLOAT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    episode_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    podcast_id INTEGER NOT NULL REFERENCES podcasts(podcast_id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    audio_url VARCHAR(500) NOT NULL,
+    duration_seconds INTEGER,
+    pub_date TIMESTAMP NOT NULL,
+    sentiment_score DOUBLE PRECISION,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Entities table: stores entities (persons, organizations, concepts, etc.)
+CREATE INDEX IF NOT EXISTS idx_episodes_podcast_id
+    ON episodes(podcast_id);
+
+CREATE INDEX IF NOT EXISTS idx_episodes_pub_date
+    ON episodes(pub_date);
+
+
 CREATE TABLE IF NOT EXISTS entities (
-  entity_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  name VARCHAR(255) UNIQUE NOT NULL,
-  entity_type VARCHAR(100) NOT NULL  -- e.g., "Person", "Organization", "Concept"
+    entity_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    entity_type VARCHAR(100) NOT NULL
 );
 
--- Episode_entities: stores the unique combination of entity and episode
+
 CREATE TABLE IF NOT EXISTS episode_entities (
-  episode_id INTEGER NOT NULL REFERENCES episodes(episode_id) ON DELETE CASCADE,
-  entity_id INTEGER NOT NULL REFERENCES entities(entity_id) ON DELETE CASCADE,
-  UNIQUE(episode_id, entity_id)
+    episode_id INTEGER NOT NULL REFERENCES episodes(episode_id) ON DELETE CASCADE,
+    entity_id INTEGER NOT NULL REFERENCES entities(entity_id) ON DELETE CASCADE,
+
+    PRIMARY KEY (episode_id, entity_id)
 );
 
--- Segments table: breaks episodes into chunks for analysis
+
 CREATE TABLE IF NOT EXISTS episode_chunks (
-  episode_chunk_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  episode_id INTEGER NOT NULL REFERENCES episodes(episode_id) ON DELETE CASCADE,
-  chunk_index INTEGER NOT NULL,
-  start_time_seconds INTEGER,
-  end_time_seconds INTEGER,
-  content TEXT,
-  embedding_vector(1536) NOT NULL,  -- ALTER THE SIZE OF VECTOR
-  chunk_transcript TEXT NOT NULL
+    episode_chunk_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    episode_id INTEGER NOT NULL REFERENCES episodes(episode_id) ON DELETE CASCADE,
+
+    chunk_index INTEGER NOT NULL,
+
+    start_time_seconds INTEGER,
+    end_time_seconds INTEGER,
+
+    content TEXT,
+    chunk_transcript TEXT NOT NULL,
+
+    embedding VECTOR(1536) NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT uq_episode_chunk
+        UNIQUE (episode_id, chunk_index)
 );
 
-
-
-
-
--- ==============================================================================
--- Permissions (Create these after creating roles)
--- ==============================================================================
--- These commands assume you have created roles like 'podcast_app_user'
--- Uncomment and run after creating roles:
-
--- Grant read access to application role
--- GRANT SELECT ON ALL TABLES IN SCHEMA public TO podcast_app_user;
-
--- Grant insert/update access for data ingestion
--- GRANT INSERT, UPDATE ON podcasts, episodes, episode_chunks, entities, episode_entities TO podcast_app_user;
-
--- Grant vector search access
--- GRANT SELECT ON episode_embeddings, episode_topics TO podcast_app_user;
+CREATE INDEX IF NOT EXISTS idx_episode_chunks_episode_id
+    ON episode_chunks(episode_id);
 
 -- ==============================================================================
+-- Vector Similarity Search Index
+-- ==============================================================================
+
+-- Uncomment once data exists and pgvector is confirmed working.
+-- Adjust lists based on your embedding model and query patterns.
+
+-- CREATE INDEX idx_episode_chunks_embedding
+-- ON episode_chunks
+-- USING ivfflat (embedding vector_cosine_ops)
+-- WITH (lists = 100);
