@@ -1,5 +1,0 @@
-pre-commit
-ruff
-pytest
-pytest-cov
-ty
