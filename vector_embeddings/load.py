@@ -4,38 +4,50 @@ This module handles database operations for storing episode chunks
 and their corresponding embedding vectors for RAG pipeline retrieval.
 """
 
+import json
 import logging
 import os
 
-import psycopg2
+import boto3
+from psycopg2 import connect
 from psycopg2.extensions import connection
 from psycopg2.extras import execute_values
 
 logger = logging.getLogger(__name__)
 
-RDS_HOST = os.getenv("RDS_HOST")
-RDS_DB_NAME = os.getenv("RDS_DBNAME")
-RDS_USERNAME = os.getenv("RDS_USER")
-RDS_PASSWORD = os.getenv("RDS_PASSWORD")
-RDS_PORT = int(os.getenv("RDS_PORT", 5432))
+
+def get_secrets() -> dict:
+    client = boto3.client("secretsmanager")
+
+    resp = client.get_secret_value(SecretId=os.environ["SECRETS_ARN"])
+
+    return json.loads(resp["SecretString"])
 
 
 def get_db_connection() -> connection:
-    """Create a PostgreSQL database connection.
-
-    Connects to RDS PostgreSQL instance using credentials from environment variables.
+    """Create a PostgreSQL connection from environment configuration.
 
     Returns:
-        An active psycopg2 connection object.
+        connection: Active psycopg2 database connection.
+
+    Raises:
+        Exception: Raised when the database connection fails.
     """
-    logger.info("Connecting to database: %s:%s/%s", RDS_HOST, RDS_PORT, RDS_DB_NAME)
 
-    conn = psycopg2.connect(
-        host=RDS_HOST, database=RDS_DB_NAME, user=RDS_USERNAME, password=RDS_PASSWORD, port=RDS_PORT
-    )
+    try:
+        secrets = get_secrets()
 
-    logger.info("Database connection established")
-    return conn
+        return connect(
+            host=secrets["RDS_HOST"],
+            database=secrets["RDS_DBNAME"],
+            user=secrets["RDS_USER"],
+            password=secrets["RDS_PASSWORD"],
+            port=5432,
+            sslmode="require",
+        )
+    except Exception:
+        logging.exception("Failed to connect to database")
+        raise
 
 
 def insert_embeddings(conn: connection, episode_id: int, chunks: list[dict]) -> None:
