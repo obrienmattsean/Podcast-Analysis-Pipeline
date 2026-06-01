@@ -20,7 +20,8 @@ import boto3
 import openai as oa
 from botocore.client import BaseClient
 from dotenv import load_dotenv
-from psycopg2 import Connection, connect
+from psycopg2 import connect
+from psycopg2.extensions import connection as Connection
 
 load_dotenv()  # Load environment variables from .env file
 
