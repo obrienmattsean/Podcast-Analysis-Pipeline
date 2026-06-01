@@ -13,11 +13,12 @@ from transcribe import transcribe
 logger = logging.getLogger(__name__)
 
 
-def handler(event: str, context: Any) -> dict[str, Any]:
+def handler(event: dict, context: Any) -> dict[str, Any]:
     """Process an episode S3 URI and upload transcript text to the same prefix.
 
     Args:
-        event: Episode S3 URI as a string.
+        event: Dictionary containing the S3 URL of the episode.
+
         context: Lambda runtime context (unused in local execution).
 
     Returns:
@@ -27,7 +28,7 @@ def handler(event: str, context: Any) -> dict[str, Any]:
     with tempfile.TemporaryDirectory() as temp_dir:
         s3_client = boto3.client("s3")
 
-        episode_s3_uri = event
+        episode_s3_uri = event["episode_s3_url"]
         episode_s3 = EpisodeS3(episode_s3_uri)
 
         logger.info("Starting transcription for episode: %s", episode_s3_uri)
@@ -55,6 +56,6 @@ def handler(event: str, context: Any) -> dict[str, Any]:
 
 if __name__ == "__main__":
     # Example local execution with a test S3 URI
-    test_event = "s3://c23-podex-ai-bucket/17/246/"
+    test_event = {"episode_s3_url": "s3://c23-podex-ai-bucket/17/246/"}
     response = handler(test_event, None)
     print(response)
