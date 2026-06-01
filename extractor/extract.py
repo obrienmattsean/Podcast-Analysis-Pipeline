@@ -6,7 +6,7 @@ from pprint import pprint
 
 import feedparser
 from psycopg2.extensions import connection
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import RealDictCursor, RealDictRow
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ def insert_podcast(conn: connection, rss_url: str) -> None:
         raise
 
 
-def get_podcasts_from_database(conn: connection) -> list[dict]:
+def get_podcasts_from_database(conn: connection) -> list[RealDictRow]:
     """Fetch podcast metadata rows from the database.
 
     Args:
@@ -124,7 +124,7 @@ def get_episodes_from_rss(url: str) -> list:
 
 
 def filter_episodes_by_datetime(
-    episodes: list[dict], cutoff_datetime: datetime = None
+    episodes: list[dict], cutoff_datetime: datetime | None = None
 ) -> list[dict]:
     """Filter episodes to only include those published after a cutoff date.
 

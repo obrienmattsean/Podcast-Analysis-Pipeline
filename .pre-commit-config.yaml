@@ -15,6 +15,13 @@ repos:
       language: system
       types: [python]
 
+    - id: local-ty
+      name: ty check
+      entry: ty check
+      require_serial: true
+      language: system
+      types: [python]
+
 
 
 

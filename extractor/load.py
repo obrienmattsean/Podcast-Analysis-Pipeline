@@ -63,8 +63,8 @@ def _insert_episodes_to_db(conn: connection, episodes: list[dict]) -> list[dict]
                     ),
                 )
 
-                episode_id = cursor.fetchone()[0]
-                episode["episode_id"] = episode_id
+                result = cursor.fetchone()
+                episode["episode_id"] = result[0] if result else None
                 results.append(episode)
                 conn.commit()
 
@@ -194,6 +194,10 @@ def load_podcast_episodes(
 
     if not episodes:
         return 0, 0, []
+
+    if not isinstance(podcast_id, int):
+        logger.warning("Missing or invalid podcast_id=%s, skipping load", podcast_id)
+        return 0, len(episodes), []
 
     try:
         episodes_payload = build_episode_list_payload(conn, podcast_episode_data)

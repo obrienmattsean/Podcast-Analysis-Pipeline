@@ -27,23 +27,23 @@ class TestGetAudioLinkFromEntry:
         result = transform.get_audio_link_from_entry(entry)
         assert result == "https://example.com/ep1.mp3"
 
-    def test_returns_none_when_no_audio_links(self):
+    def test_raises_when_no_audio_links(self):
         entry = {
             "links": [
                 {"type": "text/html", "href": "https://example.com"},
             ]
         }
-        result = transform.get_audio_link_from_entry(entry)
-        assert result is None
+        with pytest.raises(ValueError, match="No audio link found in entry"):
+            transform.get_audio_link_from_entry(entry)
 
-    def test_returns_none_when_no_links(self):
+    def test_raises_when_no_links(self):
         entry = {"title": "Episode"}
-        result = transform.get_audio_link_from_entry(entry)
-        assert result is None
+        with pytest.raises(ValueError, match="No audio link found in entry"):
+            transform.get_audio_link_from_entry(entry)
 
     def test_raises_when_entry_not_dict(self):
         with pytest.raises(ValueError, match="Entry must be a dictionary"):
-            transform.get_audio_link_from_entry([])
+            transform.get_audio_link_from_entry([])  # type: ignore[invalid-argument-type]
 
 
 class TestParseEpisode:
@@ -59,7 +59,7 @@ class TestParseEpisode:
     def test_raises_when_podcast_id_not_int(self, rss_episode_with_audio):
         episode = rss_episode_with_audio(2026, 5, 15)
         with pytest.raises(ValueError, match="podcast_id must be an integer"):
-            transform.parse_episode(episode, podcast_id="bad")
+            transform.parse_episode(episode, podcast_id="bad")  # type: ignore[invalid-argument-type]
 
     def test_raises_when_missing_published_date(self):
         episode = {
