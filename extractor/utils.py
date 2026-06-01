@@ -18,10 +18,7 @@ def get_database_connection() -> connection:
 
     try:
         return connect(
-            host=os.getenv(
-                "RDS_HOST",
-                "c23-podex-ai-podcast-analysis-db.c57vkec7dkkx.eu-west-2.rds.amazonaws.com",
-            ),
+            host=os.getenv("RDS_HOST"),
             database=os.getenv("RDS_DBNAME"),
             user=os.getenv("RDS_USER"),
             password=os.getenv("RDS_PASSWORD"),
