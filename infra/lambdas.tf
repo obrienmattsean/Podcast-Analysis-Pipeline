@@ -22,3 +22,28 @@ resource "aws_lambda_function" "extract" {
     }
   }
 }
+
+# ==============================================================================
+# Enrich Lambda Function
+# ==============================================================================
+resource "aws_lambda_function" "enrich" {
+  function_name = "${var.project_name}-enrich"
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.repositories["enrich"].repository_url}:latest"
+  role          = aws_iam_role.enrich_role.arn
+  timeout       = 180
+  memory_size   = 512
+
+  vpc_config {
+    subnet_ids         = data.aws_subnets.private_subnets.ids
+    security_group_ids = [aws_security_group.app_sg.id]
+  }
+
+  environment {
+    variables = {
+      ENVIRONMENT    = var.environment
+      S3_BUCKET_NAME = aws_s3_bucket.podcast_bucket.id
+      SECRETS_ARN    = aws_secretsmanager_secret.app_secrets.arn
+    }
+  }
+}
