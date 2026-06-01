@@ -7,7 +7,7 @@ resource "aws_lambda_function" "transcribe" {
   image_uri     = "${aws_ecr_repository.repositories["transcribe"].repository_url}:latest"
   role          = aws_iam_role.transcribe_role.arn
   timeout       = 900
-  memory_size   = 2048
+  memory_size   = 10240
 
   environment {
     variables = {
