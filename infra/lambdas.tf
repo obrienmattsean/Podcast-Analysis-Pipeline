@@ -58,3 +58,26 @@ resource "aws_lambda_function" "enrich" {
     }
   }
 }
+
+
+
+# ==============================================================================
+# Vector Lambda Function
+# ==============================================================================
+resource "aws_lambda_function" "vector" {
+  function_name = "${var.project_name}-vector"
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.repositories["vector"].repository_url}:latest"
+  role          = aws_iam_role.vector_role.arn
+  timeout       = 300
+  memory_size   = 1024
+
+  environment {
+    variables = {
+      ENVIRONMENT    = var.environment
+      S3_BUCKET_NAME = aws_s3_bucket.podcast_bucket.id
+      SECRETS_ARN    = aws_secretsmanager_secret.app_secrets.arn
+      OPENAI_API_KEY = jsondecode(data.aws_secretsmanager_secret_version.app_secrets.secret_string)["OPENAI_API_KEY"]
+    }
+  }
+}
