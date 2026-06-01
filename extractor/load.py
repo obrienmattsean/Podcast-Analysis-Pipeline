@@ -51,7 +51,7 @@ def _insert_episodes_to_db(conn: connection, episodes: list[dict]) -> list[dict]
                     """
                     INSERT INTO episodes (podcast_id, title, audio_url, pub_date)
                     VALUES (%s, %s, %s, %s)
-                    RETURNING id
+                    RETURNING episode_id
                     """,
                     (
                         episode.get("podcast_id"),

@@ -57,7 +57,7 @@ def get_podcasts_from_database(conn: connection) -> list[RealDictRow]:
     logging.info("Fetching podcasts from database")
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute("SELECT id, title, rss_url FROM podcasts")
+            cursor.execute("SELECT podcast_id, title, rss_url FROM podcasts")
             podcasts = cursor.fetchall()
         conn.commit()
     except Exception:
@@ -175,17 +175,17 @@ def get_new_episodes_for_podcast(conn: connection, podcast: dict) -> list[dict]:
 
     Args:
         conn (connection): Active psycopg2 database connection.
-        podcast (dict): Podcast metadata containing id, title, and rss_url.
+        podcast (dict): Podcast metadata containing podcast_id, title, and rss_url.
 
     Returns:
         list[dict]: RSS entries that are newer than the latest stored episode.
     """
 
-    podcast_id = podcast["id"]
+    podcast_id = podcast["podcast_id"]
     podcast_title = podcast.get("title", "unknown")
     logging.info("Checking podcast id=%s title=%s", podcast_id, podcast_title)
 
-    latest_episode_date = get_latest_episode_date_from_podcast(conn, podcast["id"])
+    latest_episode_date = get_latest_episode_date_from_podcast(conn, podcast["podcast_id"])
     if latest_episode_date:
         logging.debug(
             "Latest stored episode date for podcast_id=%s is %s",
@@ -246,7 +246,7 @@ def extract_new_episodes(conn: connection) -> list[dict]:
                 )
                 continue
             podcast_episode_data = {
-                "podcast_id": podcast["id"],
+                "podcast_id": podcast["podcast_id"],
                 "podcast_title": podcast.get("title", "unknown"),
                 "new_episodes": new_episodes,
             }
@@ -255,7 +255,7 @@ def extract_new_episodes(conn: connection) -> list[dict]:
             logging.exception(
                 "Failed to extract episodes for podcast title=%s id=%s",
                 podcast.get("title"),
-                podcast.get("id"),
+                podcast.get("podcast_id"),
             )
 
     total_new_episodes = sum(
