@@ -3,6 +3,7 @@
 import json
 
 import boto3
+from botocore.client import BaseClient
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
@@ -64,7 +65,7 @@ class EpisodeS3:
         """
         return f"{self.podcast_id}/{self.episode_id}/transcript.txt"
 
-    def read_metadata(self, s3_client: boto3.client) -> dict:
+    def read_metadata(self, s3_client: BaseClient) -> dict:
         """Read and parse the episode's metadata.json from S3.
 
         Args:
@@ -77,7 +78,7 @@ class EpisodeS3:
         body_bytes = response["Body"].read()
         return json.loads(body_bytes.decode("utf-8"))
 
-    def get_audio_link(self, s3_client: boto3.client) -> str:
+    def get_audio_link(self, s3_client: BaseClient) -> str:
         """Extract the audio link from the episode's metadata.
 
         Args:
@@ -95,7 +96,7 @@ class EpisodeS3:
             raise ValueError("metadata.json is missing a valid audio_link")
         return audio_link
 
-    def upload_transcript(self, s3_client: boto3.client, transcript: str) -> str:
+    def upload_transcript(self, s3_client: BaseClient, transcript: str) -> str:
         """Upload the transcript text to S3.
 
         Args:
