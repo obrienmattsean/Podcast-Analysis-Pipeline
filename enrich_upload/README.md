@@ -44,7 +44,7 @@ Validation error:
 
 - `OPENAI_API_KEY`: OpenAI API key.
 - `AWS_ACCESS_KEY_ID`: AWS access key.
-- `AWS_SECRET_ACCESS_KEY_ID`: AWS secret access key.
+- `AWS_SECRET_ACCESS_KEY`: AWS secret access key.
 - `DB_HOST`: AWS host.
 - `DB_PORT`: 5432.
 - `DB_NAME`: Database name.
@@ -57,8 +57,7 @@ Validation error:
 Attach an execution role that allows:
 
 - `s3:GetObject` for episode metadata objects.
-- `rds_bd:connect`: for the upload are querying of the RDS.
-
+- `rds-db:connect`: for uploading and querying the RDS.
 Use Lambda execution role credentials (recommended) instead of hardcoded static access keys.
 
 ## Local Run
@@ -66,7 +65,7 @@ Use Lambda execution role credentials (recommended) instead of hardcoded static 
 From this folder:
 
 ```bash
-python lambda_function.py
+python enrichment_upload_handler.py
 ```
 
 ## Build and Push Image

@@ -4,29 +4,21 @@ Tests cover initialization of OpenAI, S3, and PostgreSQL clients with proper
 error handling and validation of input parameters.
 """
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from unittest.mock import MagicMock, patch
 
 import pytest
-from connection_functions import (
+
+from enrich_upload.connection_functions import (
     get_db_connection,
     get_llm_client,
     get_s3_client,
 )
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-
 class TestGetLlmClient:
     """Tests for get_llm_client function."""
 
     @patch.dict("os.environ", {"OPENAI_API_KEY": "test-key-123"})
-    @patch("connection_functions.oa.OpenAI")
-    def test_get_llm_client_success(self, mock_openai_class):
+    @patch("enrich_upload.connection_functions.oa.OpenAI")
         """Test successful OpenAI client initialization with valid API key from environment."""
         mock_client = MagicMock()
         mock_openai_class.return_value = mock_client
@@ -49,8 +41,7 @@ class TestGetLlmClient:
             get_llm_client()
 
     @patch.dict("os.environ", {"OPENAI_API_KEY": "test-key-123"})
-    @patch("connection_functions.oa.OpenAI")
-    def test_get_llm_client_openai_error(self, mock_openai_class):
+    @patch("enrich_upload.connection_functions.oa.OpenAI")
         """Test that OpenAI initialization error is caught and re-raised."""
         mock_openai_class.side_effect = Exception("OpenAI API error")
 
@@ -61,7 +52,7 @@ class TestGetLlmClient:
 class TestGetS3Client:
     """Tests for get_s3_client function."""
 
-    @patch("connection_functions.boto3.client")
+    @patch("enrich_upload.connection_functions.boto3.client")
     def test_get_s3_client_success(self, mock_boto3_client):
         """Test successful S3 client initialization with valid credentials."""
         mock_s3 = MagicMock()
@@ -109,7 +100,7 @@ class TestGetS3Client:
         with pytest.raises(TypeError, match="required as strings"):
             get_s3_client("access-key", "secret-key", ["eu-west-2"])
 
-    @patch("connection_functions.boto3.client")
+    @patch("enrich_upload.connection_functions.boto3.client")
     def test_get_s3_client_boto3_error(self, mock_boto3_client):
         """Test that boto3 client creation error is caught and re-raised."""
         mock_boto3_client.side_effect = Exception("boto3 connection failed")
@@ -131,16 +122,15 @@ class TestGetDbConnection:
             "DB_PASSWORD": "test_pass",
         },
     )
-    @patch("connection_functions.psycopg2.connect")
-    def test_get_db_connection_success(self, mock_psycopg2_connect):
-        """Test successful database connection with valid environment variables."""
+    @patch("enrich_upload.connection_functions.connect")
+    def test_get_db_connection_success(self, mock_connect):
         mock_connection = MagicMock()
-        mock_psycopg2_connect.return_value = mock_connection
+        mock_connect.return_value = mock_connection
 
         result = get_db_connection()
 
         assert result == mock_connection
-        mock_psycopg2_connect.assert_called_once_with(
+        mock_connect.assert_called_once_with(
             host="localhost",
             port="5432",
             database="test_db",
@@ -178,10 +168,10 @@ class TestGetDbConnection:
             with pytest.raises(ValueError, match="missing in environment variables"):
                 get_db_connection()
 
-    @patch("connection_functions.psycopg2.connect")
-    def test_get_db_connection_psycopg2_error(self, mock_psycopg2_connect):
+    @patch("enrich_upload.connection_functions.connect")
+    def test_get_db_connection_psycopg2_error(self, mock_connect):
         """Test that psycopg2 connection error is caught and re-raised."""
-        mock_psycopg2_connect.side_effect = Exception("Connection refused")
+        mock_connect.side_effect = Exception("Connection refused")
 
         with patch.dict(
             "os.environ",

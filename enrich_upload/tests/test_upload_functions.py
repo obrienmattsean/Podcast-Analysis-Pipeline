@@ -4,16 +4,12 @@ Tests cover data combination and RDS upload operations with proper error
 handling and validation of input parameters.
 """
 
-import sys
 from datetime import datetime
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from upload_functions import combine_enrichments, upload_to_rds
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
+from enrich_upload.upload_functions import combine_enrichments, upload_to_rds
 
 class TestCombineEnrichments:
     """Tests for combine_enrichments function."""

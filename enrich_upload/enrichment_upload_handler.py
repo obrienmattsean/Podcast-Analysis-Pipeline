@@ -62,9 +62,7 @@ def lambda_handler(event, context):
         db_connection = get_db_connection()
         logger.info("Connections established successfully.")
 
-        # Step 2: Retrieve episode transcript and metadata from S3
-        logger.info("Retrieving episode transcript and metadata from S3.")
-        metadata = get_episode_metadata_from_s3(s3_client, event["s3_path"])
+        metadata = get_episode_metadata_from_s3(s3_client, event["episode_uri"])
         transcript = get_episode_transcript_from_s3(s3_client, event["episode_uri"])
         logger.info("Episode transcript and metadata retrieved successfully.")
         logger.info("Prompting LLM for enrichment with transcript")

@@ -105,7 +105,7 @@ def upload_to_rds(enrichment_dict: dict, db_connection: psycopg2.extensions.conn
                 (entity_info["name"], entity_info["entity_type"]),
             )
 
-            # Insert episode_entities data
+        # Insert episode_entities data
         episode_entities = enrichment_dict["entities"]
         logger.info("Episode entities data uploading")
         for entity in episode_entities.values():

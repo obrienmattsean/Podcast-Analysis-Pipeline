@@ -174,10 +174,11 @@ def get_episode_metadata_from_s3(s3_client: boto3.client, s3_path: str) -> dict:
 
     try:
         bucket_name = s3_path.split("/")[2].strip()
-        object_key = "/".join(s3_path.split("/")[3:])
+        object_key = "/".join(s3_path.split("/")[3:]).strip()
+        if object_key and not object_key.endswith("/"):
+            object_key += "/"
 
         metadata = s3_client.get_object(Bucket=bucket_name, Key=f"{object_key}metadata.json")
-
         logger.info("Metadata retrieved successfully from S3.")
 
         return json.loads(metadata["Body"].read().decode("utf-8"))
@@ -212,9 +213,10 @@ def get_episode_transcript_from_s3(s3_client: boto3.client, s3_path: str) -> str
     try:
         bucket_name = s3_path.split("/")[2].strip()
         object_key = "/".join(s3_path.split("/")[3:]).strip()
+        if object_key and not object_key.endswith("/"):
+            object_key += "/"
 
         transcript = s3_client.get_object(Bucket=bucket_name, Key=f"{object_key}transcript.txt")
-
         logger.info("Transcript retrieved successfully from S3.")
 
         return transcript["Body"].read().decode("utf-8")

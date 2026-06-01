@@ -4,24 +4,16 @@ Tests cover LLM enrichment and S3 metadata/transcript retrieval with proper
 error handling and validation of input parameters.
 """
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 import json
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from enrichment_functions import (
+
+from enrich_upload.enrichment_functions import (
     get_episode_metadata_from_s3,
     get_episode_transcript_from_s3,
     prompt_llm_for_enrichment,
 )
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 
 class TestPromptLlmForEnrichment:
     """Tests for prompt_llm_for_enrichment function."""
