@@ -8,12 +8,12 @@ import json
 from unittest.mock import MagicMock
 
 import pytest
-
-from enrich_upload.enrichment_functions import (
+from enrichment_functions import (
     get_episode_metadata_from_s3,
     get_episode_transcript_from_s3,
     prompt_llm_for_enrichment,
 )
+
 
 class TestPromptLlmForEnrichment:
     """Tests for prompt_llm_for_enrichment function."""

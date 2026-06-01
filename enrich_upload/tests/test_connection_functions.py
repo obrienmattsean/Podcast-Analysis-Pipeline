@@ -7,55 +7,46 @@ error handling and validation of input parameters.
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from enrich_upload.connection_functions import (
-    get_db_connection,
-    get_llm_client,
-    get_s3_client,
-)
+from connection_functions import get_db_connection, get_llm_client, get_s3_client
 
 
 class TestGetLlmClient:
     """Tests for get_llm_client function."""
 
-    @patch.dict("os.environ", {"OPENAI_API_KEY": "test-key-123"})
-    @patch("enrich_upload.connection_functions.oa.OpenAI")
+    @patch("connection_functions.oa.OpenAI")
     def test_get_llm_client_success(self, mock_openai_class):
-        """Test successful OpenAI client initialization with valid API key from environment."""
+        """Test successful OpenAI client initialization with valid API key."""
         mock_client = MagicMock()
         mock_openai_class.return_value = mock_client
 
-        result = get_llm_client()
+        result = get_llm_client("test-key-123")
 
         assert result == mock_client
         mock_openai_class.assert_called_once_with(api_key="test-key-123")
 
-    @patch.dict("os.environ", {"OPENAI_API_KEY": ""})
     def test_get_llm_client_empty_api_key(self):
-        """Test that empty API key in environment raises ValueError."""
+        """Test that empty API key raises ValueError."""
         with pytest.raises(ValueError, match="API key cannot be empty"):
-            get_llm_client()
+            get_llm_client("")
 
-    @patch.dict("os.environ", {}, clear=True)
     def test_get_llm_client_missing_api_key(self):
-        """Test that missing API key environment variable raises TypeError."""
+        """Test that non-string API key raises TypeError."""
         with pytest.raises(TypeError, match="API key is required"):
-            get_llm_client()
+            get_llm_client(None)
 
-    @patch.dict("os.environ", {"OPENAI_API_KEY": "test-key-123"})
-    @patch("enrich_upload.connection_functions.oa.OpenAI")
+    @patch("connection_functions.oa.OpenAI")
     def test_get_llm_client_initialization_error(self, mock_openai_class):
         """Test that OpenAI initialization error is caught and re-raised."""
         mock_openai_class.side_effect = Exception("OpenAI API error")
 
         with pytest.raises(Exception, match="OpenAI API error"):
-            get_llm_client()
+            get_llm_client("test-key-123")
 
 
 class TestGetS3Client:
     """Tests for get_s3_client function."""
 
-    @patch("enrich_upload.connection_functions.boto3.client")
+    @patch("connection_functions.boto3.client")
     def test_get_s3_client_success(self, mock_boto3_client):
         """Test successful S3 client initialization with valid credentials."""
         mock_s3 = MagicMock()
@@ -90,20 +81,20 @@ class TestGetS3Client:
 
     def test_get_s3_client_non_string_access_key(self):
         """Test that non-string access key raises TypeError."""
-        with pytest.raises(TypeError, match="required as strings"):
+        with pytest.raises(TypeError, match="are required"):
             get_s3_client(12345, "secret-key", "eu-west-2")
 
     def test_get_s3_client_non_string_secret_key(self):
         """Test that non-string secret key raises TypeError."""
-        with pytest.raises(TypeError, match="required as strings"):
+        with pytest.raises(TypeError, match="are required"):
             get_s3_client("access-key", None, "eu-west-2")
 
     def test_get_s3_client_non_string_region(self):
         """Test that non-string region raises TypeError."""
-        with pytest.raises(TypeError, match="required as strings"):
+        with pytest.raises(TypeError, match="are required"):
             get_s3_client("access-key", "secret-key", ["eu-west-2"])
 
-    @patch("enrich_upload.connection_functions.boto3.client")
+    @patch("connection_functions.boto3.client")
     def test_get_s3_client_boto3_error(self, mock_boto3_client):
         """Test that boto3 client creation error is caught and re-raised."""
         mock_boto3_client.side_effect = Exception("boto3 connection failed")
@@ -115,22 +106,13 @@ class TestGetS3Client:
 class TestGetDbConnection:
     """Tests for get_db_connection function."""
 
-    @patch.dict(
-        "os.environ",
-        {
-            "DB_HOST": "localhost",
-            "DB_PORT": "5432",
-            "DB_NAME": "test_db",
-            "DB_USER": "test_user",
-            "DB_PASSWORD": "test_pass",
-        },
-    )
-    @patch("enrich_upload.connection_functions.connect")
+    @patch("connection_functions.connect")
     def test_get_db_connection_success(self, mock_connect):
+        """Test successful database connection with valid parameters."""
         mock_connection = MagicMock()
         mock_connect.return_value = mock_connection
 
-        result = get_db_connection()
+        result = get_db_connection("localhost", "test_db", "test_user", "test_pass", "5432")
 
         assert result == mock_connection
         mock_connect.assert_called_once_with(
@@ -142,52 +124,27 @@ class TestGetDbConnection:
         )
 
     def test_get_db_connection_missing_host(self):
-        """Test that missing DB_HOST raises ValueError."""
-        with patch.dict(
-            "os.environ",
-            {
-                "DB_PORT": "5432",
-                "DB_NAME": "test_db",
-                "DB_USER": "test_user",
-                "DB_PASSWORD": "test_pass",
-            },
-            clear=True,
-        ):
-            with pytest.raises(ValueError, match="missing in environment variables"):
-                get_db_connection()
+        """Test that empty host raises ValueError."""
+        with pytest.raises(ValueError, match="missing in environment"):
+            get_db_connection("", "test_db", "test_user", "test_pass", "5432")
 
     def test_get_db_connection_missing_port(self):
-        """Test that missing DB_PORT raises ValueError."""
-        with patch.dict(
-            "os.environ",
-            {
-                "DB_HOST": "localhost",
-                "DB_NAME": "test_db",
-                "DB_USER": "test_user",
-                "DB_PASSWORD": "test_pass",
-            },
-            clear=True,
-        ):
-            with pytest.raises(ValueError, match="missing in environment variables"):
-                get_db_connection()
+        """Test that empty port raises ValueError."""
+        with pytest.raises(ValueError, match="missing in environment"):
+            get_db_connection("localhost", "test_db", "test_user", "test_pass", "")
 
-    @patch("enrich_upload.connection_functions.connect")
+    def test_get_db_connection_non_string_host(self):
+        """Test that non-string host raises TypeError."""
+        with pytest.raises(TypeError, match="must be strings"):
+            get_db_connection(12345, "test_db", "test_user", "test_pass", "5432")
+
+    @patch("connection_functions.connect")
     def test_get_db_connection_psycopg2_error(self, mock_connect):
         """Test that psycopg2 connection error is caught and re-raised."""
         mock_connect.side_effect = Exception("Connection refused")
 
-        with patch.dict(
-            "os.environ",
-            {
-                "DB_HOST": "localhost",
-                "DB_PORT": "5432",
-                "DB_NAME": "test_db",
-                "DB_USER": "test_user",
-                "DB_PASSWORD": "test_pass",
-            },
-        ):
-            with pytest.raises(Exception, match="Connection refused"):
-                get_db_connection()
+        with pytest.raises(Exception, match="Connection refused"):
+            get_db_connection("localhost", "test_db", "test_user", "test_pass", "5432")
 
 
 if __name__ == "__main__":

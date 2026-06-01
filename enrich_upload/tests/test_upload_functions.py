@@ -8,8 +8,8 @@ from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
+from upload_functions import combine_enrichments, upload_to_rds
 
-from enrich_upload.upload_functions import combine_enrichments, upload_to_rds
 
 class TestCombineEnrichments:
     """Tests for combine_enrichments function."""
