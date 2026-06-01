@@ -90,11 +90,13 @@ def get_s3_client(
         or not isinstance(region_name, str)
     ):
         raise TypeError(
-            "AWS access key ID, secret access key, and region name are required as strings to initialize S3 client"
+            """AWS access key ID, secret access key, and region name are required
+            as strings to initialize S3 client"""
         )
 
     if not aws_access_key_id or not aws_secret_access_key or not region_name:
         raise ValueError("AWS access key ID, secret access key, and region name cannot be empty")
+    try:
         s3_client = boto3.client(
             "s3",
             aws_access_key_id=aws_access_key_id,

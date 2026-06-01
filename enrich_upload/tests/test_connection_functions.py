@@ -14,11 +14,13 @@ from enrich_upload.connection_functions import (
     get_s3_client,
 )
 
+
 class TestGetLlmClient:
     """Tests for get_llm_client function."""
 
     @patch.dict("os.environ", {"OPENAI_API_KEY": "test-key-123"})
     @patch("enrich_upload.connection_functions.oa.OpenAI")
+    def test_get_llm_client_success(self, mock_openai_class):
         """Test successful OpenAI client initialization with valid API key from environment."""
         mock_client = MagicMock()
         mock_openai_class.return_value = mock_client
@@ -42,6 +44,7 @@ class TestGetLlmClient:
 
     @patch.dict("os.environ", {"OPENAI_API_KEY": "test-key-123"})
     @patch("enrich_upload.connection_functions.oa.OpenAI")
+    def test_get_llm_client_initialization_error(self, mock_openai_class):
         """Test that OpenAI initialization error is caught and re-raised."""
         mock_openai_class.side_effect = Exception("OpenAI API error")
 
