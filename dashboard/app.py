@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import streamlit as st
+from db_functions import get_db_connection, get_recent_episodes
 
 PAGES_DIR = Path(__file__).parent / "pages"
 
@@ -27,59 +28,14 @@ st.markdown(
 def render_feed() -> None:
     st.header("Feed")
 
-    episodes = [
-        {
-            "title": "What Changes When You Make AI a Daily Habit",
-            "show": "The Practical Builder",
-            "published": "Today",
-            "duration": "34 min",
-            "summary": (
-                "A founder breaks down how small, repeatable AI workflows "
-                "replaced ad-hoc busywork and freed up time for strategy."
-            ),
-            "tags": ["Productivity", "AI Workflows", "Founders"],
-        },
-        {
-            "title": "Inside the Playbook of Viral Podcast Clips",
-            "show": "Creator Operating System",
-            "published": "Yesterday",
-            "duration": "41 min",
-            "summary": (
-                "The episode covers scripting hooks, choosing clip moments, "
-                "and turning one long-form episode into a short-form ladder."
-            ),
-            "tags": ["Growth", "Content", "Distribution"],
-        },
-        {
-            "title": "From Transcript to Newsletter in Under 20 Minutes",
-            "show": "The Automation Room",
-            "published": "2 days ago",
-            "duration": "29 min",
-            "summary": (
-                "A hands-on walkthrough for extracting key points from "
-                "transcripts and turning them into weekly summaries."
-            ),
-            "tags": ["Automation", "Transcripts", "Newsletter"],
-        },
-        {
-            "title": "Monetizing Niche Shows Without Heavy Sponsorship",
-            "show": "Indie Media Tactics",
-            "published": "3 days ago",
-            "duration": "37 min",
-            "summary": (
-                "The host maps lightweight revenue options like private "
-                "feeds, community tiers, and partner bundles."
-            ),
-            "tags": ["Monetization", "Indie Podcasts", "Audience"],
-        },
-    ]
+    conn = get_db_connection()
+    recent_episodes = get_recent_episodes(conn)
+    conn.close()
 
-    for episode in episodes:
+    for episode in recent_episodes:
         with st.container(border=True):
             st.subheader(episode["title"])
-            st.caption(f"{episode['show']} | {episode['published']} | {episode['duration']}")
-            st.write(episode["summary"])
-            st.markdown(" ".join(f"`{tag}`" for tag in episode["tags"]))
+            st.caption(f"{episode['podcast_title']} | {episode['days_since_published']} days ago")
 
         st.write("")
 
