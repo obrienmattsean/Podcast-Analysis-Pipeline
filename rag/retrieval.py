@@ -41,7 +41,7 @@ def get_db_connection() -> connection:
 def query_similar_chunks(
     conn: connection,
     embedding: list[float],
-    top_k: int = 15,
+    top_k: int = 10,
     similarity_threshold: float = 0.5,
 ) -> list[dict]:
     """Query the database for the most similar chunks based on cosine similarity.
@@ -49,7 +49,7 @@ def query_similar_chunks(
     Args:
         conn: Active PostgreSQL database connection.
         embedding: The query embedding vector as a list of floats.
-        top_k: The number of top similar chunks to retrieve (default is 15).
+        top_k: The number of top similar chunks to retrieve (default is 10).
         similarity_threshold: Minimum similarity score to include (default is 0.5).
             Results below this threshold are filtered out.
 

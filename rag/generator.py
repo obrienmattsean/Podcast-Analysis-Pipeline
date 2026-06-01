@@ -117,7 +117,7 @@ Please provide a helpful, accurate answer based on the context provided."""
 
 def answer_query(
     user_query: str,
-    top_k: int = 5,
+    top_k: int = 10,
     similarity_threshold: float = 0.5,
 ) -> str:
     """Orchestrate the full RAG pipeline to answer a user query.
@@ -130,7 +130,7 @@ def answer_query(
 
     Args:
         user_query: The user's natural language question about podcasts.
-        top_k: Number of most similar chunks to retrieve (default: 5).
+        top_k: Number of most similar chunks to retrieve (default: 10).
         similarity_threshold: Minimum similarity score to include (default: 0.5).
 
     Returns:
