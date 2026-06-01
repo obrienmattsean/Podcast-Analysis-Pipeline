@@ -83,3 +83,7 @@ def lambda_handler(event, context):
     except Exception as e:
         logger.error(f"Enrichment upload failed: {e}")
         return {"statusCode": 500, "message": f"Enrichment upload failed: {e}"}
+    finally:
+        if db_connection:
+            db_connection.close()
+            logger.info("Database connection closed.")
