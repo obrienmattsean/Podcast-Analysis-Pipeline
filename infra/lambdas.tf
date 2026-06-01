@@ -49,11 +49,6 @@ resource "aws_lambda_function" "enrich" {
   timeout       = 180
   memory_size   = 512
 
-  vpc_config {
-    subnet_ids         = data.aws_subnets.private_subnets.ids
-    security_group_ids = [aws_security_group.app_sg.id]
-  }
-
   environment {
     variables = {
       ENVIRONMENT    = var.environment
