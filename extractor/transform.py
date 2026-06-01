@@ -68,7 +68,7 @@ def parse_episode(episode: dict, podcast_id: int) -> ValidatedEpisode:
     return ValidatedEpisode(
         podcast_id=podcast_id,
         title=title,
-        audio_link=get_audio_link_from_entry(episode),
+        audio_link=get_audio_link_from_entry(episode),  # type: ignore[arg-type]
         published_at=published_at,
     )
 
@@ -97,6 +97,10 @@ def transform_episodes_for_podcast(podcast_episodes_data: dict) -> list[Validate
     podcast_id = podcast_episodes_data.get("podcast_id")
     podcast_title = podcast_episodes_data.get("podcast_title", "unknown")
     raw_episodes = podcast_episodes_data.get("new_episodes", [])
+
+    if not isinstance(podcast_id, int):
+        logger.error("Invalid or missing podcast_id=%s, skipping transform", podcast_id)
+        return []
 
     logger.info(
         "Transforming episodes for podcast id=%s title=%s count=%d",
