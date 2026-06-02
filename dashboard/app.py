@@ -9,19 +9,33 @@ from db_functions import get_db_connection, get_recent_episodes
 PAGES_DIR = Path(__file__).parent / "pages"
 
 st.set_page_config(page_title="Feed", layout="wide", initial_sidebar_state="expanded")
+
+_secondary_bg = st.get_option("theme.secondaryBackgroundColor")
+_primary_color = st.get_option("theme.primaryColor")
+
 st.markdown(
-    """
+    f"""
     <style>
-    [data-testid="stSidebarNav"]::before {
+    :root {{
+        --pod-secondary-bg: {_secondary_bg};
+        --pod-primary-color: {_primary_color};
+    }}
+    [data-testid="stSidebarNav"]::before {{
         content: "Podex AI";
         display: block;
         font-size: 1.25rem;
         font-weight: 700;
         margin: 0.25rem 0 1rem 0;
         padding-left: 0.25rem;
-        color: #e55f15;
+        color: var(--pod-primary-color);
         letter-spacing: 0.01em;
-    }
+    }}
+    .episode-card {{
+        background-color: var(--pod-secondary-bg);
+        border-radius: 0.6rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+    }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -61,20 +75,19 @@ def render_episode_card(episode: dict) -> None:
     badge_html = get_sentiment_badge(score) if score is not None else ""
 
     summary_html = (
-        f'<div style="font-size:0.85rem;color:#999;line-height:1.55;margin-top:0.6rem;">'
+        f'<div style="font-size:0.85rem;color:var(--text-color);opacity:0.6;line-height:1.55;margin-top:0.6rem;">'
         f"{html.escape(summary)}</div>"
         if summary
         else ""
     )
 
     st.markdown(
-        f'<div style="border:1px solid rgba(255,255,255,0.12);border-radius:0.6rem;'
-        f'padding:1rem 1.25rem;margin-bottom:0.75rem;">'
+        f'<div class="episode-card">'
         f'  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.2rem;">'
-        f'    <div style="font-size:0.78rem;color:#e55f15;font-weight:600;">{html.escape(podcast_title)}</div>'
-        f'    <div style="font-size:0.78rem;color:#888;white-space:nowrap;margin-left:1rem;">{html.escape(time_since_published)}</div>'
+        f'    <div style="font-size:0.78rem;color:var(--pod-primary-color);font-weight:600;">{html.escape(podcast_title)}</div>'
+        f'    <div style="font-size:0.78rem;color:var(--text-color);opacity:0.5;white-space:nowrap;margin-left:1rem;">{html.escape(time_since_published)}</div>'
         f"  </div>"
-        f'  <div style="font-size:1.05rem;font-weight:700;color:#f0f0f0;margin-bottom:0.5rem;line-height:1.35;">'
+        f'  <div style="font-size:1.05rem;font-weight:700;color:var(--text-color);margin-bottom:0.5rem;line-height:1.35;">'
         f"    {html.escape(episode_title)}"
         f"  </div>"
         f'  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">'
