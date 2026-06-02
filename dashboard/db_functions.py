@@ -33,7 +33,7 @@ def get_all_podcasts(conn: connection) -> list[dict]:
 
     Returns:
         list[dict]: List of podcast dicts, each containing ``podcast_title``, ``num_episodes``,
-            ``avg_sentiment_score``, and ``last_published``.
+            ``avg_sentiment_score``, ``tracked_since``, and ``last_updated``.
     """
     with conn.cursor() as cursor:
         cursor.execute(
@@ -41,11 +41,12 @@ def get_all_podcasts(conn: connection) -> list[dict]:
             SELECT p.title AS podcast_title,
             COUNT(e.episode_id) AS num_episodes,
             ROUND(AVG(e.sentiment_score)::numeric, 2) AS avg_sentiment_score,
-            MIN(e.pub_date) AS tracked_since
+            MIN(e.pub_date) AS tracked_since,
+            MAX(e.pub_date) AS last_updated
             FROM podcasts p
             LEFT JOIN episodes e USING (podcast_id)
             GROUP BY p.podcast_id
-            ORDER BY tracked_since DESC;
+            ORDER BY last_updated DESC NULLS LAST;
             """
         )
         rows = cursor.fetchall()
@@ -55,9 +56,41 @@ def get_all_podcasts(conn: connection) -> list[dict]:
                 "num_episodes": row[1],
                 "avg_sentiment_score": row[2],
                 "tracked_since": row[3],
+                "last_updated": row[4],
             }
             for row in rows
         ]
+
+
+def _hours_elapsed(dt: datetime) -> int:
+    return int((datetime.now() - dt).total_seconds() // 3600)
+
+
+def format_last_updated(last_updated: datetime | None) -> str:
+    """Format the most recent episode date as a compact relative string.
+
+    Args:
+        last_updated: The publication date of the most recent tracked episode,
+            or None if no episodes have been tracked.
+
+    Returns:
+        str: A compact relative string such as ``"2h ago"``, ``"yesterday"``,
+            ``"3d ago"``, or ``"never"``.
+
+    Example:
+        >>> from datetime import datetime, timedelta
+        >>> format_last_updated(datetime.now() - timedelta(hours=3))
+        '3h ago'
+    """
+    if last_updated is None:
+        return "never"
+    hours = _hours_elapsed(last_updated)
+    if hours < 24:
+        return f"{hours}h ago"
+    if hours < 48:
+        return "yesterday"
+    days = hours // 24
+    return f"{days}d ago"
 
 
 def format_tracked_since(tracked_since: datetime | None) -> str:
@@ -95,7 +128,7 @@ def format_time_since_published(pub_date: datetime) -> str:
         >>> format_time_since_published(datetime.now() - timedelta(hours=5))
         '5 hours ago'
     """
-    hours = int((datetime.now() - pub_date).total_seconds() // 3600)
+    hours = _hours_elapsed(pub_date)
     if hours < 24:
         return f"{hours} hour ago" if hours == 1 else f"{hours} hours ago"
     if hours < 48:
