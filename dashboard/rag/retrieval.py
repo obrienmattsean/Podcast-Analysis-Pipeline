@@ -77,8 +77,8 @@ def query_similar_chunks(
             chunk_transcript,
             1 - (ec.embedding <=> %s::vector) AS similarity
         FROM episode_chunks ec
-        JOIN episodes e ON ec.episode_id = e.id
-        JOIN podcasts p ON e.podcast_id = p.id
+        JOIN episodes e ON ec.episode_id = e.episode_id
+        JOIN podcasts p ON e.podcast_id = p.podcast_id
         ORDER BY ec.embedding <=> %s::vector
         LIMIT %s
         """
