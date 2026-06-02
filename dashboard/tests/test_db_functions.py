@@ -1,5 +1,6 @@
+import json
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from db_functions import (
@@ -7,6 +8,7 @@ from db_functions import (
     format_time_since_published,
     format_tracked_since,
     get_all_podcasts,
+    trigger_pipeline,
 )
 
 
@@ -103,3 +105,46 @@ def test_get_all_podcasts_returns_all_rows(mock_conn: MagicMock) -> None:
     assert len(result) == 2
     assert result[0]["podcast_title"] == "Podcast A"
     assert result[1]["podcast_title"] == "Podcast B"
+
+
+# ---------------------------------------------------------------------------
+# trigger_pipeline
+# ---------------------------------------------------------------------------
+
+
+def test_trigger_pipeline_with_valid_arn_returns_execution_arn() -> None:
+    mock_response = {"executionArn": "arn:aws:states:eu-west-2:123:execution:pipeline:abc"}
+    env = {"STEP_FUNCTION_ARN": "arn:aws:states:eu-west-2:123:stateMachine:pipeline"}
+
+    with (
+        patch.dict("os.environ", env),
+        patch("db_functions.boto3.client") as mock_client,
+    ):
+        mock_client.return_value.start_execution.return_value = mock_response
+        result = trigger_pipeline("https://example.com/feed.rss")
+
+    assert result == mock_response["executionArn"]
+
+
+def test_trigger_pipeline_passes_rss_url_in_input() -> None:
+    mock_response = {"executionArn": "arn:aws:states:eu-west-2:123:execution:pipeline:abc"}
+    rss_url = "https://example.com/feed.rss"
+    env = {"STEP_FUNCTION_ARN": "arn:aws:states:eu-west-2:123:stateMachine:pipeline"}
+
+    with (
+        patch.dict("os.environ", env),
+        patch("db_functions.boto3.client") as mock_client,
+    ):
+        mock_client.return_value.start_execution.return_value = mock_response
+        trigger_pipeline(rss_url)
+
+    call_kwargs = mock_client.return_value.start_execution.call_args[1]
+    assert json.loads(call_kwargs["input"]) == {"rss_url": rss_url}
+
+
+def test_trigger_pipeline_without_arn_env_var_raises_environment_error() -> None:
+    with (
+        patch.dict("os.environ", {"STEP_FUNCTION_ARN": ""}, clear=False),
+        pytest.raises(EnvironmentError, match="STEP_FUNCTION_ARN"),
+    ):
+        trigger_pipeline("https://example.com/feed.rss")
