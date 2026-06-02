@@ -197,7 +197,7 @@ def answer_query(
 if __name__ == "__main__":
     # Example usage
     load_dotenv()  # Load environment variables from .env file
-    query = "What brands are discussed alongside sustainability?"
+    query = "What are the latest trends in AI according to recent podcasts?"
 
     try:
         answer = answer_query(query, similarity_threshold=0.5)
