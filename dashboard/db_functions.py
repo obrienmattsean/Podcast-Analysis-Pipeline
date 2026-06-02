@@ -25,19 +25,6 @@ def get_db_connection() -> connection:
     )
 
 
-def get_days_since_published(pub_date: datetime) -> int:
-    """Calculate the number of days since the episode was published.
-
-    Args:
-        pub_date: The publication date of the episode.
-
-    Returns:
-        int: Number of whole days elapsed since ``pub_date``.
-    """
-    today = datetime.today()
-    return (today - pub_date).days
-
-
 def format_time_since_published(pub_date: datetime) -> str:
     """Format the time since an episode was published as a human-readable string.
 
@@ -60,30 +47,6 @@ def format_time_since_published(pub_date: datetime) -> str:
         return "Yesterday"
     days = hours // 24
     return f"{days} days ago"
-
-
-def get_episode_keywords(conn: connection, episode_id: int) -> list[str]:
-    """Fetch the top keywords for a given episode from the database.
-
-    Args:
-        conn: An open psycopg2 database connection.
-        episode_id: The ID of the episode to fetch keywords for.
-
-    Returns:
-        list[str]: A list of keyword strings associated with the episode.
-    """
-    with conn.cursor() as cursor:
-        cursor.execute(
-            """
-            SELECT *
-            FROM episode_keywords
-            WHERE episode_id = %s
-            ORDER BY relevance DESC
-            LIMIT 5;
-            """,
-            (episode_id,),
-        )
-        return [row[0] for row in cursor.fetchall()]
 
 
 def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
@@ -124,11 +87,3 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             }
             for row in rows
         ]
-
-
-if __name__ == "__main__":
-    conn = get_db_connection()
-    print("Database connection established successfully.")
-    recent_episodes = get_recent_episodes(conn)
-    print("Sample recent episodes:", recent_episodes[:5])
-    conn.close()
