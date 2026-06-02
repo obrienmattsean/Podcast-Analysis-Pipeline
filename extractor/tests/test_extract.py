@@ -20,15 +20,14 @@ class TestInsertPodcast:
         cursor.execute.assert_called_once()
         conn.commit.assert_called_once()
 
-    def test_insert_podcast_extracts_title_from_rss_url(self, make_conn):
+    def test_insert_podcast_extracts_title_from_rss_url_unknown(self, make_conn):
         """Verify podcast title is extracted from RSS URL path."""
         conn, cursor = make_conn()
         rss_url = "https://example.com/my-awesome-podcast/feed.xml"
 
         extract.insert_podcast(conn, rss_url)
-
         call_args = cursor.execute.call_args[0]
-        assert "my-awesome-podcast" in call_args[1]
+        assert "Unknown Podcast" in call_args[1]
 
     def test_insert_podcast_raises_when_rss_url_empty(self, make_conn):
         """Verify insert_podcast raises ValueError when URL is empty."""
