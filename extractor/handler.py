@@ -13,17 +13,10 @@ from load import load_all_episodes
 from transform import transform_all_podcast_episodes
 from utils import get_database_connection, get_s3_client
 
-# Configure logging to file and console
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-    ],
-)
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 load_dotenv()
-BUCKET_NAME: str = os.environ["S3_BUCKET_NAME"]
+BUCKET_NAME: str = os.environ.get("S3_BUCKET_NAME", "c23-podex-ai-bucket")
 
 
 def lambda_handler(event=None, context=None):
@@ -41,12 +34,15 @@ def lambda_handler(event=None, context=None):
 
     logger.info("Starting daily episode pipeline")
 
+    db_conn = None
+    s3_client = None
+
     # Step 1: Extract new episodes from RSS feeds
     logger.info("Step 1: Extracting episodes from RSS feeds")
     db_conn = get_database_connection()
     s3_client = get_s3_client()
 
-    if event is not None:
+    if event is not None and "rss_url" in event:
         logger.info("Received event: %s", event)
         insert_podcast(db_conn, event["rss_url"])
 
@@ -57,15 +53,13 @@ def lambda_handler(event=None, context=None):
     logger.info("Step 2: Transforming and validating episode data")
     transformed_data = transform_all_podcast_episodes(extracted_data)
     logger.info(
-        "Successfully transformed %s podcasts with validated episodes", len(transformed_data)
+        "Successfully transformed %s podcasts with validated episodes",
+        len(transformed_data),
     )
 
     # Step 3: Load validated episodes into database
     logger.info("Step 3: Loading episodes into RDS database")
     uploaded_paths = load_all_episodes(db_conn, s3_client, transformed_data, BUCKET_NAME)
-    # Close database connection
-    db_conn.close()
-    s3_client.close()
 
     # Return success response with a list of uploaded S3 paths
     response_body = {
@@ -74,6 +68,8 @@ def lambda_handler(event=None, context=None):
         "uploaded_paths": uploaded_paths,
     }
     logger.info("Pipeline completed successfully")
+    db_conn.close()
+    s3_client.close()
     return response_body
 
 

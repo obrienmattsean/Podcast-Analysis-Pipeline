@@ -8,8 +8,6 @@ from botocore.client import BaseClient
 from model import ValidatedEpisode
 from psycopg2.extensions import connection
 
-logger = logging.getLogger(__name__)
-
 
 def serialize_episode(episode: ValidatedEpisode) -> dict:
     """Serialize a validated episode into a JSON-friendly dictionary.
@@ -53,7 +51,7 @@ def _insert_episodes_to_db(conn: connection, episodes: list[dict]) -> list[dict]
                     """
                     INSERT INTO episodes (podcast_id, title, audio_url, pub_date)
                     VALUES (%s, %s, %s, %s)
-                    RETURNING id
+                    RETURNING episode_id
                     """,
                     (
                         episode.get("podcast_id"),
@@ -69,7 +67,7 @@ def _insert_episodes_to_db(conn: connection, episodes: list[dict]) -> list[dict]
                 conn.commit()
 
             except Exception as e:
-                logger.warning(
+                logging.warning(
                     "Failed insert for episode=%s error=%s",
                     episode.get("title"),
                     str(e),
@@ -133,7 +131,7 @@ def upload_episode_to_s3(
         Body=json_content,
         ContentType="application/json",
     )
-    logger.info("Uploaded episode to s3://%s/%s", bucket, s3_key)
+    logging.info("Uploaded episode to s3://%s/%s", bucket, s3_key)
     return f"s3://{bucket}/{s3_key}/"
 
 
@@ -163,13 +161,13 @@ def upload_podcast_payload_to_s3(
             if path:
                 uploaded_paths.append(path)
         except Exception:
-            logger.exception(
+            logging.exception(
                 "Failed to upload episode id=%s for podcast id=%s",
                 episode.get("episode_id"),
                 podcast_id,
             )
 
-    logger.info("Uploaded %d episodes for podcast id=%s", len(uploaded_paths), podcast_id)
+    logging.info("Uploaded %d episodes for podcast id=%s", len(uploaded_paths), podcast_id)
     return uploaded_paths
 
 
@@ -196,7 +194,7 @@ def load_podcast_episodes(
         return 0, 0, []
 
     if not isinstance(podcast_id, int):
-        logger.warning("Missing or invalid podcast_id=%s, skipping load", podcast_id)
+        logging.warning("Missing or invalid podcast_id=%s, skipping load", podcast_id)
         return 0, len(episodes), []
 
     try:
@@ -206,7 +204,7 @@ def load_podcast_episodes(
         )
         return len(episodes_payload), len(episodes) - len(episodes_payload), uploaded_paths
     except Exception:
-        logger.exception("Failed to load podcast episodes for id=%s", podcast_id)
+        logging.exception("Failed to load podcast episodes for id=%s", podcast_id)
         return 0, len(episodes), []
 
 
@@ -248,5 +246,5 @@ def load_all_episodes(
         total_failed += failed_count
         all_uploaded_paths.extend(uploaded_paths)
 
-    logger.info("Episode load complete. uploaded=%d failed=%d", total_uploaded, total_failed)
+    logging.info("Episode load complete. uploaded=%d failed=%d", total_uploaded, total_failed)
     return all_uploaded_paths

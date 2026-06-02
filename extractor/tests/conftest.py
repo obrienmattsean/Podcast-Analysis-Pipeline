@@ -1,3 +1,5 @@
+"""Pytest configuration and fixtures for extractor tests."""
+
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -13,13 +15,25 @@ from model import ValidatedEpisode
 
 @pytest.fixture
 def make_conn():
-    """Factory fixture: returns a (conn, cursor) pair that mimics psycopg2."""
+    """Factory fixture for mocking psycopg2 connections and cursors.
+
+    Returns a callable that creates (conn, cursor) tuple with realistic psycopg2 mock behavior.
+    Supports customizing fetchall and fetchone return values for test scenarios.
+
+    Returns:
+        Callable: Factory function that accepts rows and fetchone_result kwargs.
+
+    Example:
+        conn, cursor = make_conn(rows=[{"id": 1}])
+        conn, cursor = make_conn(fetchone_result={"pub_date": datetime(2026, 5, 1)})
+    """
 
     def _factory(rows=None, fetchone_result=None):
         cursor = MagicMock()
         cursor.fetchall.return_value = rows or []
         cursor.fetchone.return_value = fetchone_result
 
+        # Mock context manager for 'with conn.cursor() as cursor:' pattern
         ctx = MagicMock()
         ctx.__enter__ = MagicMock(return_value=cursor)
         ctx.__exit__ = MagicMock(return_value=False)
@@ -33,7 +47,16 @@ def make_conn():
 
 @pytest.fixture
 def rss_episode():
-    """Factory fixture: builds a minimal RSS episode dict."""
+    """Factory fixture for minimal RSS episode dictionaries.
+
+    Creates RSS entry dictionaries with published_parsed tuple format expected by feedparser.
+
+    Returns:
+        Callable: Factory function that accepts year, month, day, title parameters.
+
+    Example:
+        episode = rss_episode(2026, 5, 15, "Episode Title")
+    """
 
     def _factory(year, month, day, title="ep"):
         return {
@@ -46,7 +69,16 @@ def rss_episode():
 
 @pytest.fixture
 def rss_episode_with_audio():
-    """Factory fixture: builds an RSS episode with audio link."""
+    """Factory fixture for RSS episode dictionaries with audio links.
+
+    Creates RSS entries with audio/mpeg links suitable for episode extraction tests.
+
+    Returns:
+        Callable: Factory function with year, month, day, title, audio_url parameters.
+
+    Example:
+        episode = rss_episode_with_audio(2026, 5, 15, "Episode", "https://example.com/ep.mp3")
+    """
 
     def _factory(year, month, day, title="ep", audio_url="https://example.com/ep.mp3"):
         return {
@@ -62,7 +94,17 @@ def rss_episode_with_audio():
 
 @pytest.fixture
 def validated_episode():
-    """Factory fixture: builds a ValidatedEpisode model."""
+    """Factory fixture for ValidatedEpisode Pydantic models.
+
+    Creates fully validated episode models ready for database insertion or S3 upload.
+
+    Returns:
+        Callable: Factory function with podcast_id, title, audio_link, published_at parameters.
+
+    Example:
+        episode = validated_episode(podcast_id=1, title="My Episode")
+        episode = validated_episode(published_at=datetime(2026, 6, 1))
+    """
 
     def _factory(
         podcast_id=1,
