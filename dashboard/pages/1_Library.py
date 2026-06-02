@@ -136,10 +136,9 @@ def render_podcast_card(podcast: dict) -> None:
         sentiment_html = ""
 
     st.markdown(
-        f'<div style="background:rgba(255,255,255,0.55);border:none;'
+        f'<div style="background:var(--pod-secondary-bg);border:1px solid rgba(0,0,0,0.14);'
         f"border-radius:1rem;padding:1.25rem;margin-bottom:0.5rem;"
-        f"backdrop-filter:blur(12px) saturate(1.4);-webkit-backdrop-filter:blur(12px) saturate(1.4);"
-        f"box-shadow:0 2px 16px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);"
+        f"box-shadow:0 2px 16px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04),0 0 2px rgba(0,0,0,0.02);"
         f'transition:box-shadow 0.2s ease;">'
         f'<div style="width:56px;height:56px;border-radius:14px;background:{bg_color};'
         f"display:flex;align-items:center;justify-content:center;"
