@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS episodes (
     hate BOOLEAN,
     hate_threatening BOOLEAN,
     illicit BOOLEAN,
-    illicit_violence BOOLEAN,
+    illicit_violent BOOLEAN,
     self_harm BOOLEAN,
     self_harm_instructions BOOLEAN,
     self_harm_intent BOOLEAN,
