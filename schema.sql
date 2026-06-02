@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS episodes (
     duration_seconds INTEGER,
     pub_date TIMESTAMP NOT NULL,
     sentiment_score DOUBLE PRECISION,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    summary TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_episodes_podcast_id
