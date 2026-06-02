@@ -45,7 +45,7 @@ def get_sentiment_badge(score: float) -> str:
         badge_color, text_color, label, emoji = "#2a2a2a", "#aaa", "Neutral", "→"
     return (
         f'<span style="background:{badge_color};color:{text_color};padding:0.2rem 0.65rem;'
-        f'border-radius:1rem;font-size:0.78rem;font-weight:600;white-space:nowrap;'
+        f"border-radius:1rem;font-size:0.78rem;font-weight:600;white-space:nowrap;"
         f'border:1px solid {text_color}33;">'
         f"{emoji} {label}</span>"
     )
@@ -73,15 +73,15 @@ def render_episode_card(episode: dict) -> None:
         f'  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.2rem;">'
         f'    <div style="font-size:0.78rem;color:#e55f15;font-weight:600;">{html.escape(podcast_title)}</div>'
         f'    <div style="font-size:0.78rem;color:#888;white-space:nowrap;margin-left:1rem;">{html.escape(time_since_published)}</div>'
-        f'  </div>'
+        f"  </div>"
         f'  <div style="font-size:1.05rem;font-weight:700;color:#f0f0f0;margin-bottom:0.5rem;line-height:1.35;">'
-        f'    {html.escape(episode_title)}'
-        f'  </div>'
+        f"    {html.escape(episode_title)}"
+        f"  </div>"
         f'  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">'
-        f'    {badge_html}'
-        f'  </div>'
-        f'  {summary_html}'
-        f'</div>',
+        f"    {badge_html}"
+        f"  </div>"
+        f"  {summary_html}"
+        f"</div>",
         unsafe_allow_html=True,
     )
 
