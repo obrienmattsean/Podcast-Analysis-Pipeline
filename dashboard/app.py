@@ -4,7 +4,12 @@ import html
 from pathlib import Path
 
 import streamlit as st
-from db_functions import get_db_connection, get_recent_episodes
+from db_functions import (
+    get_db_connection,
+    get_keywords_for_episode,
+    get_recent_episodes,
+    is_flagged_episode,
+)
 
 PAGES_DIR = Path(__file__).parent / "pages"
 
@@ -67,19 +72,72 @@ def get_sentiment_badge(score: float) -> str:
 
 
 def render_episode_card(episode: dict) -> None:
+    max_visible_keywords = 4
+
     episode_title = episode.get("episode_title", "Untitled Episode")
     podcast_title = episode.get("podcast_title", "Unknown Podcast")
     score = episode.get("sentiment_score")
     summary = episode.get("summary")
+    audio_url = episode.get("audio_url")
     time_since_published = episode.get("time_since_published", "Unknown time")
+    keywords: list[str] = episode.get("keywords", [])
+    flagged: bool = episode.get("flagged", False)
+
+    visible_keywords = keywords[:max_visible_keywords]
+    remaining_keywords = keywords[max_visible_keywords:]
 
     badge_html = get_sentiment_badge(score) if score is not None else ""
+
+    flag_html = (
+        '<span style="background:#3d1a1a;color:#e57373;padding:0.2rem 0.65rem;'
+        "border-radius:1rem;font-size:0.78rem;font-weight:600;white-space:nowrap;"
+        'border:1px solid #e5737333;">'
+        "⚑ Brand Risk</span>"
+        if flagged
+        else '<span style="background:#1a3d22;color:#4caf72;padding:0.2rem 0.65rem;'
+        "border-radius:1rem;font-size:0.78rem;font-weight:600;white-space:nowrap;"
+        'border:1px solid #4caf7233;">'
+        "✓ Brand Safe</span>"
+    )
+
+    keyword_pills_html = "".join(
+        f'<span style="background:#1e2a1e;color:#7aad8f;padding:0.15rem 0.55rem;'
+        f"border-radius:1rem;font-size:0.75rem;font-weight:500;white-space:nowrap;"
+        f'border:1px solid #7aad8f33;">{html.escape(kw)}</span>'
+        for kw in visible_keywords
+    )
+
+    more_keywords_html = (
+        f'<span style="color:#88a3b8;font-size:0.75rem;font-weight:600;'
+        f'white-space:nowrap;">+{len(remaining_keywords)} more</span>'
+        if remaining_keywords
+        else ""
+    )
+
+    keywords_row_html = (
+        f'<div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.6rem;">'
+        f"{keyword_pills_html}</div>"
+        f'<div style="margin-top:0.35rem;">{more_keywords_html}</div>'
+        if visible_keywords
+        else ""
+    )
 
     summary_html = (
         f'<div style="font-size:0.85rem;color:var(--text-color);opacity:0.6;'
         f'line-height:1.55;margin-top:0.6rem;">'
         f"{html.escape(summary)}</div>"
         if summary
+        else ""
+    )
+
+    has_audio_link = isinstance(audio_url, str) and audio_url.startswith(("http://", "https://"))
+    listen_link_html = (
+        '<a href="'
+        f"{html.escape(audio_url, quote=True)}"
+        '" target="_blank" rel="noopener noreferrer" '
+        'style="font-size:0.8rem;font-weight:600;color:var(--pod-primary-color);'
+        'text-decoration:none;">Listen Episode</a>'
+        if has_audio_link
         else ""
     )
 
@@ -96,13 +154,30 @@ def render_episode_card(episode: dict) -> None:
         f'margin-bottom:0.5rem;line-height:1.35;">'
         f"    {html.escape(episode_title)}"
         f"  </div>"
-        f'  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">'
+        f'  <div style="margin-bottom:0.45rem;">{listen_link_html}</div>'
+        f'  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">'
         f"    {badge_html}"
+        f"    {flag_html}"
         f"  </div>"
+        f"  {keywords_row_html}"
         f"  {summary_html}"
         f"</div>",
         unsafe_allow_html=True,
     )
+
+    if remaining_keywords:
+        with st.expander("View all keywords"):
+            full_keyword_pills_html = "".join(
+                f'<span style="background:#1e2a1e;color:#7aad8f;padding:0.2rem 0.55rem;'
+                f"border-radius:1rem;font-size:0.78rem;font-weight:500;"
+                f'white-space:nowrap;border:1px solid #7aad8f33;">{html.escape(kw)}</span>'
+                for kw in keywords
+            )
+            st.markdown(
+                f'<div style="display:flex;gap:0.45rem;flex-wrap:wrap;">'
+                f"{full_keyword_pills_html}</div>",
+                unsafe_allow_html=True,
+            )
 
 
 def render_feed() -> None:
@@ -115,6 +190,11 @@ def render_feed() -> None:
 
     conn = get_db_connection()
     recent_episodes = get_recent_episodes(conn)
+    for episode in recent_episodes:
+        episode_id = episode.get("episode_id")
+        if episode_id is not None:
+            episode["keywords"] = get_keywords_for_episode(conn, episode_id)
+            episode["flagged"] = is_flagged_episode(conn, episode_id)
     conn.close()
 
     for episode in recent_episodes:

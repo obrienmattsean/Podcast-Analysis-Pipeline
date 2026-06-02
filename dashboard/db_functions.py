@@ -182,7 +182,9 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             e.title AS episode_title,
             e.pub_date,
             e.summary,
-            e.sentiment_score
+            e.sentiment_score,
+            e.episode_id,
+            e.audio_url
             FROM episodes e
             JOIN podcasts p USING (podcast_id)
             ORDER BY e.pub_date DESC
@@ -198,14 +200,60 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
                 "time_since_published": format_time_since_published(row[2]),
                 "summary": row[3],
                 "sentiment_score": row[4],
+                "episode_id": row[5],
+                "audio_url": row[6],
             }
             for row in rows
         ]
 
 
+def get_keywords_for_episode(conn: connection, episode_id: int) -> list[str]:
+    """Fetch the top keywords for a given episode.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        episode_id: The ID of the episode to fetch keywords for.
+    Returns:
+        list[str]: A list of keyword strings associated with the episode.
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT entities.name
+            FROM episode_entities
+            JOIN entities USING (entity_id)
+            WHERE episode_id = %s AND entity_type = 'topic';
+            """,
+            (episode_id,),
+        )
+        rows = cursor.fetchall()
+        return [row[0] for row in rows]
+
+
+def is_flagged_episode(conn: connection, episode_id: int) -> bool:
+    """Check if an episode is flagged for review.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        episode_id: The ID of the episode to check.
+    Returns:
+        bool: True if the episode is flagged, False otherwise.
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT flagged
+            FROM episodes
+            WHERE episode_id = %s;
+            """,
+            (episode_id,),
+        )
+        row = cursor.fetchone()
+        return row[0] if row else False
+
+
 if __name__ == "__main__":
     conn = get_db_connection()
-    podcasts = get_all_podcasts(conn)
-    for podcast in podcasts:
-        print(podcast)
+    print(get_keywords_for_episode(conn, episode_id=1))
+    print(is_flagged_episode(conn, episode_id=1))
     conn.close()
