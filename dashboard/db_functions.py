@@ -52,9 +52,11 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
     with conn.cursor() as cursor:
         cursor.execute(
             """
-            SELECT e.title, p.title AS podcast_title, e.pub_date
+            SELECT p.title AS podcast_title,
+            e.title AS episode_title,
+            e.pub_date
             FROM episodes e
-            JOIN podcasts p ON e.podcast_id = p.id
+            JOIN podcasts p USING (podcast_id)
             ORDER BY e.pub_date DESC
             LIMIT %s;
             """,
@@ -63,8 +65,8 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
         rows = cursor.fetchall()
         return [
             {
-                "title": row[0],
-                "podcast_title": row[1],
+                "podcast_title": row[0],
+                "episode_title": row[1],
                 "days_since_published": get_days_since_published(row[2]),
             }
             for row in rows
