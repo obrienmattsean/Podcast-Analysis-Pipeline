@@ -31,8 +31,7 @@ st.markdown(
         letter-spacing: 0.01em;
     }}
     .episode-card {{
-        background-color: var(--pod-secondary-bg);
-        border-radius: 0.6rem;
+        background-color: var(--pod-secondary-bg);        border: 1px solid #2e2e2e;        border-radius: 0.6rem;
         padding: 1rem 1.25rem;
         margin-bottom: 0.75rem;
     }}
