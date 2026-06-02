@@ -1,3 +1,5 @@
+"Dashboard application using Streamlit to display recent podcast episodes from the database."
+
 from pathlib import Path
 
 import streamlit as st
@@ -26,6 +28,11 @@ st.markdown(
 
 
 def render_feed() -> None:
+    """Render the feed page, showing recent episodes from the database.
+
+    Returns:
+        None: This function directly renders to the Streamlit app and does not return anything.
+    """
     st.header("Feed")
 
     conn = get_db_connection()
