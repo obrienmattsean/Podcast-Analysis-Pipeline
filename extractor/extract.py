@@ -5,6 +5,7 @@ from datetime import datetime
 from pprint import pprint
 
 import feedparser
+from bs4 import BeautifulSoup
 from psycopg2.extensions import connection
 from psycopg2.extras import RealDictCursor, RealDictRow
 
@@ -52,13 +53,18 @@ def insert_podcast(conn: connection, rss_url: str) -> None:
         raise
 
 
+def clean_html(text: str) -> str:
+    return BeautifulSoup(text, "html.parser").get_text(" ", strip=True)
+
+
 def get_podcast_metadata_from_url(rss_url: str) -> dict:
-    """Derive a podcast title from its RSS URL.
+    """Fetch podcast metadata from an RSS feed.
 
     Args:
-        rss_url (str): The RSS feed URL of the podcast.
+        rss_url (str): RSS feed URL.
+
     Returns:
-        str: Derived podcast title.
+        dict: Podcast metadata containing title and description.
     """
 
     if not isinstance(rss_url, str) or not rss_url:
@@ -67,14 +73,24 @@ def get_podcast_metadata_from_url(rss_url: str) -> dict:
     logging.info("Fetching RSS feed: %s", rss_url)
 
     feed = feedparser.parse(rss_url)
-    podcast_title = feed.feed.get("title", "Unknown Podcast")
-    podcast_description = feed.feed.get("subtitle", "No description available.")
+
+    if not feed.feed:
+        raise ValueError(f"Unable to parse RSS feed: {rss_url}")
+
+    podcast_title = clean_html(feed.feed.get("title", "Unknown Podcast"))
+
+    podcast_description = clean_html(feed.feed.get("subtitle", "No description available."))
+
     logging.info(
-        "Fetched title for new podcast from RSS URL: %s: %s",
+        "Fetched podcast metadata from RSS URL %s: %s",
         rss_url,
         podcast_title,
     )
-    return {"title": podcast_title, "description": podcast_description}
+
+    return {
+        "title": podcast_title,
+        "description": podcast_description,
+    }
 
 
 def get_podcasts_from_database(conn: connection) -> list[RealDictRow]:
