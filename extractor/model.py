@@ -16,6 +16,7 @@ class ValidatedEpisode(BaseModel):
     title: str
     audio_link: HttpUrl
     published_at: PastDatetime
+    duration_seconds: int | None = None
 
     @field_validator("audio_link")
     @classmethod
@@ -47,4 +48,11 @@ class ValidatedEpisode(BaseModel):
             raise ValueError(
                 f"audio_link must point to an audio file ({', '.join(allowed_extensions)})"
             )
+        return value
+
+    @field_validator("duration_seconds", mode="after")
+    @classmethod
+    def normalize_duration(cls, value):
+        if value == 0:
+            return None
         return value

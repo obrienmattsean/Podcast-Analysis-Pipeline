@@ -1,11 +1,11 @@
 locals {
   # The comprehensive list of all project container registries
   ecr_keys = [
-    "extract", 
+    "extract",
     "transcribe",
     "enrich",
-    "upload", 
-    "rag",
+    "upload",
+    "vector",
     "email-notifications",
     "streamlit-ui"
   ]
