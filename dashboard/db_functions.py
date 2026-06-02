@@ -1,8 +1,10 @@
 """Database utility functions for the dashboard."""
 
+import json
 import os
 from datetime import datetime
 
+import boto3
 from dotenv import load_dotenv
 from psycopg2 import connect
 from psycopg2.extensions import connection
@@ -60,6 +62,30 @@ def get_all_podcasts(conn: connection) -> list[dict]:
             }
             for row in rows
         ]
+
+
+def trigger_pipeline(rss_url: str) -> str:
+    """Start the podcast pipeline Step Function execution for a given RSS feed.
+
+    Args:
+        rss_url: The RSS feed URL to pass as pipeline input.
+
+    Returns:
+        str: The ARN of the started Step Function execution.
+
+    Raises:
+        EnvironmentError: If ``STEP_FUNCTION_ARN`` is not set.
+    """
+    state_machine_arn = os.getenv("STEP_FUNCTION_ARN")
+    if not state_machine_arn:
+        raise OSError("STEP_FUNCTION_ARN environment variable is not set.")
+    region = os.getenv("AWS_REGION", "eu-west-2")
+    client = boto3.client("stepfunctions", region_name=region)
+    response = client.start_execution(
+        stateMachineArn=state_machine_arn,
+        input=json.dumps({"rss_url": rss_url}),
+    )
+    return response["executionArn"]
 
 
 def _hours_elapsed(dt: datetime) -> int:
