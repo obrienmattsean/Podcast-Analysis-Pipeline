@@ -25,6 +25,41 @@ def get_db_connection() -> connection:
     )
 
 
+def get_all_podcasts(conn: connection) -> list[dict]:
+    """Fetch all podcasts from the database.
+
+    Args:
+        conn: An open psycopg2 database connection.
+
+    Returns:
+        list[dict]: List of podcast dicts, each containing ``podcast_title``, ``num_episodes``,
+            ``avg_sentiment_score``, and ``last_published``.
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT p.title AS podcast_title,
+            COUNT(e.episode_id) AS num_episodes,
+            ROUND(AVG(e.sentiment_score)::numeric, 2) AS avg_sentiment_score,
+            MIN(e.pub_date) AS tracked_since
+            FROM podcasts p
+            LEFT JOIN episodes e USING (podcast_id)
+            GROUP BY p.podcast_id
+            ORDER BY tracked_since DESC;
+            """
+        )
+        rows = cursor.fetchall()
+        return [
+            {
+                "podcast_title": row[0],
+                "num_episodes": row[1],
+                "avg_sentiment_score": row[2],
+                "tracked_since": row[3],
+            }
+            for row in rows
+        ]
+
+
 def format_time_since_published(pub_date: datetime) -> str:
     """Format the time since an episode was published as a human-readable string.
 
@@ -87,3 +122,11 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             }
             for row in rows
         ]
+
+
+if __name__ == "__main__":
+    conn = get_db_connection()
+    podcasts = get_all_podcasts(conn)
+    for podcast in podcasts:
+        print(podcast)
+    conn.close()
