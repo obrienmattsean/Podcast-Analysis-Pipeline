@@ -60,6 +60,26 @@ def get_all_podcasts(conn: connection) -> list[dict]:
         ]
 
 
+def format_tracked_since(tracked_since: datetime | None) -> str:
+    """Format the tracked_since date as a human-readable string.
+
+    Args:
+        tracked_since: The earliest episode publication date, or None if no
+            episodes have been tracked yet.
+
+    Returns:
+        str: A formatted date string like ``"January 15, 2024"`` or ``"N/A"``.
+
+    Example:
+        >>> from datetime import datetime
+        >>> format_tracked_since(datetime(2024, 1, 15))
+        'January 15, 2024'
+    """
+    if tracked_since is None:
+        return "N/A"
+    return tracked_since.strftime("%B %d, %Y")
+
+
 def format_time_since_published(pub_date: datetime) -> str:
     """Format the time since an episode was published as a human-readable string.
 
