@@ -1,7 +1,7 @@
 data "aws_vpc" "main" {
   filter {
     name   = "tag:Name"
-    values = ["c23*"]  # Discovers VPC with name like "podcast-vpc"
+    values = ["c23-VPC"]
   }
 }
 

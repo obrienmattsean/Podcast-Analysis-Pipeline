@@ -10,7 +10,7 @@ This project uses [pre-commit](https://pre-commit.com/) to run linting and forma
 
 1. Install dependencies (including pre-commit):
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements-dev.txt
    ```
 
 2. Install the git hooks:
