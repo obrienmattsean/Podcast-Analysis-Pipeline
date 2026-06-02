@@ -55,12 +55,14 @@ st.markdown(
         font-family: "TT Commons Pro", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
     }}
+    html, body {{
+        background-color: #f0ece3 !important;
+    }}
+    [data-testid="stApp"],
     [data-testid="stAppViewContainer"] {{
         background:
-            radial-gradient(ellipse at 72% 18%, rgba(196, 178, 227, 0.38) 0%, transparent 52%),
-            radial-gradient(ellipse at 18% 82%, rgba(255, 195, 180, 0.22) 0%, transparent 48%),
-            radial-gradient(ellipse at 48% 58%, rgba(180, 210, 240, 0.18) 0%, transparent 46%),
-            #f0ece3;
+            linear-gradient(rgba(240, 236, 227, 0.85), rgba(240, 236, 227, 0.85)),
+            url("app/static/gradient.png") center / cover no-repeat !important;
     }}
     [data-testid="stHeader"] {{
         background: transparent;
@@ -89,18 +91,16 @@ st.markdown(
         letter-spacing: -0.02em;
     }}
     .episode-card {{
-        background: rgba(255, 255, 255, 0.55);
-        border: none;
+        background: var(--pod-secondary-bg);
+        border: 1px solid rgba(0, 0, 0, 0.14);
         border-radius: 1rem;
         padding: 1.1rem 1.4rem;
         margin-bottom: 0.75rem;
-        backdrop-filter: blur(12px) saturate(1.4);
-        -webkit-backdrop-filter: blur(12px) saturate(1.4);
-        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04), 0 0 2px rgba(0, 0, 0, 0.02);
         transition: box-shadow 0.2s ease;
     }}
     .episode-card:hover {{
-        box-shadow: 0 6px 28px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 6px 28px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06), 0 0 3px rgba(0, 0, 0, 0.03);
     }}
     </style>
     """,
