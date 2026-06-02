@@ -1,9 +1,3 @@
-"""AI Search page with RAG chatbot for semantic podcast search.
-
-This page provides an interactive chatbot interface powered by a Retrieval-Augmented
-Generation (RAG) pipeline that searches podcast transcripts semantically.
-"""
-
 import logging
 
 import streamlit as st
@@ -12,175 +6,289 @@ from rag.convert import get_openai_client, get_query_embedding
 from rag.generator import answer_query
 from rag.retrieval import get_db_connection, query_similar_chunks
 
-# Configure logging
+load_dotenv()
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load environment variables
-load_dotenv()
+# --------------------------------------------------
+# PAGE CONFIG
+# --------------------------------------------------
 
-# Page configuration
-st.set_page_config(page_title="AI Search", layout="wide")
-st.header("🎙️ AI Search - Podcast RAG Chatbot")
-st.write(
-    "Ask questions about podcast content using semantic search powered by AI. "
-    "The chatbot will search through episode transcripts and provide relevant answers."
+st.set_page_config(
+    page_title="AI Search",
+    page_icon="🎙️",
+    layout="wide",
 )
 
-# Initialize session state for chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# --------------------------------------------------
+# CSS
+# --------------------------------------------------
 
-if "retrieved_chunks" not in st.session_state:
-    st.session_state.retrieved_chunks = None
+st.markdown(
+    """
+<style>
 
+.block-container {
+    max-width: 1200px;
+    padding-top: 2rem;
+}
 
-# Sidebar configuration
+.search-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    padding: 1rem;
+}
+
+.result-card {
+    padding: 1rem;
+}
+
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
+# --------------------------------------------------
+# SESSION STATE
+# --------------------------------------------------
+
+if "results" not in st.session_state:
+    st.session_state.results = None
+
+if "query" not in st.session_state:
+    st.session_state.query = ""
+
+# --------------------------------------------------
+# SIDEBAR
+# --------------------------------------------------
+
 with st.sidebar:
-    st.subheader("⚙️ Settings")
+    st.subheader("⚙️ Search Settings")
 
     top_k = st.slider(
-        "Number of chunks to retrieve",
-        min_value=3,
-        max_value=20,
-        value=10,
-        help="How many relevant podcast chunks to retrieve for context",
+        "Top K Results",
+        min_value=5,
+        max_value=50,
+        value=15,
     )
 
     similarity_threshold = st.slider(
-        "Similarity threshold",
+        "Similarity Threshold",
         min_value=0.0,
         max_value=1.0,
-        value=0.5,
+        value=0.50,
         step=0.05,
-        help="Minimum similarity score for chunks to be included",
     )
 
     show_sources = st.checkbox(
-        "Show retrieved sources",
+        "Show Transcript Evidence",
         value=True,
-        help="Display the podcast chunks used to generate the answer",
     )
 
-
-# Display chat history
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+# --------------------------------------------------
+# SEARCH FUNCTION
+# --------------------------------------------------
 
 
-# Chat input
-if prompt := st.chat_input("Ask a question about the podcasts..."):
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
+def run_search(query: str):
 
-    # Display user message
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    with st.spinner("Searching podcast transcripts..."):
+        answer = answer_query(
+            user_query=query,
+            top_k=top_k,
+            similarity_threshold=similarity_threshold,
+        )
 
-    # Generate response with error handling
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        status_placeholder = st.empty()
+        openai_client = get_openai_client()
 
-        try:
-            status_placeholder.info("🔍 Searching podcast transcripts...")
+        db_conn = get_db_connection()
 
-            # Call the RAG pipeline
-            response = answer_query(
-                user_query=prompt, top_k=top_k, similarity_threshold=similarity_threshold
-            )
+        embedding = get_query_embedding(
+            openai_client,
+            query,
+        )
 
-            status_placeholder.empty()
-            message_placeholder.markdown(response)
+        chunks = query_similar_chunks(
+            db_conn,
+            embedding,
+            top_k=top_k,
+            similarity_threshold=similarity_threshold,
+        )
 
-            # Add assistant message to chat history
-            st.session_state.messages.append({"role": "assistant", "content": response})
+        db_conn.close()
 
-            # Store retrieval info for display
-            st.session_state.retrieved_chunks = {
-                "query": prompt,
-                "top_k": top_k,
-                "threshold": similarity_threshold,
-                "response_length": len(response),
+        st.session_state.results = {
+            "query": query,
+            "answer": answer,
+            "chunks": chunks,
+        }
+
+
+# --------------------------------------------------
+# EMPTY STATE
+# --------------------------------------------------
+
+if st.session_state.results is None:
+    st.markdown(
+        """
+        <div class="search-header">
+            <h1>AI Search</h1>
+            <p>Search across podcast transcripts using semantic retrieval.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    placeholder_text = """Which podcasts discussed sustainability in the context
+                            of consumer brands in the last 30 days?"""
+    query = st.text_input(
+        "",
+        placeholder=placeholder_text,
+        label_visibility="collapsed",
+    )
+
+    search_clicked = st.button(
+        "✨ Search",
+        use_container_width=True,
+    )
+
+    st.write("")
+
+    suggestions = [
+        "Which episodes mentioned Nike?",
+        "Shows with negative sentiment this week",
+        "Episodes covering programmatic advertising",
+        "Podcasts safe for a family brand",
+    ]
+
+    cols = st.columns(2)
+
+    for i, suggestion in enumerate(suggestions):
+        with cols[i % 2]:
+            if st.button(
+                suggestion,
+                use_container_width=True,
+                key=f"suggestion_{i}",
+            ):
+                run_search(suggestion)
+                st.rerun()
+
+    if search_clicked and query:
+        run_search(query)
+        st.rerun()
+
+# --------------------------------------------------
+# RESULTS STATE
+# --------------------------------------------------
+
+else:
+    results = st.session_state.results
+
+    st.title("AI Search")
+
+    col1, col2 = st.columns([8, 1])
+
+    with col1:
+        query = st.text_input(
+            "",
+            value=results["query"],
+            label_visibility="collapsed",
+        )
+
+    with col2:
+        if st.button("Search"):
+            run_search(query)
+            st.rerun()
+
+    chunks = results["chunks"]
+
+    podcasts = set()
+    episodes = {}
+
+    for chunk in chunks:
+        podcast = chunk.get("podcast_title", "Unknown")
+        episode = chunk.get("episode_title", "Unknown")
+
+        podcasts.add(podcast)
+
+        key = (podcast, episode)
+
+        if key not in episodes:
+            episodes[key] = {
+                "podcast": podcast,
+                "episode": episode,
+                "count": 0,
+                "chunks": [],
             }
 
-        except ValueError as e:
-            error_msg = f"⚠️ Configuration Error: {str(e)}"
-            status_placeholder.empty()
-            message_placeholder.error(error_msg)
-            logger.error(error_msg)
+        episodes[key]["count"] += 1
+        episodes[key]["chunks"].append(chunk)
 
-        except Exception as e:
-            error_msg = f"❌ Error: {str(e)}"
-            status_placeholder.empty()
-            message_placeholder.error(error_msg)
-            logger.error(f"Failed to generate response: {error_msg}")
+    # ----------------------------------------------
+    # SUMMARY CARD
+    # ----------------------------------------------
 
+    with st.container(border=True):
+        st.caption("✨ PODEX AI SUMMARY")
 
-# Display retrieved sources if enabled
-if show_sources and st.session_state.retrieved_chunks:
-    st.divider()
-    st.subheader("📚 Retrieved Context")
+        st.subheader(f"Found {len(episodes)} matching episodes across {len(podcasts)} podcasts")
 
-    with st.expander("View retrieved chunks"):
-        try:
-            # Retrieve chunks to display
-            openai_client = get_openai_client()
-            db_conn = get_db_connection()
+        st.markdown(results["answer"])
 
-            query_embedding = get_query_embedding(
-                openai_client, st.session_state.retrieved_chunks["query"]
-            )
-            retrieved_chunks = query_similar_chunks(
-                db_conn,
-                query_embedding,
-                top_k=st.session_state.retrieved_chunks["top_k"],
-                similarity_threshold=st.session_state.retrieved_chunks["threshold"],
-            )
-            db_conn.close()
+    st.write("")
 
-            if retrieved_chunks:
-                for idx, chunk in enumerate(retrieved_chunks, 1):
-                    with st.container():
-                        col1, col2 = st.columns([3, 1])
+    st.subheader(f"{len(episodes)} Matched Episodes")
 
-                        with col1:
-                            st.write(f"**Chunk {idx}**")
-                            st.caption(f"📻 {chunk['podcast_title']} → 🎬 {chunk['episode_title']}")
-                            st.markdown(f"> {chunk['chunk_transcript'][:200]}...")
+    sorted_episodes = sorted(
+        episodes.values(),
+        key=lambda x: x["count"],
+        reverse=True,
+    )
 
-                        with col2:
-                            similarity_score = chunk.get("similarity", 0)
-                            st.metric("Similarity", f"{similarity_score:.2%}")
+    # ----------------------------------------------
+    # EPISODE CARDS
+    # ----------------------------------------------
+
+    for episode in sorted_episodes:
+        with st.container(border=True):
+            col1, col2 = st.columns([5, 1])
+
+            with col1:
+                st.markdown(f"### 🎙️ {episode['podcast']}")
+
+                st.caption(episode["episode"])
+
+            with col2:
+                st.metric(
+                    "Mentions",
+                    episode["count"],
+                )
+
+            if show_sources:
+                with st.expander("Transcript Evidence"):
+                    for chunk in episode["chunks"]:
+                        similarity = chunk.get(
+                            "similarity",
+                            0,
+                        )
+
+                        st.caption(f"Similarity: {similarity:.2%}")
+
+                        st.markdown(f"> {chunk['chunk_transcript']}")
 
                         st.divider()
-            else:
-                st.info("No relevant chunks found for this query.")
 
-        except Exception as e:
-            st.warning(f"Could not retrieve source information: {str(e)}")
+    # ----------------------------------------------
+    # NEW SEARCH BUTTON
+    # ----------------------------------------------
 
+    st.write("")
 
-# Footer with instructions
-st.divider()
-with st.expander("💡 How to use the RAG Chatbot"):
-    st.markdown("""
-    ### Getting Started
-    1. **Ask a question** about any topic related to the podcasts
-    2. **Adjust settings** in the sidebar to fine-tune the search:
-       - **Number of chunks**: More chunks = more context but slower response
-       - **Similarity threshold**: Higher threshold = more relevant but fewer results
-    3. **View sources**: Enable "Show retrieved sources" to see which podcast segments were used
+    if st.button("← New Search"):
+        st.session_state.results = None
+        st.session_state.query = ""
 
-    ### Tips for Better Results
-    - Use natural language questions
-    - Be specific about what you're looking for
-    - Use keywords from the podcasts if you know them
-    - Adjust the similarity threshold if results aren't relevant enough
-
-    ### Example Questions
-    - "What brands are discussed alongside sustainability?"
-    - "Which episodes discuss AI applications?"
-    - "What are the main topics covered?"
-    """)
+        st.rerun()

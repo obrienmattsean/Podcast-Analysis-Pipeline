@@ -6,10 +6,10 @@ using OpenAI's chat completion API.
 
 import logging
 
-from convert import get_openai_client, get_query_embedding
 from dotenv import load_dotenv
 from openai import OpenAI, OpenAIError
-from retrieval import get_db_connection, query_similar_chunks
+from rag.convert import get_openai_client, get_query_embedding
+from rag.retrieval import get_db_connection, query_similar_chunks
 
 logger = logging.getLogger(__name__)
 
