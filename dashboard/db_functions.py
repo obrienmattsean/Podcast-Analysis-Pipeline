@@ -62,6 +62,30 @@ def format_time_since_published(pub_date: datetime) -> str:
     return f"{days} days ago"
 
 
+def get_episode_keywords(conn: connection, episode_id: int) -> list[str]:
+    """Fetch the top keywords for a given episode from the database.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        episode_id: The ID of the episode to fetch keywords for.
+
+    Returns:
+        list[str]: A list of keyword strings associated with the episode.
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT *
+            FROM episode_keywords
+            WHERE episode_id = %s
+            ORDER BY relevance DESC
+            LIMIT 5;
+            """,
+            (episode_id,),
+        )
+        return [row[0] for row in cursor.fetchall()]
+
+
 def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
     """Fetch the most recent episodes from the database.
 

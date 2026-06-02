@@ -31,7 +31,9 @@ st.markdown(
         letter-spacing: 0.01em;
     }}
     .episode-card {{
-        background-color: var(--pod-secondary-bg);        border: 1px solid #2e2e2e;        border-radius: 0.6rem;
+        background-color: var(--pod-secondary-bg);
+        border: 1px solid #2e2e2e;
+        border-radius: 0.6rem;
         padding: 1rem 1.25rem;
         margin-bottom: 0.75rem;
     }}
@@ -74,7 +76,8 @@ def render_episode_card(episode: dict) -> None:
     badge_html = get_sentiment_badge(score) if score is not None else ""
 
     summary_html = (
-        f'<div style="font-size:0.85rem;color:var(--text-color);opacity:0.6;line-height:1.55;margin-top:0.6rem;">'
+        f'<div style="font-size:0.85rem;color:var(--text-color);opacity:0.6;'
+        f'line-height:1.55;margin-top:0.6rem;">'
         f"{html.escape(summary)}</div>"
         if summary
         else ""
@@ -82,11 +85,15 @@ def render_episode_card(episode: dict) -> None:
 
     st.markdown(
         f'<div class="episode-card">'
-        f'  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.2rem;">'
-        f'    <div style="font-size:0.78rem;color:var(--pod-primary-color);font-weight:600;">{html.escape(podcast_title)}</div>'
-        f'    <div style="font-size:0.78rem;color:var(--text-color);opacity:0.5;white-space:nowrap;margin-left:1rem;">{html.escape(time_since_published)}</div>'
+        f'  <div style="display:flex;justify-content:space-between;'
+        f'align-items:baseline;margin-bottom:0.2rem;">'
+        f'    <div style="font-size:0.78rem;color:var(--pod-primary-color);'
+        f'font-weight:600;">{html.escape(podcast_title)}</div>'
+        f'    <div style="font-size:0.78rem;color:var(--text-color);opacity:0.5;'
+        f'white-space:nowrap;margin-left:1rem;">{html.escape(time_since_published)}</div>'
         f"  </div>"
-        f'  <div style="font-size:1.05rem;font-weight:700;color:var(--text-color);margin-bottom:0.5rem;line-height:1.35;">'
+        f'  <div style="font-size:1.05rem;font-weight:700;color:var(--text-color);'
+        f'margin-bottom:0.5rem;line-height:1.35;">'
         f"    {html.escape(episode_title)}"
         f"  </div>"
         f'  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">'
