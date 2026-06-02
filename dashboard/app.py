@@ -50,12 +50,12 @@ def get_sentiment_badge(score: float) -> str:
     Returns:
         str: An HTML string for a badge with color and label based on the score.
     """
-    if score >= 0.3:
+    if score > 0.5:
         badge_color, text_color, label, emoji = "#1a3d22", "#4caf72", "Positive", "↗"
-    elif score <= -0.3:
+    elif score < -0.5:
         badge_color, text_color, label, emoji = "#3d1a1a", "#e57373", "Negative", "↘"
     else:
-        badge_color, text_color, label, emoji = "#2a2a2a", "#aaa", "Neutral", "→"
+        badge_color, text_color, label, emoji = "#1a2a3d", "#7aadcf", "Neutral", "→"
     return (
         f'<span style="background:{badge_color};color:{text_color};padding:0.2rem 0.65rem;'
         f"border-radius:1rem;font-size:0.78rem;font-weight:600;white-space:nowrap;"
