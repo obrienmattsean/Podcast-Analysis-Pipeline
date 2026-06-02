@@ -127,7 +127,7 @@ def render_podcast_card(podcast: dict) -> None:
             dot_color, sentiment_label = "#888888", "Neutral"
         sentiment_html = (
             f'<div style="display:flex;align-items:center;gap:0.4rem;'
-            f"font-size:0.85rem;color:{dot_color};font-weight:500;\">"
+            f'font-size:0.85rem;color:{dot_color};font-weight:500;">'
             f'<span style="width:8px;height:8px;border-radius:50%;background:{dot_color};'
             f'display:inline-block;flex-shrink:0;"></span>'
             f"{sentiment_label}</div>"
