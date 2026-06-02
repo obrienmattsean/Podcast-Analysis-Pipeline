@@ -170,7 +170,7 @@ def render_episode_card(episode: dict) -> None:
         f'align-items:baseline;margin-bottom:0.2rem;">'
         f'    <div style="font-size:0.78rem;color:var(--pod-primary-color);'
         f'font-family:Nunito,sans-serif;font-weight:800;">'
-        f'{html.escape(podcast_title)}</div>'
+        f"{html.escape(podcast_title)}</div>"
         f'    <div style="font-size:0.78rem;color:var(--text-color);opacity:0.5;'
         f'white-space:nowrap;margin-left:1rem;">{html.escape(time_since_published)}</div>'
         f"  </div>"
