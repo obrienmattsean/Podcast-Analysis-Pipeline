@@ -91,14 +91,14 @@ def render_empty_state() -> tuple[str, bool]:
     )
 
 
-def render_search_header(query: str) -> str:
+def render_search_header(query: str) -> tuple[str, bool]:
     """Render header with search input and button.
 
     Args:
         query: Current search query
 
     Returns:
-        Updated query string
+        Updated query string and search button click status
     """
     st.title("AI Search")
 
