@@ -42,7 +42,7 @@ def render_feed() -> None:
     for episode in recent_episodes:
         with st.container(border=True):
             st.subheader(episode["episode_title"])
-            st.caption(f"{episode['podcast_title']} | {episode['days_since_published']} days ago")
+            st.caption(episode["time_since_published"])
 
         st.write("")
 

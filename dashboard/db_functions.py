@@ -38,6 +38,30 @@ def get_days_since_published(pub_date: datetime) -> int:
     return (today - pub_date).days
 
 
+def format_time_since_published(pub_date: datetime) -> str:
+    """Format the time since an episode was published as a human-readable string.
+
+    Args:
+        pub_date: The publication date of the episode.
+
+    Returns:
+        str: A human-readable string such as ``"5 hours ago"``,
+            ``"Yesterday"``, or ``"3 days ago"``.
+
+    Example:
+        >>> from datetime import datetime, timedelta
+        >>> format_time_since_published(datetime.now() - timedelta(hours=5))
+        '5 hours ago'
+    """
+    hours = int((datetime.now() - pub_date).total_seconds() // 3600)
+    if hours < 24:
+        return f"{hours} hour ago" if hours == 1 else f"{hours} hours ago"
+    if hours < 48:
+        return "Yesterday"
+    days = hours // 24
+    return f"{days} days ago"
+
+
 def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
     """Fetch the most recent episodes from the database.
 
@@ -46,8 +70,9 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
         limit: Maximum number of episodes to return. Defaults to 10.
 
     Returns:
-        list[dict]: List of episode dicts, each containing ``title``,
-            ``podcast_title``, and ``days_since_published``.
+        list[dict]: List of episode dicts, each containing ``podcast_title``,
+            ``episode_title``, ``days_since_published``, and
+            ``time_since_published``.
     """
     with conn.cursor() as cursor:
         cursor.execute(
@@ -67,7 +92,7 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             {
                 "podcast_title": row[0],
                 "episode_title": row[1],
-                "days_since_published": get_days_since_published(row[2]),
+                "time_since_published": format_time_since_published(row[2]),
             }
             for row in rows
         ]
