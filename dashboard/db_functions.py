@@ -79,7 +79,9 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             """
             SELECT p.title AS podcast_title,
             e.title AS episode_title,
-            e.pub_date
+            e.pub_date,
+            e.summary,
+            e.sentiment_score
             FROM episodes e
             JOIN podcasts p USING (podcast_id)
             ORDER BY e.pub_date DESC
@@ -93,6 +95,8 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
                 "podcast_title": row[0],
                 "episode_title": row[1],
                 "time_since_published": format_time_since_published(row[2]),
+                "summary": row[3],
+                "sentiment_score": row[4],
             }
             for row in rows
         ]
