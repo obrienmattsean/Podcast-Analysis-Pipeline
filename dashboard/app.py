@@ -71,7 +71,7 @@ st.markdown(
     [data-testid="stApp"],
     [data-testid="stAppViewContainer"] {{
         background:
-            linear-gradient(rgba(240, 236, 227, 0.85), rgba(240, 236, 227, 0.85)),
+            linear-gradient(rgba(240, 236, 227, 0.9), rgba(240, 236, 227, 0.9)),
             url("app/static/gradient.png") center / cover no-repeat !important;
     }}
     [data-testid="stHeader"] {{
