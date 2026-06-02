@@ -16,6 +16,14 @@ _primary_color = st.get_option("theme.primaryColor")
 _font = "app/static/fonts/Demo_Fonts/Fontspring-DEMO-tt_commons_pro"
 
 st.markdown(
+    '<link rel="preconnect" href="https://fonts.googleapis.com">'
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    '<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;'
+    '500;600;700;800;900&display=swap" rel="stylesheet">',
+    unsafe_allow_html=True,
+)
+
+st.markdown(
     f"""
     <style>
     :root {{
@@ -161,7 +169,8 @@ def render_episode_card(episode: dict) -> None:
         f'  <div style="display:flex;justify-content:space-between;'
         f'align-items:baseline;margin-bottom:0.2rem;">'
         f'    <div style="font-size:0.78rem;color:var(--pod-primary-color);'
-        f'font-weight:600;">{html.escape(podcast_title)}</div>'
+        f'font-family:Nunito,sans-serif;font-weight:800;">'
+        f'{html.escape(podcast_title)}</div>'
         f'    <div style="font-size:0.78rem;color:var(--text-color);opacity:0.5;'
         f'white-space:nowrap;margin-left:1rem;">{html.escape(time_since_published)}</div>'
         f"  </div>"
