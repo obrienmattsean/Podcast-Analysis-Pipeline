@@ -12,6 +12,7 @@ from enrichment_functions import (
     get_episode_metadata_from_s3,
     get_episode_transcript_from_s3,
     prompt_llm_for_enrichment,
+    prompt_llm_for_moderation,
 )
 
 
@@ -118,6 +119,102 @@ class TestPromptLlmForEnrichment:
 
         assert result == enrichment_response
         assert result["keywords"] == [["innovation", "concept"], ["tech", "topic"]]
+
+
+class TestPromptLlmForModeration:
+    """Tests for prompt_llm_for_moderation function."""
+
+    def test_prompt_llm_for_moderation_success(self):
+        """Test successful moderation analysis."""
+        mock_llm_client = MagicMock()
+        moderation_dict = {
+            "harassment": False,
+            "harassment_threatening": False,
+            "hate": False,
+            "hate_threatening": False,
+            "illicit": False,
+            "illicit_violence": False,
+            "self_harm": False,
+            "self_harm_instructions": False,
+            "self_harm_intent": False,
+            "sexual": False,
+            "sexual_minors": False,
+            "violence": False,
+            "violence_graphic": False,
+        }
+        mock_categories = MagicMock()
+        mock_categories.model_dump.return_value = moderation_dict
+        mock_llm_client.moderations.create.return_value.results = [
+            MagicMock(categories=mock_categories)
+        ]
+
+        result = prompt_llm_for_moderation(mock_llm_client, "This is a valid transcript")
+
+        assert isinstance(result, dict)
+        assert result["harassment"] is False
+        assert result["violence"] is False
+        mock_llm_client.moderations.create.assert_called_once()
+
+    def test_prompt_llm_for_moderation_flagged_content(self):
+        """Test moderation analysis with flagged content."""
+        mock_llm_client = MagicMock()
+        moderation_dict = {
+            "harassment": True,
+            "harassment_threatening": False,
+            "hate": False,
+            "hate_threatening": False,
+            "illicit": False,
+            "illicit_violence": False,
+            "self_harm": False,
+            "self_harm_instructions": False,
+            "self_harm_intent": False,
+            "sexual": False,
+            "sexual_minors": False,
+            "violence": True,
+            "violence_graphic": False,
+        }
+        mock_categories = MagicMock()
+        mock_categories.model_dump.return_value = moderation_dict
+        mock_llm_client.moderations.create.return_value.results = [
+            MagicMock(categories=mock_categories)
+        ]
+
+        result = prompt_llm_for_moderation(mock_llm_client, "This is offensive content")
+
+        assert result["harassment"] is True
+        assert result["violence"] is True
+
+    def test_prompt_llm_for_moderation_empty_transcript(self):
+        """Test moderation analysis with empty transcript."""
+        mock_llm_client = MagicMock()
+        moderation_dict = {
+            "harassment": False,
+            "violence": False,
+            "sexual": False,
+        }
+        mock_categories = MagicMock()
+        mock_categories.model_dump.return_value = moderation_dict
+        mock_llm_client.moderations.create.return_value.results = [
+            MagicMock(categories=mock_categories)
+        ]
+
+        result = prompt_llm_for_moderation(mock_llm_client, "")
+
+        assert isinstance(result, dict)
+        assert result["harassment"] is False
+
+    def test_prompt_llm_for_moderation_none_client(self):
+        """Test that None LLM client raises AttributeError."""
+        with pytest.raises(AttributeError):
+            prompt_llm_for_moderation(None, "Valid transcript")
+
+    def test_prompt_llm_for_moderation_api_error(self):
+        """Test that API error is caught and re-raised."""
+        mock_llm_client = MagicMock()
+        mock_llm_client.moderations.create.side_effect = Exception("API Error")
+
+        with pytest.raises(Exception, match="API Error"):
+            prompt_llm_for_moderation(mock_llm_client, "Valid transcript")
 
 
 class TestGetEpisodeMetadataFromS3:

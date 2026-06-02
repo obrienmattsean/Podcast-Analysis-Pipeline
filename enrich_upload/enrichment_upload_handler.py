@@ -19,6 +19,7 @@ from enrichment_functions import (
     get_episode_metadata_from_s3,
     get_episode_transcript_from_s3,
     prompt_llm_for_enrichment,
+    prompt_llm_for_moderation,
 )
 from upload_functions import combine_enrichments, upload_to_rds
 
@@ -120,8 +121,12 @@ def lambda_handler(event, context):
         enrichment_data = prompt_llm_for_enrichment(llm_client, transcript)
         logger.info("Enrichment data received from LLM.")
 
-        # Step 3: Combine enrichments with episode metadata
-        combined_data = combine_enrichments(metadata, enrichment_data)
+        logger.info("Analyzing transcript for moderation")
+        moderation_data = prompt_llm_for_moderation(llm_client, transcript)
+        logger.info("Moderation analysis received from LLM.")
+
+        # Step 3: Combine enrichments with episode metadata and moderation
+        combined_data = combine_enrichments(metadata, enrichment_data, moderation_data)
         logger.info("Combining enrichments with episode metadata for upload.")
         upload_to_rds(combined_data, db_connection)
         logger.info("Enrichment data uploaded successfully to RDS.")
