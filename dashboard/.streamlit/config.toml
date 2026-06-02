@@ -2,7 +2,14 @@
 showSidebarNavigation = true
 
 [theme]
-primaryColor = "#e55f15"
-backgroundColor = "#0d0d0d"
-secondaryBackgroundColor = "#1e1e1e"
-textColor =  "#FFFFFF"
+font = "Nunito:https://fonts.googleapis.com/css2?family=Nunito&display=swap"
+codeFont = "'Space Mono':https://fonts.googleapis.com/css2?family=Space+Mono&display=swap"
+
+
+primaryColor = "#c4b2e3"
+backgroundColor = "#f0ece3"
+secondaryBackgroundColor = "#e8ddf5"
+textColor = "#1c1c1c"
+
+[server]
+enableStaticServing = true
