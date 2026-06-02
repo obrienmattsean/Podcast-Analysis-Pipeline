@@ -52,8 +52,10 @@ def combine_enrichments(episode_metadata: dict, enrichments: dict, moderation: d
     for key in moderation:
         episode[key] = moderation[key]
 
-    if any(moderation.values()):
+    if any(moderation.values()) is True:
         episode["flagged"] = True
+    else:
+        episode["flagged"] = False
 
     entities = {}
     for entity in enrichments.get("keywords", []):
