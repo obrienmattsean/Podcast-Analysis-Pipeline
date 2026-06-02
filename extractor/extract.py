@@ -54,6 +54,12 @@ def insert_podcast(conn: connection, rss_url: str) -> None:
 
 
 def clean_html(text: str) -> str:
+    """Remove HTML tags from text using BeautifulSoup.
+    Args:
+        text (str): The input string that may contain HTML tags.
+    Returns:
+        str: The cleaned string with HTML tags removed.
+    """
     return BeautifulSoup(text, "html.parser").get_text(" ", strip=True)
 
 
@@ -78,7 +84,6 @@ def get_podcast_metadata_from_url(rss_url: str) -> dict:
         raise ValueError(f"Unable to parse RSS feed: {rss_url}")
 
     podcast_title = clean_html(feed.feed.get("title", "Unknown Podcast"))
-
     podcast_description = clean_html(feed.feed.get("subtitle", "No description available."))
 
     logging.info(
