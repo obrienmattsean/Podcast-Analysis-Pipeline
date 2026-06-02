@@ -27,8 +27,7 @@ def insert_podcast(conn: connection, rss_url: str) -> None:
     if not isinstance(rss_url, str) or not rss_url:
         raise ValueError("RSS URL must be a non-empty string.")
 
-    parts = rss_url.split("/")
-    title = parts[-2] if len(parts) > 1 else "unknown"
+    title = get_podcast_title_from_url(rss_url)
 
     try:
         with conn.cursor() as cursor:
@@ -42,6 +41,31 @@ def insert_podcast(conn: connection, rss_url: str) -> None:
         conn.rollback()
         logging.exception("Failed to insert podcast with RSS URL: %s", rss_url)
         raise
+
+
+def get_podcast_title_from_url(rss_url: str) -> str:
+    """Derive a podcast title from its RSS URL.
+
+    Args:
+        rss_url (str): The RSS feed URL of the podcast.
+    Returns:
+        str: Derived podcast title.
+    """
+
+    if not isinstance(rss_url, str) or not rss_url:
+        raise ValueError("RSS URL must be a non-empty string.")
+
+    logging.info("Fetching RSS feed: %s", rss_url)
+
+    feed = feedparser.parse(rss_url)
+    podcast_title = feed.feed.get("title", "Unknown Podcast")
+
+    logging.info(
+        "Fetched title for new podcast from RSS URL: %s: %s",
+        rss_url,
+        podcast_title,
+    )
+    return podcast_title
 
 
 def get_podcasts_from_database(conn: connection) -> list[RealDictRow]:
