@@ -138,7 +138,8 @@ def render_podcast_card(podcast: dict) -> None:
     st.markdown(
         f'<div style="background:var(--pod-secondary-bg);border:1px solid rgba(0,0,0,0.14);'
         f"border-radius:1rem;padding:1.25rem;margin-bottom:0.5rem;"
-        f"box-shadow:0 2px 16px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04),0 0 2px rgba(0,0,0,0.02);"
+        f"box-shadow:0 2px 16px rgba(0,0,0,0.06),"
+        f"0 1px 3px rgba(0,0,0,0.04),0 0 2px rgba(0,0,0,0.02);"
         f'transition:box-shadow 0.2s ease;">'
         f'<div style="width:56px;height:56px;border-radius:14px;background:{bg_color};'
         f"display:flex;align-items:center;justify-content:center;"
@@ -146,7 +147,8 @@ def render_podcast_card(podcast: dict) -> None:
         f'box-shadow:0 1px 6px rgba(0,0,0,0.08);">'
         f"{html.escape(initials)}"
         f"</div>"
-        f'<div style="font-size:1rem;font-weight:600;letter-spacing:-0.01em;color:var(--text-color);'
+        f'<div style="font-size:1rem;font-weight:600;'
+        f"letter-spacing:-0.01em;color:var(--text-color);"
         f'margin-bottom:0.2rem;line-height:1.3;">{html.escape(title)}</div>'
         f'<div style="font-size:0.8rem;color:rgba(60,60,67,0.45);margin-bottom:0.9rem;">'
         f"{html.escape(updated_text)}"
@@ -154,9 +156,11 @@ def render_podcast_card(podcast: dict) -> None:
         f'<hr style="border:none;border-top:1px solid rgba(0,0,0,0.07);margin:0.75rem 0;">'
         f'<div style="display:flex;justify-content:space-between;align-items:flex-end;">'
         f"<div>"
-        f'<div style="font-size:1.4rem;font-weight:700;letter-spacing:-0.02em;color:var(--text-color);'
+        f'<div style="font-size:1.4rem;font-weight:700;'
+        f"letter-spacing:-0.02em;color:var(--text-color);"
         f'line-height:1.2;">{html.escape(str(num_episodes))}</div>'
-        f'<div style="font-size:0.75rem;color:rgba(60,60,67,0.45);font-weight:500;letter-spacing:0.01em;">episodes</div>'
+        f'<div style="font-size:0.75rem;color:rgba(60,60,67,0.45);'
+        f'font-weight:500;letter-spacing:0.01em;">episodes</div>'
         f"</div>"
         f"{sentiment_html}"
         f"</div>"

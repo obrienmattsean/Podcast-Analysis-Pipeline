@@ -13,6 +13,7 @@ st.logo(str(Path(__file__).parent / "static" / "podex-logo.svg"), size="large")
 
 _secondary_bg = st.get_option("theme.secondaryBackgroundColor")
 _primary_color = st.get_option("theme.primaryColor")
+_font = "app/static/fonts/Demo_Fonts/Fontspring-DEMO-tt_commons_pro"
 
 st.markdown(
     f"""
@@ -23,36 +24,37 @@ st.markdown(
     }}
     @font-face {{
         font-family: "TT Commons Pro";
-        src: url("app/static/fonts/Demo_Fonts/Fontspring-DEMO-tt_commons_pro_regular.otf") format("opentype");
+        src: url("{_font}_regular.otf") format("opentype");
         font-weight: 400;
         font-style: normal;
     }}
     @font-face {{
         font-family: "TT Commons Pro";
-        src: url("app/static/fonts/Demo_Fonts/Fontspring-DEMO-tt_commons_pro_italic.otf") format("opentype");
+        src: url("{_font}_italic.otf") format("opentype");
         font-weight: 400;
         font-style: italic;
     }}
     @font-face {{
         font-family: "TT Commons Pro";
-        src: url("app/static/fonts/Demo_Fonts/Fontspring-DEMO-tt_commons_pro_medium.otf") format("opentype");
+        src: url("{_font}_medium.otf") format("opentype");
         font-weight: 500;
         font-style: normal;
     }}
     @font-face {{
         font-family: "TT Commons Pro";
-        src: url("app/static/fonts/Demo_Fonts/Fontspring-DEMO-tt_commons_pro_demibold.otf") format("opentype");
+        src: url("{_font}_demibold.otf") format("opentype");
         font-weight: 600;
         font-style: normal;
     }}
     @font-face {{
         font-family: "TT Commons Pro";
-        src: url("app/static/fonts/Demo_Fonts/Fontspring-DEMO-tt_commons_pro_bold.otf") format("opentype");
+        src: url("{_font}_bold.otf") format("opentype");
         font-weight: 700;
         font-style: normal;
     }}
     html, body, [class*="css"] {{
-        font-family: "TT Commons Pro", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+        font-family: "TT Commons Pro", -apple-system, BlinkMacSystemFont,
+            "Helvetica Neue", Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
     }}
     html, body {{
@@ -96,11 +98,17 @@ st.markdown(
         border-radius: 1rem;
         padding: 1.1rem 1.4rem;
         margin-bottom: 0.75rem;
-        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04), 0 0 2px rgba(0, 0, 0, 0.02);
+        box-shadow:
+            0 2px 16px rgba(0, 0, 0, 0.06),
+            0 1px 3px rgba(0, 0, 0, 0.04),
+            0 0 2px rgba(0, 0, 0, 0.02);
         transition: box-shadow 0.2s ease;
     }}
     .episode-card:hover {{
-        box-shadow: 0 6px 28px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06), 0 0 3px rgba(0, 0, 0, 0.03);
+        box-shadow:
+            0 6px 28px rgba(0, 0, 0, 0.1),
+            0 2px 6px rgba(0, 0, 0, 0.06),
+            0 0 3px rgba(0, 0, 0, 0.03);
     }}
     </style>
     """,
