@@ -15,10 +15,10 @@ Example:
 import logging
 from datetime import datetime
 
-import dotenv
-import psycopg2
+from dotenv import load_dotenv
+from psycopg2.extensions import connection
 
-dotenv.load_dotenv()
+load_dotenv()
 
 
 def combine_enrichments(episode_metadata: dict, enrichments: dict) -> dict:
@@ -60,13 +60,13 @@ def combine_enrichments(episode_metadata: dict, enrichments: dict) -> dict:
     return combined
 
 
-def upload_to_rds(enrichment_dict: dict, db_connection: psycopg2.extensions.connection) -> None:
+def upload_to_rds(enrichment_dict: dict, db_connection: connection) -> None:
     """Uploads the full enriched data to RDS.
 
     Args:
         enrichment_dict (dict): The dictionary containing all the enrichments to be
-        uploaded to RDS. db_connection (psycopg2.extensions.connection): The
-        connection object to the PostgreSQL database.
+        uploaded to RDS.
+        db_connection (connection): The connection object to the PostgreSQL database.
 
     Returns:
         None

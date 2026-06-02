@@ -15,8 +15,8 @@ Example:
 import json
 import logging
 
-import boto3
 import openai as oa
+from botocore.client import BaseClient
 from dotenv import load_dotenv
 
 load_dotenv()  # Load environment variables from .env file
@@ -41,15 +41,15 @@ outro text. Use the exact JSON structure defined below:
 }
 
 Strictly adhere to the following rules for the data fields:
-1. **sentiment score**: A float value from 0.00 to 5.00 rounded to 2 decimal places.
-(0.00 = extremely negative, 5.00 = extremely positive) reflecting the overall
+1. **sentiment score**: A float value from -1.00 to 1.00 rounded to 2 decimal places.
+(-1.00 = extremely negative, 1.00 = extremely positive) reflecting the overall
 sentiment of the transcript.
 2. **classification**: Map the score using these precise boundaries:
-   - 0.00 to 0.99: "very negative"
-   - 1.00 to 1.99: "negative"
-   - 2.00 to 2.99: "neutral"
-   - 3.00 to 3.99: "positive"
-   - 4.00 to 5.00: "very positive"
+   - -1.00 to -0.60: "very negative"
+   - -0.59 to -0.20: "negative"
+   - -0.19 to 0.19: "neutral"
+   - 0.20 to 0.59: "positive"
+   - 0.60 to 1.00: "very positive"
 3. **summary**: A concise summary of the podcast episode in 3-5 sentences.
 4. **hosts**: Extract the names of the hosts mentioned in the transcript as a list of strings.
 If no hosts are explicitly mentioned, return an empty list.
@@ -57,27 +57,10 @@ If no hosts are explicitly mentioned, return an empty list.
 If no guests are explicitly mentioned, return an empty list.
 6. **keywords**: A JSON array where each element is a 2-element array containing a lowercase keyword
 and its category. Each keyword should capture a general topic, location, overarching theme, or
-individual discussed. The category should be from the white list below.
+individual discussed. The keywords should be extracted based on their relevance and frequency in the
+transcript, not just their presence. Return the top 10 keywords.
 
-Category White List:
-- "topic": A general topic or subject matter discussed in the episode
-    (e.g., "technology", "health", "sports").
-- "location": A specific location mentioned in the episode
-    (e.g., "New York", "Paris", "Tokyo").
-- "concept": An overarching theme, idea, or concept discussed in the episode
-    (e.g., "innovation", "sustainability", "leadership").
-- "individual": A specific person mentioned in the episode
-    (e.g., "Elon Musk", "Oprah Winfrey", "Barack Obama").
-- "product and IP": A specific product, company, or intellectual property mentioned
-    in the episode (e.g., "iPhone", "Tesla", "Marvel Cinematic Universe").
-- "role and sector": A specific role, industry, or sector mentioned in the episode
-    (e.g., "software engineer", "finance", "healthcare").
-- "advert": A specific advertisement or brand mentioned in the episode, and explicitly stated
-    as a sponsor / partnership (e.g., "Nike", "Coca-Cola", "Amazon").
-- "current event": A specific current event mentioned in the episode
-    (e.g., "2024 Olympics", "2024 US Presidential Election", "COVID-19 pandemic").
-- "other": A keyword that does not fit into any of the above categories,
-    but is still a significant and relevant keyword from the episode.
+
 
 """
 
@@ -112,7 +95,11 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
         logging.info("Transcript analysis completed successfully.")
 
         # Extract content and clean markdown formatting if present
-        content = response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+
+        # Ensure content is not None
+        if content is None:
+            raise ValueError("LLM response returned empty content")
 
         # Remove markdown code blocks if present
         if content.startswith("```"):
@@ -132,11 +119,11 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
         raise
 
 
-def get_episode_metadata_from_s3(s3_client: boto3.client, s3_path: str) -> dict:
+def get_episode_metadata_from_s3(s3_client: BaseClient, s3_path: str) -> dict:
     """Retrieves the podcast transcript and additional metadata from S3.
 
     Args:
-        s3_client (boto3.client): The initialized S3 client.
+        s3_client (BaseClient): The initialized S3 client.
         s3_path (str): The S3 path to the specific episode directory, e.g., 's3://bucket_name/object_key'.
 
     Returns:
@@ -170,11 +157,11 @@ def get_episode_metadata_from_s3(s3_client: boto3.client, s3_path: str) -> dict:
         raise
 
 
-def get_episode_transcript_from_s3(s3_client: boto3.client, s3_path: str) -> str:
+def get_episode_transcript_from_s3(s3_client: BaseClient, s3_path: str) -> str:
     """Retrieves the podcast transcript from S3.
 
     Args:
-        s3_client (boto3.client): The initialized S3 client.
+        s3_client (BaseClient): The initialized S3 client.
         s3_path (str): The S3 path to the specific episode directory, e.g., 's3://bucket_name/object_key'.
 
     Returns:
