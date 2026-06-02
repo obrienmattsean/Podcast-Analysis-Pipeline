@@ -16,4 +16,3 @@ pages = [
 
 page = st.navigation(pages)
 page.run()
-

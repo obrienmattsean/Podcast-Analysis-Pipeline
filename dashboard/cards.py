@@ -59,8 +59,7 @@ def episode_card(episode: dict) -> None:
             st.subheader(episode_title, anchor=False, divider=False)
         with right:
             st.markdown(
-                f'<p style="text-align:right;margin:0;">'
-                f'<small>{time_since_published}</small></p>',
+                f'<p style="text-align:right;margin:0;"><small>{time_since_published}</small></p>',
                 unsafe_allow_html=True,
             )
         if score is not None:
