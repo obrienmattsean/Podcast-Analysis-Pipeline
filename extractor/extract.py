@@ -325,6 +325,6 @@ def extract_new_episodes(conn: connection) -> list[dict]:
 
 if __name__ == "__main__":
     # Run locally for testing
-    url = "https://media.rss.com/peopleofculture/feed.xml"
-    a = get_podcast_metadata_from_url(url)
+    url = "https://media.rss.com/cheekyshenaniganspodcast/feed.xml"
+    a = get_episodes_from_rss(url)[8]
     pprint(a)

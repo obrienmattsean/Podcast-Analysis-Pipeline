@@ -65,8 +65,9 @@ def parse_episode(episode: dict, podcast_id: int) -> ValidatedEpisode:
     return ValidatedEpisode(
         podcast_id=podcast_id,
         title=title,
-        audio_link=get_audio_link_from_entry(episode),  # ty: ignore[invalid-argument-type]
+        audio_link=get_audio_link_from_entry(episode),  # ty: ignore
         published_at=published_at,
+        duration_seconds=episode.get("itunes_duration"),
     )
 
 
