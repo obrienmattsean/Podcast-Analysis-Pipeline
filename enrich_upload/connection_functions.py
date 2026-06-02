@@ -66,8 +66,8 @@ def get_llm_client(openai_api_key) -> oa.OpenAI:
 
 def get_s3_client(
     region_name: str,
-    aws_access_key_id: str = None,
-    aws_secret_access_key: str = None,
+    aws_access_key_id: str | None = None,
+    aws_secret_access_key: str | None = None,
 ) -> BaseClient:
     """Creates the S3 client to interact with AWS S3.
 
