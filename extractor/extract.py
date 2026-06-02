@@ -27,21 +27,54 @@ def insert_podcast(conn: connection, rss_url: str) -> None:
     if not isinstance(rss_url, str) or not rss_url:
         raise ValueError("RSS URL must be a non-empty string.")
 
-    parts = rss_url.split("/")
-    title = parts[-2] if len(parts) > 1 else "unknown"
+    metadata = get_podcast_metadata_from_url(rss_url)
+    title = metadata["title"]
+    description = metadata["description"]
 
     try:
         with conn.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO podcasts (rss_url, title) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                (rss_url, title),
+                """INSERT INTO podcasts
+                (rss_url, title, description)
+                VALUES (%s, %s, %s) ON CONFLICT DO NOTHING""",
+                (rss_url, title, description),
             )
             conn.commit()
-            logging.info("Inserted podcast with RSS URL: %s and title: %s", rss_url, title)
+            logging.info(
+                "Inserted podcast with RSS URL: %s, title: %s, and description: %s",
+                rss_url,
+                title,
+                description,
+            )
     except Exception:
         conn.rollback()
         logging.exception("Failed to insert podcast with RSS URL: %s", rss_url)
         raise
+
+
+def get_podcast_metadata_from_url(rss_url: str) -> dict:
+    """Derive a podcast title from its RSS URL.
+
+    Args:
+        rss_url (str): The RSS feed URL of the podcast.
+    Returns:
+        str: Derived podcast title.
+    """
+
+    if not isinstance(rss_url, str) or not rss_url:
+        raise ValueError("RSS URL must be a non-empty string.")
+
+    logging.info("Fetching RSS feed: %s", rss_url)
+
+    feed = feedparser.parse(rss_url)
+    podcast_title = feed.feed.get("title", "Unknown Podcast")
+    podcast_description = feed.feed.get("subtitle", "No description available.")
+    logging.info(
+        "Fetched title for new podcast from RSS URL: %s: %s",
+        rss_url,
+        podcast_title,
+    )
+    return {"title": podcast_title, "description": podcast_description}
 
 
 def get_podcasts_from_database(conn: connection) -> list[RealDictRow]:
@@ -241,7 +274,7 @@ def extract_new_episodes(conn: connection) -> list[dict]:
             if not new_episodes:
                 logging.info(
                     "No new episodes found for podcast id=%s title=%s",
-                    podcast["id"],
+                    podcast["podcast_id"],
                     podcast.get("title", "unknown"),
                 )
                 continue
@@ -254,7 +287,7 @@ def extract_new_episodes(conn: connection) -> list[dict]:
         except Exception:
             logging.exception(
                 "Failed to extract episodes for podcast title=%s id=%s",
-                podcast.get("title"),
+                podcast.get("title", "unknown"),
                 podcast.get("podcast_id"),
             )
 
@@ -272,5 +305,5 @@ def extract_new_episodes(conn: connection) -> list[dict]:
 if __name__ == "__main__":
     # Run locally for testing
     url = "https://media.rss.com/peopleofculture/feed.xml"
-    a = get_episodes_from_rss(url)
+    a = get_podcast_metadata_from_url(url)
     pprint(a)
