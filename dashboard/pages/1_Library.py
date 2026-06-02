@@ -120,15 +120,15 @@ def render_podcast_card(podcast: dict) -> None:
     if avg_score is not None:
         score = float(avg_score)
         if score > 0.5:
-            dot_color, sentiment_label = "#4caf72", "Positive"
+            dot_color, sentiment_label = "#1a8035", "Positive"
         elif score < -0.5:
-            dot_color, sentiment_label = "#e57373", "Negative"
+            dot_color, sentiment_label = "#c0392b", "Negative"
         else:
-            dot_color, sentiment_label = "#888888", "Neutral"
+            dot_color, sentiment_label = "rgba(60,60,67,0.45)", "Neutral"
         sentiment_html = (
             f'<div style="display:flex;align-items:center;gap:0.4rem;'
-            f'font-size:0.85rem;color:{dot_color};font-weight:500;">'
-            f'<span style="width:8px;height:8px;border-radius:50%;background:{dot_color};'
+            f'font-size:0.82rem;color:{dot_color};font-weight:500;letter-spacing:0.01em;">'
+            f'<span style="width:7px;height:7px;border-radius:50%;background:{dot_color};'
             f'display:inline-block;flex-shrink:0;"></span>'
             f"{sentiment_label}</div>"
         )
@@ -136,24 +136,28 @@ def render_podcast_card(podcast: dict) -> None:
         sentiment_html = ""
 
     st.markdown(
-        f'<div style="background:var(--pod-secondary-bg);border:1px solid #2e2e2e;'
-        f'border-radius:0.8rem;padding:1.25rem;margin-bottom:0.5rem;">'
-        f'<div style="width:64px;height:64px;border-radius:12px;background:{bg_color};'
+        f'<div style="background:rgba(255,255,255,0.55);border:none;'
+        f"border-radius:1rem;padding:1.25rem;margin-bottom:0.5rem;"
+        f"backdrop-filter:blur(12px) saturate(1.4);-webkit-backdrop-filter:blur(12px) saturate(1.4);"
+        f"box-shadow:0 2px 16px rgba(0,0,0,0.06),0 1px 3px rgba(0,0,0,0.04);"
+        f'transition:box-shadow 0.2s ease;">'
+        f'<div style="width:56px;height:56px;border-radius:14px;background:{bg_color};'
         f"display:flex;align-items:center;justify-content:center;"
-        f'font-size:1.2rem;font-weight:700;color:{text_color};margin-bottom:1rem;">'
+        f"font-size:1.1rem;font-weight:700;color:{text_color};margin-bottom:0.9rem;"
+        f'box-shadow:0 1px 6px rgba(0,0,0,0.08);">'
         f"{html.escape(initials)}"
         f"</div>"
-        f'<div style="font-size:1.05rem;font-weight:700;color:var(--text-color);'
+        f'<div style="font-size:1rem;font-weight:600;letter-spacing:-0.01em;color:var(--text-color);'
         f'margin-bottom:0.2rem;line-height:1.3;">{html.escape(title)}</div>'
-        f'<div style="font-size:0.82rem;color:#888;margin-bottom:1rem;">'
+        f'<div style="font-size:0.8rem;color:rgba(60,60,67,0.45);margin-bottom:0.9rem;">'
         f"{html.escape(updated_text)}"
         f"</div>"
-        f'<hr style="border:none;border-top:1px solid #2e2e2e;margin:1rem 0;">'
+        f'<hr style="border:none;border-top:1px solid rgba(0,0,0,0.07);margin:0.75rem 0;">'
         f'<div style="display:flex;justify-content:space-between;align-items:flex-end;">'
         f"<div>"
-        f'<div style="font-size:1.5rem;font-weight:700;color:var(--text-color);'
+        f'<div style="font-size:1.4rem;font-weight:700;letter-spacing:-0.02em;color:var(--text-color);'
         f'line-height:1.2;">{html.escape(str(num_episodes))}</div>'
-        f'<div style="font-size:0.78rem;color:#888;">episodes</div>'
+        f'<div style="font-size:0.75rem;color:rgba(60,60,67,0.45);font-weight:500;letter-spacing:0.01em;">episodes</div>'
         f"</div>"
         f"{sentiment_html}"
         f"</div>"
