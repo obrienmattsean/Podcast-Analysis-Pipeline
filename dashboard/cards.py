@@ -1,11 +1,17 @@
 """Reusable card components for episode and podcast display."""
 
+from typing import Literal
+
 import streamlit as st
+
+_BadgeColor = Literal[
+    "red", "orange", "yellow", "blue", "green", "violet", "gray", "grey", "primary"
+]
 
 _STOPWORDS: frozenset[str] = frozenset({"the", "a", "an", "of", "in", "on", "at", "to", "for"})
 
 
-def _sentiment_label(score: float) -> tuple[str, str]:
+def _sentiment_label(score: float) -> tuple[str, _BadgeColor]:
     """Return (label, badge_color) for a sentiment score.
 
     Args:
