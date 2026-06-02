@@ -21,7 +21,7 @@ def get_db_connection() -> connection:
     Returns:
         An active psycopg2 connection object.
     """
-    # Connection parameters should be set as environment variables
+
     RDS_HOST = os.getenv("RDS_HOST")
     RDS_DB_NAME = os.getenv("RDS_DBNAME")
     RDS_USERNAME = os.getenv("RDS_USER")
