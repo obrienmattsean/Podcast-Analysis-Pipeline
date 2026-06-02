@@ -28,6 +28,64 @@ st.markdown(
 )
 
 
+def get_sentiment_badge(score: float) -> str:
+    """Return an HTML badge representing the sentiment score.
+
+    Args:
+        score: A float between -1.0 and 1.0 representing the sentiment score.
+
+    Returns:
+        str: An HTML string for a badge with color and label based on the score.
+    """
+    if score >= 0.3:
+        badge_color, text_color, label, emoji = "#1a3d22", "#4caf72", "Positive", "↗"
+    elif score <= -0.3:
+        badge_color, text_color, label, emoji = "#3d1a1a", "#e57373", "Negative", "↘"
+    else:
+        badge_color, text_color, label, emoji = "#2a2a2a", "#aaa", "Neutral", "→"
+    return (
+        f'<span style="background:{badge_color};color:{text_color};padding:0.2rem 0.65rem;'
+        f'border-radius:1rem;font-size:0.78rem;font-weight:600;white-space:nowrap;'
+        f'border:1px solid {text_color}33;">'
+        f"{emoji} {label}</span>"
+    )
+
+
+def render_episode_card(episode: dict) -> None:
+    episode_title = episode.get("episode_title", "Untitled Episode")
+    podcast_title = episode.get("podcast_title", "Unknown Podcast")
+    score = episode.get("sentiment_score")
+    summary = episode.get("summary")
+    time_since_published = episode.get("time_since_published", "Unknown time")
+
+    badge_html = get_sentiment_badge(score) if score is not None else ""
+
+    summary_html = (
+        f'<div style="font-size:0.85rem;color:#999;line-height:1.55;margin-top:0.6rem;">'
+        f"{html.escape(summary)}</div>"
+        if summary
+        else ""
+    )
+
+    st.markdown(
+        f'<div style="border:1px solid rgba(255,255,255,0.12);border-radius:0.6rem;'
+        f'padding:1rem 1.25rem;margin-bottom:0.75rem;">'
+        f'  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.2rem;">'
+        f'    <div style="font-size:0.78rem;color:#e55f15;font-weight:600;">{html.escape(podcast_title)}</div>'
+        f'    <div style="font-size:0.78rem;color:#888;white-space:nowrap;margin-left:1rem;">{html.escape(time_since_published)}</div>'
+        f'  </div>'
+        f'  <div style="font-size:1.05rem;font-weight:700;color:#f0f0f0;margin-bottom:0.5rem;line-height:1.35;">'
+        f'    {html.escape(episode_title)}'
+        f'  </div>'
+        f'  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">'
+        f'    {badge_html}'
+        f'  </div>'
+        f'  {summary_html}'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
 def render_feed() -> None:
     """Render the feed page, showing recent episodes from the database.
 
@@ -41,50 +99,7 @@ def render_feed() -> None:
     conn.close()
 
     for episode in recent_episodes:
-        score = episode.get("sentiment_score")
-        summary = episode.get("summary")
-
-        if score is not None:
-            if score >= 0.3:
-                badge_color, label, emoji = "#1e7e34", "Positive", "▲"
-            elif score <= -0.3:
-                badge_color, label, emoji = "#c0392b", "Negative", "▼"
-            else:
-                badge_color, label, emoji = "#7f8c8d", "Neutral", "●"
-            badge_html = (
-                f'<div style="flex-shrink:0;text-align:center;">'
-                f'<span style="background:{badge_color};color:#fff;padding:0.2rem 0.65rem;'
-                f'border-radius:1rem;font-size:0.78rem;font-weight:600;white-space:nowrap;">'
-                f'{emoji} {label}</span>'
-                f'<div style="font-size:0.72rem;color:#888;margin-top:0.3rem;">{score:+.2f}</div>'
-                f'</div>'
-            )
-        else:
-            badge_html = ""
-
-        summary_html = (
-            f'<div style="font-size:0.9rem;color:#bbb;line-height:1.55;margin-top:0.5rem;">'
-            f'{html.escape(summary)}</div>'
-            if summary
-            else ""
-        )
-
-        st.markdown(
-            f'<div style="border:1px solid rgba(255,255,255,0.15);border-radius:0.5rem;'
-            f'padding:1rem 1.25rem;margin-bottom:0.75rem;">'
-            f'  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1.25rem;">'
-            f'    <div style="flex:1;min-width:0;">'
-            f'      <div style="font-size:1.05rem;font-weight:600;margin:0 0 0.15rem 0;">'
-            f'        {html.escape(episode["episode_title"])}</div>'
-            f'      <div style="font-size:0.78rem;color:#888;">'
-            f'        {html.escape(episode["time_since_published"])}</div>'
-            f'      {summary_html}'
-            f'    </div>'
-            f'    {badge_html}'
-            f'  </div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+        render_episode_card(episode)
 
 
 navigation = st.navigation(
