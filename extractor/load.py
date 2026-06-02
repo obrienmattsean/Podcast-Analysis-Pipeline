@@ -49,8 +49,8 @@ def _insert_episodes_to_db(conn: connection, episodes: list[dict]) -> list[dict]
             try:
                 cursor.execute(
                     """
-                    INSERT INTO episodes (podcast_id, title, audio_url, pub_date)
-                    VALUES (%s, %s, %s, %s)
+                    INSERT INTO episodes (podcast_id, title, audio_url, pub_date, duration_seconds)
+                    VALUES (%s, %s, %s, %s, %s)
                     RETURNING episode_id
                     """,
                     (
@@ -58,6 +58,7 @@ def _insert_episodes_to_db(conn: connection, episodes: list[dict]) -> list[dict]
                         episode.get("title"),
                         episode.get("audio_link"),
                         episode.get("published_at"),
+                        episode.get("duration_seconds", None),
                     ),
                 )
 

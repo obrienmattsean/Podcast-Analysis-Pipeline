@@ -75,6 +75,6 @@ def lambda_handler(event=None, context=None):
 
 if __name__ == "__main__":
     # Run the Lambda handler locally for testing
-    url = "https://media.rss.com/waitdontdoit/feed.xml"
+    url = "https://media.rss.com/markvenatechguy/feed.xml"
     a = lambda_handler({"rss_url": url}, None)
     pprint(a)
