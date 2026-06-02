@@ -53,3 +53,17 @@ backgroundColor = "#f0f0ec"
 secondaryBackgroundColor = "#ecebe3"
 headingFontSizes = ["1.6rem", "1.4rem", "1.2rem"]
 dataframeHeaderBackgroundColor = "#e4e4e0"
+
+[theme.dark]
+primaryColor = "#cb785c"
+backgroundColor = "#1a1a14"
+secondaryBackgroundColor = "#252520"
+textColor = "#e8e6d8"
+linkColor = "#e8e6d8"
+borderColor = "#3a3a30"
+codeBackgroundColor = "#2e2e26"
+
+[theme.dark.sidebar]
+backgroundColor = "#1e1e18"
+secondaryBackgroundColor = "#252520"
+dataframeHeaderBackgroundColor = "#2e2e26"
