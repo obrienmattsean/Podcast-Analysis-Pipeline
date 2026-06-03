@@ -65,9 +65,9 @@ resource "aws_sfn_state_machine" "extract_state_machine" {
       extract = {
         Type     = "Task"
         Resource = "arn:aws:states:::lambda:invoke"
-        Output   = "$states.result.Payload"
+        Output   = "{% $states.result.Payload %}"
         Arguments = {
-          Payload      = "$states.input"
+          Payload      = "{% $states.input %}"
           FunctionName = aws_lambda_function.extract.arn
         }
         Retry = [
