@@ -8,6 +8,7 @@ from db_functions import (
     format_time_since_published,
     format_tracked_since,
     get_all_podcasts,
+    get_recent_episodes,
     trigger_pipeline,
 )
 
@@ -148,3 +149,67 @@ def test_trigger_pipeline_without_arn_env_var_raises_environment_error() -> None
         pytest.raises(EnvironmentError, match="STEP_FUNCTION_ARN"),
     ):
         trigger_pipeline("https://example.com/feed.rss")
+
+
+# ---------------------------------------------------------------------------
+# get_recent_episodes
+# ---------------------------------------------------------------------------
+
+
+def test_get_recent_episodes_with_no_rows_returns_empty_list(mock_conn: MagicMock) -> None:
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = []
+
+    result = get_recent_episodes(mock_conn)
+
+    assert result == []
+
+
+def test_get_recent_episodes_maps_row_to_expected_dict_fields(mock_conn: MagicMock) -> None:
+    pub_date = datetime.now() - timedelta(hours=3)
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
+        ("Test Podcast", "Test Episode", pub_date, "A summary.", 0.7, False, ["AI", "Tech"]),
+    ]
+
+    result = get_recent_episodes(mock_conn)
+
+    assert len(result) == 1
+    ep = result[0]
+    assert ep["podcast_title"] == "Test Podcast"
+    assert ep["episode_title"] == "Test Episode"
+    assert ep["summary"] == "A summary."
+    assert ep["sentiment_score"] == 0.7
+    assert ep["flagged"] is False
+    assert ep["keywords"] == ["AI", "Tech"]
+
+
+def test_get_recent_episodes_includes_keywords_field(mock_conn: MagicMock) -> None:
+    pub_date = datetime.now() - timedelta(days=1)
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
+        ("Podcast", "Episode", pub_date, None, None, False, ["Python", "Cloud"]),
+    ]
+
+    result = get_recent_episodes(mock_conn)
+
+    assert "keywords" in result[0]
+    assert result[0]["keywords"] == ["Python", "Cloud"]
+
+
+def test_get_recent_episodes_with_empty_keywords_returns_empty_list(mock_conn: MagicMock) -> None:
+    pub_date = datetime.now() - timedelta(hours=1)
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
+        ("Podcast", "Episode", pub_date, None, None, False, []),
+    ]
+
+    result = get_recent_episodes(mock_conn)
+
+    assert result[0]["keywords"] == []
+
+
+def test_get_recent_episodes_passes_limit_to_query(mock_conn: MagicMock) -> None:
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = []
+
+    get_recent_episodes(mock_conn, limit=5)
+
+    cursor = mock_conn.cursor.return_value.__enter__.return_value
+    executed_params = cursor.execute.call_args[0][1]
+    assert executed_params == (5,)

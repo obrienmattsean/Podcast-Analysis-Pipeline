@@ -47,6 +47,44 @@ def _podcast_initials(title: str) -> str:
     return title[:2].upper()
 
 
+_SENTIMENT_COLOR_MAP: dict[str, str] = {
+    "green": "#28a745",
+    "red": "#dc3545",
+    "gray": "#6c757d",
+}
+
+
+def _build_badge_row(score: float | None, keywords: list[str]) -> str:
+    """Build an HTML string of horizontally laid-out badge pills.
+
+    Args:
+        score: Sentiment score, or None to omit the sentiment pill.
+        keywords: Keyword strings to render as blue pills.
+
+    Returns:
+        str: An HTML ``<div>`` containing inline ``<span>`` pill elements,
+            or an empty string if there is nothing to render.
+    """
+    spans: list[str] = []
+    if score is not None:
+        label, color = _sentiment_label(float(score))
+        hex_color = _SENTIMENT_COLOR_MAP.get(color, "#6c757d")
+        spans.append(
+            f'<span style="background-color:{hex_color};color:white;'
+            f"padding:3px 10px;border-radius:12px;font-size:12px;"
+            f'font-weight:600;margin-right:6px;">{label}</span>'
+        )
+    for kw in keywords:
+        spans.append(
+            f'<span style="background-color:#0d6efd;color:white;'
+            f"padding:3px 10px;border-radius:12px;font-size:12px;"
+            f'font-weight:600;margin-right:6px;">{kw}</span>'
+        )
+    if not spans:
+        return ""
+    return '<div style="margin-bottom:6px;">' + "".join(spans) + "</div>"
+
+
 def episode_card(episode: dict) -> None:
     """Render a native Streamlit card for a single episode.
 
@@ -59,20 +97,32 @@ def episode_card(episode: dict) -> None:
     score = episode.get("sentiment_score")
     summary = episode.get("summary")
     time_since_published = episode.get("time_since_published") or ""
+    brand_safe = not episode.get("flagged")
+    keywords: list[str] = episode.get("keywords") or []
+
+    brand_safe_color = "#28a745" if brand_safe else "#dc3545"
+    brand_safe_label = "Brand Safe" if brand_safe else "Not Brand Safe"
 
     with st.container(border=True):
         left, right = st.columns([4, 1], vertical_alignment="top")
         with left:
             st.caption(f":primary[**{podcast_title}**]")
             st.subheader(episode_title, anchor=False, divider=False)
+            badge_html = _build_badge_row(score, keywords[:5])
+            if badge_html:
+                st.markdown(badge_html, unsafe_allow_html=True)
         with right:
             st.markdown(
                 f'<p style="text-align:right;margin:0;"><small>{time_since_published}</small></p>',
                 unsafe_allow_html=True,
             )
-        if score is not None:
-            label, color = _sentiment_label(float(score))
-            st.badge(label, color=color)
+            st.markdown(
+                f'<p style="text-align:right;margin-top:8px;">'
+                f'<span style="background-color:{brand_safe_color};color:white;'
+                f'padding:5px 12px;border-radius:14px;font-size:14px;font-weight:600;">'
+                f"{brand_safe_label}</span></p>",
+                unsafe_allow_html=True,
+            )
         if summary:
             st.caption(summary)
 

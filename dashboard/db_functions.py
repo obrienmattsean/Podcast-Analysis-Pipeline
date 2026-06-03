@@ -172,8 +172,8 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
 
     Returns:
         list[dict]: List of episode dicts, each containing ``podcast_title``,
-            ``episode_title``, ``days_since_published``, and
-            ``time_since_published``.
+            ``episode_title``, ``time_since_published``, ``summary``,
+            ``sentiment_score``, ``flagged``, and ``keywords``.
     """
     with conn.cursor() as cursor:
         cursor.execute(
@@ -183,10 +183,16 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             e.pub_date,
             e.summary,
             e.sentiment_score,
-            e.episode_id,
-            e.audio_url
+            e.flagged,
+            COALESCE(
+                ARRAY_AGG(ent.name ORDER BY ent.name) FILTER (WHERE ent.name IS NOT NULL),
+                ARRAY[]::text[]
+            ) AS keywords
             FROM episodes e
             JOIN podcasts p USING (podcast_id)
+            LEFT JOIN episode_entities ee USING (episode_id)
+            LEFT JOIN entities ent ON ee.entity_id = ent.entity_id AND ent.entity_type = 'topic'
+            GROUP BY e.episode_id, p.title, e.title, e.pub_date, e.summary, e.sentiment_score, e.flagged
             ORDER BY e.pub_date DESC
             LIMIT %s;
             """,
@@ -200,8 +206,8 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
                 "time_since_published": format_time_since_published(row[2]),
                 "summary": row[3],
                 "sentiment_score": row[4],
-                "episode_id": row[5],
-                "audio_url": row[6],
+                "flagged": row[5],
+                "keywords": row[6],
             }
             for row in rows
         ]
@@ -230,30 +236,8 @@ def get_keywords_for_episode(conn: connection, episode_id: int) -> list[str]:
         return [row[0] for row in rows]
 
 
-def is_flagged_episode(conn: connection, episode_id: int) -> bool:
-    """Check if an episode is flagged for review.
-
-    Args:
-        conn: An open psycopg2 database connection.
-        episode_id: The ID of the episode to check.
-    Returns:
-        bool: True if the episode is flagged, False otherwise.
-    """
-    with conn.cursor() as cursor:
-        cursor.execute(
-            """
-            SELECT flagged
-            FROM episodes
-            WHERE episode_id = %s;
-            """,
-            (episode_id,),
-        )
-        row = cursor.fetchone()
-        return row[0] if row else False
-
-
 if __name__ == "__main__":
     conn = get_db_connection()
-    print(get_keywords_for_episode(conn, episode_id=1))
-    print(is_flagged_episode(conn, episode_id=1))
-    conn.close()
+    episodes = get_recent_episodes(conn)
+    for ep in episodes[:3]:
+        print(ep)
