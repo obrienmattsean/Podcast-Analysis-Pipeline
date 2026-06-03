@@ -8,8 +8,7 @@ _BadgeColor = Literal[
     "red", "orange", "yellow", "blue", "green", "violet", "gray", "grey", "primary"
 ]
 
-_STOPWORDS: frozenset[str] = frozenset(
-    {"the", "a", "an", "of", "in", "on", "at", "to", "for"})
+_STOPWORDS: frozenset[str] = frozenset({"the", "a", "an", "of", "in", "on", "at", "to", "for"})
 
 
 def _sentiment_label(score: float) -> tuple[str, _BadgeColor]:
@@ -38,8 +37,7 @@ def _podcast_initials(title: str) -> str:
     Returns:
         str: Uppercase initials.
     """
-    words = [w for w in title.split() if len(
-        w) > 1 and w.lower() not in _STOPWORDS]
+    words = [w for w in title.split() if len(w) > 1 and w.lower() not in _STOPWORDS]
     if len(words) >= 2:
         return (words[0][0] + words[1][0]).upper()
     if len(words) == 1:

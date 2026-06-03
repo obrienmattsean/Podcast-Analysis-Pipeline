@@ -192,7 +192,8 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             JOIN podcasts p USING (podcast_id)
             LEFT JOIN episode_entities ee USING (episode_id)
             LEFT JOIN entities ent ON ee.entity_id = ent.entity_id AND ent.entity_type = 'topic'
-            GROUP BY e.episode_id, p.title, e.title, e.pub_date, e.summary, e.sentiment_score, e.flagged
+            GROUP BY e.episode_id, p.title, e.title, e.pub_date,
+                e.summary, e.sentiment_score, e.flagged
             ORDER BY e.pub_date DESC
             LIMIT %s;
             """,
