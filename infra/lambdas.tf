@@ -14,6 +14,11 @@ resource "aws_lambda_function" "transcribe" {
       ENVIRONMENT    = var.environment
       S3_BUCKET_NAME = aws_s3_bucket.podcast_bucket.id
       SECRETS_ARN    = aws_secretsmanager_secret.app_secrets.arn
+    }
+  }
+}
+
+# ==============================================================================
 # Extract Lambda Function
 # ==============================================================================
 resource "aws_lambda_function" "extract" {

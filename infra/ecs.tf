@@ -1,6 +1,39 @@
 # ==============================================================================
 # ECS Task Definition for Streamlit Dashboard
 # ==============================================================================
+resource "aws_security_group" "ecs_tasks" {
+  name        = "${var.project_name}-ecs-tasks-sg"
+  description = "Security group for ECS tasks"
+  vpc_id      = data.aws_vpc.main.id
+
+  ingress {
+    from_port   = 8501
+    to_port     = 8501
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow Streamlit dashboard access"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name        = "${var.project_name}-ecs-tasks-sg"
+      Environment = var.environment
+    }
+  )
+}
+
+# ==============================================================================
+# ECS Task Definition for Streamlit Dashboard
+# ==============================================================================
 resource "aws_ecs_task_definition" "streamlit" {
   family                   = "c23-ecs-cluster-dashboard"
   network_mode             = "awsvpc"
@@ -57,4 +90,31 @@ resource "aws_ecs_task_definition" "streamlit" {
       Environment = var.environment
     }
   )
+}
+
+# ==============================================================================
+# ECS Service for Dashboard
+# ==============================================================================
+resource "aws_ecs_service" "dashboard" {
+  name            = "c23-dashboard-service"
+  cluster         = "c23-ecs-cluster"
+  task_definition = aws_ecs_task_definition.streamlit.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = data.aws_subnets.private_subnets.ids
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = false
+  }
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name        = "c23-dashboard-service"
+      Environment = var.environment
+    }
+  )
+
+  depends_on = [aws_ecs_task_definition.streamlit]
 }
