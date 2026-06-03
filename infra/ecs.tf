@@ -76,7 +76,8 @@ resource "aws_ecs_task_definition" "streamlit" {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = "/ecs/c23-ecs-cluster-dashboard"
-          "awslogs-region"        = "eu-west-2"
+          "awslogs-create-group"  = "true"
+          "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "ecs"
         }
       }
