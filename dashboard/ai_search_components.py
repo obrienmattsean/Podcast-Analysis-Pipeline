@@ -106,7 +106,7 @@ def render_search_header(query: str) -> tuple[str, bool]:
         col1, col2 = st.columns([8, 1])
         with col1:
             query = st.text_input(
-                "",
+                "Search query",
                 value=query,
                 label_visibility="collapsed",
             )
