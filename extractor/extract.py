@@ -5,7 +5,7 @@ from datetime import datetime
 from pprint import pprint
 
 import feedparser
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup  # ty: ignore[unresolved-import]
 from psycopg2.extensions import connection
 from psycopg2.extras import RealDictCursor, RealDictRow
 
