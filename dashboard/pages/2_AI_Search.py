@@ -59,14 +59,15 @@ top_k, similarity_threshold, show_sources = render_sidebar_settings()
 # MAIN VIEW
 # --------------------------------------------------
 
+# Auto-run search when navigated from the home page search bar (must run
+# before has_results() check so it fires even when old results are present)
+if st.session_state.pop("_home_search_pending", False) and st.session_state.get("query"):
+    run_search(st.session_state["query"], DEFAULT_TOP_K, DEFAULT_SIMILARITY_THRESHOLD)
+    st.rerun()
+
 if not has_results():
     # Empty state with search input
     query, search_clicked = render_empty_state()
-
-    # Auto-run search when navigated from the home page search bar
-    if st.session_state.pop("_home_search_pending", False) and st.session_state.get("query"):
-        run_search(st.session_state["query"], DEFAULT_TOP_K, DEFAULT_SIMILARITY_THRESHOLD)
-        st.rerun()
 
     if search_clicked and query:
         run_search(query, top_k, similarity_threshold)
