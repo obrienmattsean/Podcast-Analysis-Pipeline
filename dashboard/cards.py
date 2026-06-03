@@ -150,3 +150,10 @@ def podcast_card(podcast: dict) -> None:
         if avg_score is not None:
             label, color = _sentiment_label(float(avg_score))
             cols[1].badge(label, color=color)
+        st.page_link(
+            "pages/podcast_details.py",
+            label="**📊 View Analytics →**",
+            use_container_width=True,
+            icon=None, query_params={"podcast_title": title,
+                                     "podcast_id": podcast.get("podcast_id")},
+        )

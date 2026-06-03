@@ -67,3 +67,6 @@ codeBackgroundColor = "#2e2e26"
 backgroundColor = "#1e1e18"
 secondaryBackgroundColor = "#252520"
 dataframeHeaderBackgroundColor = "#2e2e26"
+
+[client]
+showSidebarNavigation = false
