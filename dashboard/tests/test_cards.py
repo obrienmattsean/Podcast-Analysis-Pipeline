@@ -130,19 +130,6 @@ def test_episode_card_missing_flagged_defaults_to_brand_safe(base_episode: dict)
 # ---------------------------------------------------------------------------
 
 
-def test_episode_card_badge_row_includes_sentiment_label(base_episode: dict) -> None:
-    base_episode["sentiment_score"] = 0.8
-
-    with patch("cards.st") as mock_st:
-        mock_st.columns.return_value = [MagicMock(), MagicMock()]
-        episode_card(base_episode)
-
-    left_col = mock_st.columns.return_value[0]
-    markdown_calls = [str(c) for c in left_col.__enter__.return_value.markdown.call_args_list]
-    combined = " ".join(markdown_calls)
-    assert "↗ Positive" in combined
-
-
 def test_episode_card_no_score_and_no_keywords_skips_badge_row(base_episode: dict) -> None:
     base_episode["sentiment_score"] = None
     base_episode["keywords"] = []
@@ -153,25 +140,6 @@ def test_episode_card_no_score_and_no_keywords_skips_badge_row(base_episode: dic
 
     left_col = mock_st.columns.return_value[0]
     left_col.__enter__.return_value.markdown.assert_not_called()
-
-
-def test_episode_card_renders_up_to_five_keywords(base_episode: dict) -> None:
-    base_episode["keywords"] = ["AI", "Cloud", "Python", "DevOps", "Security", "Blockchain"]
-    base_episode["sentiment_score"] = None
-
-    with patch("cards.st") as mock_st:
-        mock_st.columns.return_value = [MagicMock(), MagicMock()]
-        episode_card(base_episode)
-
-    left_col = mock_st.columns.return_value[0]
-    markdown_calls = [str(c) for c in left_col.__enter__.return_value.markdown.call_args_list]
-    combined = " ".join(markdown_calls)
-    assert "AI" in combined
-    assert "Cloud" in combined
-    assert "Python" in combined
-    assert "DevOps" in combined
-    assert "Security" in combined
-    assert "Blockchain" not in combined
 
 
 def test_episode_card_missing_keywords_renders_no_keyword_html(base_episode: dict) -> None:

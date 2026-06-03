@@ -104,17 +104,17 @@ def episode_card(episode: dict) -> None:
     with st.container(border=True):
         left, right = st.columns([4, 1], vertical_alignment="top")
         with left:
-            st.caption(f":primary[**{podcast_title}**]")
-            st.subheader(episode_title, anchor=False, divider=False)
+            left.caption(f":primary[**{podcast_title}**]")
+            left.subheader(episode_title, anchor=False, divider=False)
             badge_html = _build_badge_row(score, keywords[:5])
             if badge_html:
-                st.markdown(badge_html, unsafe_allow_html=True)
-        with right:
-            st.markdown(
+                left.markdown(badge_html, unsafe_allow_html=True)
+        with right as r:
+            r.markdown(
                 f'<p style="text-align:right;margin:0;"><small>{time_since_published}</small></p>',
                 unsafe_allow_html=True,
             )
-            st.markdown(
+            r.markdown(
                 f'<p style="text-align:right;margin-top:8px;">'
                 f'<span style="background-color:{brand_safe_color};color:white;'
                 f'padding:5px 12px;border-radius:14px;font-size:14px;font-weight:600;">'
@@ -148,3 +148,10 @@ def podcast_card(podcast: dict) -> None:
         if avg_score is not None:
             label, color = _sentiment_label(float(avg_score))
             cols[1].badge(label, color=color)
+        st.page_link(
+            "pages/podcast_details.py",
+            label="View Analytics",
+            use_container_width=True,
+            icon=None,
+            query_params={"podcast_title": title, "podcast_id": podcast.get("podcast_id")},
+        )
