@@ -16,7 +16,7 @@ from ai_search_components import (
     render_sidebar_settings,
     render_summary_card,
 )
-from ai_search_config import PAGE_CSS
+from ai_search_config import DEFAULT_SIMILARITY_THRESHOLD, DEFAULT_TOP_K, PAGE_CSS
 from ai_search_utils import (
     clear_results,
     get_results,
@@ -48,6 +48,10 @@ st.markdown(PAGE_CSS, unsafe_allow_html=True)
 # --------------------------------------------------
 
 initialize_session_state()
+
+# Auto-run search when navigated from the home page search bar
+if st.session_state.pop("_home_search_pending", False) and st.session_state.get("query"):
+    run_search(st.session_state["query"], DEFAULT_TOP_K, DEFAULT_SIMILARITY_THRESHOLD)
 
 # --------------------------------------------------
 # SIDEBAR

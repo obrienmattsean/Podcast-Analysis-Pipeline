@@ -50,9 +50,7 @@ st.markdown(
 
 with st.container(border=True):
     st.markdown("### Understand every episode, at a glance.")
-    st.caption(
-        "Track shows, analyse sentiment, surface keywords and search episode content."
-    )
+    st.caption("Track shows, analyse sentiment, surface keywords and search episode content.")
     st.write("")
     col1, col2, col3, col4 = st.columns(4)
 
@@ -75,6 +73,3 @@ with st.container(border=True):
         with st.container(border=True, height=100):
             st.markdown("**Brand Safety**")
             st.caption("Flag episodes before committing budget")
-
-
-
