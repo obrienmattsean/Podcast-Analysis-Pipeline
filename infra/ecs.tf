@@ -96,9 +96,20 @@ resource "aws_ecs_task_definition" "streamlit" {
 # ==============================================================================
 # ECS Service for Dashboard
 # ==============================================================================
+## Elsewhere with variables.
+## variable "cluster_name" {
+##  type        = string
+##  description = "The name of the cluster"
+##  default     = "c23-ecs-cluster" # optional
+##}
+
+data "aws_ecs_cluster" "podex_host_cluster" {
+  cluster_name = var.cluster_name
+}
+
 resource "aws_ecs_service" "dashboard" {
   name            = "c23-dashboard-service"
-  cluster         = "c23-ecs-cluster"
+  cluster         = data.aws_ecs_cluster.podex_host_cluster.name
   task_definition = aws_ecs_task_definition.streamlit.arn
   desired_count   = 1
   launch_type     = "FARGATE"
