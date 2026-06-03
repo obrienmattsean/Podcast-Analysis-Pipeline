@@ -38,7 +38,8 @@ resource "aws_iam_policy" "step_function_policy" {
           "${aws_lambda_function.transcribe.arn}",
           "${aws_lambda_function.enrich.arn}:*",
           "${aws_lambda_function.enrich.arn}",
-          aws_lambda_function.vector.arn
+          "${aws_lambda_function.vector.arn}:*",
+          "${aws_lambda_function.vector.arn}"
         ]
       }
     ]
