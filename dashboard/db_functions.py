@@ -172,8 +172,8 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
 
     Returns:
         list[dict]: List of episode dicts, each containing ``podcast_title``,
-            ``episode_title``, ``days_since_published``, and
-            ``time_since_published``.
+            ``episode_title``, ``time_since_published``, ``summary``,
+            ``sentiment_score``, ``flagged``, and ``keywords``.
     """
     with conn.cursor() as cursor:
         cursor.execute(
@@ -183,9 +183,16 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             e.pub_date,
             e.summary,
             e.sentiment_score,
-            e.flagged
+            e.flagged,
+            COALESCE(
+                ARRAY_AGG(ent.name ORDER BY ent.name) FILTER (WHERE ent.name IS NOT NULL),
+                ARRAY[]::text[]
+            ) AS keywords
             FROM episodes e
             JOIN podcasts p USING (podcast_id)
+            LEFT JOIN episode_entities ee USING (episode_id)
+            LEFT JOIN entities ent ON ee.entity_id = ent.entity_id AND ent.entity_type = 'topic'
+            GROUP BY e.episode_id, p.title, e.title, e.pub_date, e.summary, e.sentiment_score, e.flagged
             ORDER BY e.pub_date DESC
             LIMIT %s;
             """,
@@ -200,9 +207,33 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
                 "summary": row[3],
                 "sentiment_score": row[4],
                 "flagged": row[5],
+                "keywords": row[6],
             }
             for row in rows
         ]
+
+
+def get_keywords_for_episode(conn: connection, episode_id: int) -> list[str]:
+    """Fetch the top keywords for a given episode.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        episode_id: The ID of the episode to fetch keywords for.
+    Returns:
+        list[str]: A list of keyword strings associated with the episode.
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT entities.name
+            FROM episode_entities
+            JOIN entities USING (entity_id)
+            WHERE episode_id = %s AND entity_type = 'topic';
+            """,
+            (episode_id,),
+        )
+        rows = cursor.fetchall()
+        return [row[0] for row in rows]
 
 
 if __name__ == "__main__":
