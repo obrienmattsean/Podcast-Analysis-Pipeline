@@ -28,3 +28,6 @@ data "aws_subnets" "public_subnets" {
     values = ["*public*"]  # Discovers subnets with "public" in their name
   }
 }
+
+# Data source to get current AWS account ID
+data "aws_caller_identity" "current" {}
