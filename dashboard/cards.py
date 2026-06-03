@@ -152,7 +152,7 @@ def podcast_card(podcast: dict) -> None:
             cols[1].badge(label, color=color)
         st.page_link(
             "pages/podcast_details.py",
-            label="**📊 View Analytics →**",
+            label="View Analytics",
             use_container_width=True,
             icon=None, query_params={"podcast_title": title,
                                      "podcast_id": podcast.get("podcast_id")},
