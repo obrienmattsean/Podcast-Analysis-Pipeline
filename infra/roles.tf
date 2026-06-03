@@ -24,84 +24,6 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring" {
 }
 
 # ==============================================================================
-# IAM Role for Transcribe Lambda
-# ==============================================================================
-resource "aws_iam_role" "transcribe_role" {
-  name = "${var.project_name}-transcribe-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_policy" "transcribe_policy" {
-  name        = "${var.project_name}-transcribe-policy"
-  description = "Policy for Transcribe Lambda function"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "CloudWatchLogging"
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Resource = "arn:aws:logs:*:*:*"
-      },
-      {
-        Sid    = "S3ReadWrite"
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:PutObjectAcl",
-          "s3:ListBucket"
-        ]
-        Resource = [
-          aws_s3_bucket.podcast_bucket.arn,
-          "${aws_s3_bucket.podcast_bucket.arn}/*"
-        ]
-      },
-      {
-        Sid    = "VPCNetworkCardManagement"
-        Effect = "Allow"
-        Action = [
-          "ec2:CreateNetworkInterface",
-          "ec2:DescribeNetworkInterfaces",
-          "ec2:DeleteNetworkInterface"
-        ]
-        Resource = "*"
-      },
-      {
-        Sid    = "SecretsManagerRead"
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue"
-        ]
-        Resource = aws_secretsmanager_secret.app_secrets.arn
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "transcribe_attach" {
-  role       = aws_iam_role.transcribe_role.name
-  policy_arn = aws_iam_policy.transcribe_policy.arn
-}
-
-# ==============================================================================
 # IAM Role for Enrich Lambda
 # ==============================================================================
 resource "aws_iam_role" "enrich_role" {
@@ -187,10 +109,10 @@ resource "aws_iam_role_policy_attachment" "enrich_attach" {
 }
 
 # ==============================================================================
-# IAM Role for Transform Lambda (Transcribe)
+# IAM Role for Transcribe Lambda
 # ==============================================================================
-resource "aws_iam_role" "transform_role" {
-  name = "${var.project_name}-transform-role"
+resource "aws_iam_role" "transcribe_role" {
+  name = "${var.project_name}-transcribe-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -206,9 +128,9 @@ resource "aws_iam_role" "transform_role" {
   })
 }
 
-resource "aws_iam_policy" "transform_policy" {
-  name        = "${var.project_name}-transform-policy"
-  description = "Policy for Transform/Transcribe Lambda function"
+resource "aws_iam_policy" "transcribe_policy" {
+  name        = "${var.project_name}-transcribe-policy"
+  description = "Policy for Transcribe Lambda function"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -269,9 +191,9 @@ resource "aws_iam_policy" "transform_policy" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "transform_attach" {
-  role       = aws_iam_role.transform_role.name
-  policy_arn = aws_iam_policy.transform_policy.arn
+resource "aws_iam_role_policy_attachment" "transcribe_attach" {
+  role       = aws_iam_role.transcribe_role.name
+  policy_arn = aws_iam_policy.transcribe_policy.arn
 }
 
 # ==============================================================================
