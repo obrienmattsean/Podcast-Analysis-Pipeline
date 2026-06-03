@@ -109,12 +109,12 @@ def episode_card(episode: dict) -> None:
             badge_html = _build_badge_row(score, keywords[:5])
             if badge_html:
                 left.markdown(badge_html, unsafe_allow_html=True)
-        with right as r:
-            r.markdown(
+        with right:
+            right.markdown(
                 f'<p style="text-align:right;margin:0;"><small>{time_since_published}</small></p>',
                 unsafe_allow_html=True,
             )
-            r.markdown(
+            right.markdown(
                 f'<p style="text-align:right;margin-top:8px;">'
                 f'<span style="background-color:{brand_safe_color};color:white;'
                 f'padding:5px 12px;border-radius:14px;font-size:14px;font-weight:600;">'
