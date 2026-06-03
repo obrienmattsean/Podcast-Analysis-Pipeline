@@ -25,14 +25,18 @@ st.markdown(
 
 # Search bar — main CTA
 _, search_col, btn_col, _ = st.columns([1, 5, 1, 1], vertical_alignment="bottom")
-with search_col:
-    query = st.text_input(
-        "search",
-        placeholder="Search episodes, topics, guests...",
-        label_visibility="collapsed",
-    )
-with btn_col:
-    go = st.button("Search", icon=":material/arrow_forward:", use_container_width=True)
+with st.form("home_search", border=False):
+    _, search_col, btn_col, _ = st.columns([1, 5, 1, 1], vertical_alignment="bottom")
+    with search_col:
+        query = st.text_input(
+            "search",
+            placeholder="Search episodes, topics, guests...",
+            label_visibility="collapsed",
+        )
+    with btn_col:
+        go = st.form_submit_button(
+            "Search", icon=":material/arrow_forward:", use_container_width=True
+        )
 
 if go and query:
     st.session_state["query"] = query
