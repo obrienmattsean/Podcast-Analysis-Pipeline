@@ -177,7 +177,7 @@ resource "aws_sfn_state_machine" "extract_state_machine" {
             }
           }
         }
-        Items = "$states.input.uploaded_paths"
+        Items = "{% $states.input.uploaded_paths %}"
         End   = true
       }
     }
