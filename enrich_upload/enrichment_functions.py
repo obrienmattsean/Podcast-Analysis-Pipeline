@@ -56,9 +56,10 @@ If no hosts are explicitly mentioned, return an empty list.
 5. **guests**: Extract the names of the guests mentioned in the transcript as a list of strings.
 If no guests are explicitly mentioned, return an empty list.
 6. **keywords**: A JSON array where each element is a 2-element array containing a lowercase keyword
-and its category. Each keyword should capture a general topic, location, overarching theme, or
-individual discussed. The keywords should be extracted based on their relevance and frequency in the
-transcript, not just their presence. Return the top 10 keywords.
+and the word "topic" as the second element. Each keyword should capture a general topic,
+overarching theme, or person discussed. The keywords should be extracted based on their relevance
+and frequency in the transcript, not just their presence. Preference should be given for Keywords
+which would be the most interesting and relevant for advertisers. Return the top 10 keywords.
 
 
 
@@ -111,6 +112,7 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
 
         logging.info(f"Cleaned response content: {content[:100]}...")
         return json.loads(content)
+
     except json.JSONDecodeError as e:
         logging.error(f"Failed to parse LLM response as JSON: {e}. Response: {content}")
         raise ValueError(f"LLM response is not valid JSON: {e}") from e
@@ -119,12 +121,43 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
         raise
 
 
+def prompt_llm_for_moderation(llm_client: oa.OpenAI, transcript: str) -> dict:
+    """Generates a moderation analysis of the podcast transcript using the OpenAI API.
+
+    Args:
+        llm_client (oa.OpenAI): The initialized OpenAI client.
+        transcript (str): The podcast transcript to be analyzed.
+
+    Returns:
+        dict: A dictionary containing the moderation analysis from the podcast transcript
+        keys have boolean values.
+
+    Raises:
+        Exception: If there is an error generating the moderation analysis from the OpenAI API,
+        an exception will be raised with the error message.
+    """
+
+    try:
+        logging.info("Analyzing podcast transcript for moderation.")
+        response = llm_client.moderations.create(
+            model="omni-moderation-latest",
+            input=transcript,
+        )
+        logging.info("Transcript moderation analysis completed successfully.")
+        return response.results[0].categories.model_dump()
+
+    except Exception as e:
+        logging.error(f"Failed to analyze transcript for moderation: {e}")
+        raise
+
+
 def get_episode_metadata_from_s3(s3_client: BaseClient, s3_path: str) -> dict:
     """Retrieves the podcast transcript and additional metadata from S3.
 
     Args:
         s3_client (BaseClient): The initialized S3 client.
-        s3_path (str): The S3 path to the specific episode directory, e.g., 's3://bucket_name/object_key'.
+        s3_path (str): The S3 path to the specific episode directory,
+        e.g., 's3://bucket_name/object_key'.
 
     Returns:
         dict: A dictionary containing the podcast transcript and additional metadata.
@@ -132,7 +165,7 @@ def get_episode_metadata_from_s3(s3_client: BaseClient, s3_path: str) -> dict:
     Raises:
         TypeError: If the S3 path is not a string.
         ValueError: If the S3 path does not start with 's3://'.
-        Exception: If there is an error retrieving the transcript from S3, an
+        Exception: If there is an error retrieving the metadata from S3, an
         exception will be raised with the error message.
 
     """

@@ -15,7 +15,7 @@ class TestCombineEnrichments:
     """Tests for combine_enrichments function."""
 
     def test_combine_enrichments_success(self):
-        """Test successful combination of enrichments."""
+        """Test successful combination of enrichments with moderation."""
         episode_metadata = {
             "episode_id": 1,
             "podcast_id": 1,
@@ -31,14 +31,60 @@ class TestCombineEnrichments:
             "guests": ["Guest 1"],
             "keywords": [["topic1", "category1"], ["topic2", "category2"]],
         }
+        moderation = {
+            "harassment": False,
+            "hate": False,
+            "violence": False,
+            "sexual": False,
+        }
 
-        result = combine_enrichments(episode_metadata, enrichments)
+        result = combine_enrichments(episode_metadata, enrichments, moderation)
 
         assert result["episode"]["episode_id"] == 1
         assert result["episode"]["sentiment_score"] == 3.5
         assert result["episode"]["summary"] == "A great episode."
         assert "Host 1" in result["entities"]
         assert "Guest 1" in result["entities"]
+        assert result["episode"]["harassment"] is False
+        assert result["episode"]["hate"] is False
+
+    def test_combine_enrichments_with_flagged_moderation(self):
+        """Test combination where moderation flags content."""
+        episode_metadata = {
+            "episode_id": 1,
+            "podcast_id": 1,
+            "title": "Test Episode",
+            "audio_link": "http://example.com/audio.mp3",
+            "published_at": "2024-01-15",
+        }
+        enrichments = {
+            "sentiment score": 2.5,
+            "classification": "neutral",
+            "summary": "Neutral episode.",
+            "hosts": [],
+            "guests": [],
+            "keywords": [],
+        }
+        moderation = {
+            "harassment": False,
+            "harassment_threatening": False,
+            "hate": True,
+            "hate_threatening": False,
+            "illicit": False,
+            "illicit_violent": False,
+            "self_harm": False,
+            "self_harm_instructions": False,
+            "self_harm_intent": False,
+            "sexual": False,
+            "sexual_minors": False,
+            "violence": False,
+            "violence_graphic": False,
+        }
+
+        result = combine_enrichments(episode_metadata, enrichments, moderation)
+
+        assert result["episode"]["hate"] is True
+        assert result["episode"]["flagged"] is True
 
     def test_combine_enrichments_no_hosts_or_guests(self):
         """Test combination with no hosts or guests."""
@@ -57,8 +103,13 @@ class TestCombineEnrichments:
             "guests": [],
             "keywords": [],
         }
+        moderation = {
+            "harassment": False,
+            "hate": False,
+            "violence": False,
+        }
 
-        result = combine_enrichments(episode_metadata, enrichments)
+        result = combine_enrichments(episode_metadata, enrichments, moderation)
 
         assert result["entities"] == {}
 
@@ -73,8 +124,12 @@ class TestCombineEnrichments:
             "guests": [],
             "keywords": [],
         }
+        moderation = {
+            "harassment": False,
+            "hate": False,
+        }
 
-        result = combine_enrichments(episode_metadata, enrichments)
+        result = combine_enrichments(episode_metadata, enrichments, moderation)
 
         assert result["episode"]["episode_id"] == 1
         assert result["episode"]["podcast_id"] is None
@@ -97,8 +152,12 @@ class TestCombineEnrichments:
             "guests": [],
             "keywords": [],
         }
+        moderation = {
+            "harassment": False,
+            "violence": False,
+        }
 
-        result = combine_enrichments(episode_metadata, enrichments)
+        result = combine_enrichments(episode_metadata, enrichments, moderation)
 
         assert "episode" in result
         assert result["episode"]["sentiment_score"] == 3.0
@@ -120,8 +179,12 @@ class TestCombineEnrichments:
             "guests": [],
             "keywords": [],
         }
+        moderation = {
+            "harassment": False,
+            "sexual": False,
+        }
 
-        result = combine_enrichments(episode_metadata, enrichments)
+        result = combine_enrichments(episode_metadata, enrichments, moderation)
         assert result["episode"]["pub_date"] is None
 
 
@@ -145,6 +208,20 @@ class TestUploadToRds:
                 "sentiment_score": 3.5,
                 "created_at": datetime.now(),
                 "summary": "Test summary",
+                "harassment": False,
+                "harassment_threatening": False,
+                "hate": False,
+                "hate_threatening": False,
+                "illicit": False,
+                "illicit_violent": False,
+                "self_harm": False,
+                "self_harm_instructions": False,
+                "self_harm_intent": False,
+                "sexual": False,
+                "sexual_minors": False,
+                "violence": False,
+                "violence_graphic": False,
+                "flagged": False,
             },
             "entities": {
                 "host1": {"name": "Host 1", "entity_type": "host"},
@@ -177,6 +254,20 @@ class TestUploadToRds:
                 "sentiment_score": 3.5,
                 "created_at": datetime.now(),
                 "summary": "Test summary",
+                "harassment": False,
+                "harassment_threatening": False,
+                "hate": False,
+                "hate_threatening": False,
+                "illicit": False,
+                "illicit_violent": False,
+                "self_harm": False,
+                "self_harm_instructions": False,
+                "self_harm_intent": False,
+                "sexual": False,
+                "sexual_minors": False,
+                "violence": False,
+                "violence_graphic": False,
+                "flagged": False,
             },
             "entities": {},
         }
@@ -204,11 +295,25 @@ class TestUploadToRds:
                 "sentiment_score": 3.5,
                 "created_at": datetime.now(),
                 "summary": "Test summary",
+                "harassment": False,
+                "harassment_threatening": False,
+                "hate": False,
+                "hate_threatening": False,
+                "illicit": False,
+                "illicit_violent": False,
+                "self_harm": False,
+                "self_harm_instructions": False,
+                "self_harm_intent": False,
+                "sexual": False,
+                "sexual_minors": False,
+                "violence": False,
+                "violence_graphic": False,
+                "flagged": False,
             },
             "entities": {},
         }
 
-        with pytest.raises(Exception, match="Database error"):
+        with pytest.raises(Exception, match=r"Database error"):
             upload_to_rds(enrichment_dict, mock_connection)
 
         mock_connection.rollback.assert_called_once()

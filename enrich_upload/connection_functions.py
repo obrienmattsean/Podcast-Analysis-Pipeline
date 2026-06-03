@@ -25,21 +25,11 @@ from psycopg2.extensions import connection as Connection
 load_dotenv()
 
 
-def get_llm_client(openai_api_key) -> oa.OpenAI:
+def get_llm_client(openai_api_key: str) -> oa.OpenAI:
     """Creates the OpenAI client to make requests to the OpenAI API.
 
     Args:
         openai_api_key (str): The OpenAI API key.
-
-    Returns:
-        oa.OpenAI: The initialized OpenAI client.
-
-    Raises:
-        TypeError: If the API key is missing or not a string.
-        ValueError: If the API key is an empty string.
-        Exception: If there is an error initializing the OpenAI client.
-
-
 
     Returns:
         oa.OpenAI: The initialized OpenAI client.

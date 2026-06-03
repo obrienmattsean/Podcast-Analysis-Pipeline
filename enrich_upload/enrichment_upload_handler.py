@@ -19,6 +19,7 @@ from enrichment_functions import (
     get_episode_metadata_from_s3,
     get_episode_transcript_from_s3,
     prompt_llm_for_enrichment,
+    prompt_llm_for_moderation,
 )
 from upload_functions import combine_enrichments, upload_to_rds
 
@@ -26,6 +27,7 @@ logger = logging.getLogger()
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+logger.setLevel(logging.INFO)
 
 
 def get_secrets() -> dict:
@@ -80,67 +82,56 @@ def lambda_handler(event, context):
         raise ValueError("Missing 'episode_uri' in event data.")
 
     db_connection = None
-    try:
-        # Step 1: Retrieve secrets from Secrets Manager
-        logger.info("Retrieving secrets for database and API connections.")
-        secrets = get_secrets()
 
-        # Validate all required secrets are present
-        required_keys = [
-            "OPENAI_API_KEY",
-            "RDS_HOST",
-            "RDS_DBNAME",
-            "RDS_USER",
-            "RDS_PASSWORD",
-            "RDS_PORT",
-        ]
-        missing_keys = [key for key in required_keys if key not in secrets or not secrets.get(key)]
-        if missing_keys:
-            raise ValueError(
-                f"Missing required secrets in Secrets Manager: {', '.join(missing_keys)}"
-            )
+    # Step 1: Retrieve secrets from Secrets Manager
+    logger.info("Retrieving secrets for database and API connections.")
+    secrets = get_secrets()
 
-        logger.info("Establishing connections to OpenAI, S3, and RDS.")
-        llm_client = get_llm_client(secrets["OPENAI_API_KEY"])
-        # S3 client uses IAM role in Lambda, no credentials needed
-        s3_client = get_s3_client("eu-west-2")
-        db_connection = get_db_connection(
-            secrets["RDS_HOST"],
-            secrets["RDS_DBNAME"],
-            secrets["RDS_USER"],
-            secrets["RDS_PASSWORD"],
-            secrets["RDS_PORT"],
-        )
-        logger.info("Connections established successfully.")
+    # Validate all required secrets are present
+    required_keys = [
+        "OPENAI_API_KEY",
+        "RDS_HOST",
+        "RDS_DBNAME",
+        "RDS_USER",
+        "RDS_PASSWORD",
+        "RDS_PORT",
+    ]
+    missing_keys = [key for key in required_keys if key not in secrets or not secrets.get(key)]
+    if missing_keys:
+        raise ValueError(f"Missing required secrets in Secrets Manager: {', '.join(missing_keys)}")
 
-        metadata = get_episode_metadata_from_s3(s3_client, event["episode_uri"])
-        transcript = get_episode_transcript_from_s3(s3_client, event["episode_uri"])
-        logger.info("Episode transcript and metadata retrieved successfully.")
-        logger.info("Prompting LLM for enrichment with transcript")
-        enrichment_data = prompt_llm_for_enrichment(llm_client, transcript)
-        logger.info("Enrichment data received from LLM.")
+    logger.info("Establishing connections to OpenAI, S3, and RDS.")
+    llm_client = get_llm_client(secrets["OPENAI_API_KEY"])
+    # S3 client uses IAM role in Lambda, no credentials needed
+    s3_client = get_s3_client("eu-west-2")
+    db_connection = get_db_connection(
+        secrets["RDS_HOST"],
+        secrets["RDS_DBNAME"],
+        secrets["RDS_USER"],
+        secrets["RDS_PASSWORD"],
+        secrets["RDS_PORT"],
+    )
+    logger.info("Connections established successfully.")
 
-        # Step 3: Combine enrichments with episode metadata
-        combined_data = combine_enrichments(metadata, enrichment_data)
-        logger.info("Combining enrichments with episode metadata for upload.")
-        upload_to_rds(combined_data, db_connection)
-        logger.info("Enrichment data uploaded successfully to RDS.")
+    metadata = get_episode_metadata_from_s3(s3_client, event["episode_uri"])
+    transcript = get_episode_transcript_from_s3(s3_client, event["episode_uri"])
+    logger.info("Episode transcript and metadata retrieved successfully.")
+    logger.info("Prompting LLM for enrichment with transcript")
+    enrichment_data = prompt_llm_for_enrichment(llm_client, transcript)
+    logger.info("Enrichment data received from LLM.")
 
-        return {
-            "statusCode": 200,
-            "message": "Enrichment upload successful!",
-            "episode_id": metadata.get("episode_id"),
-        }
-    except Exception as e:
-        logger.error(f"Enrichment upload failed: {e}")
-        return {"statusCode": 500, "message": f"Enrichment upload failed: {e}"}
-    finally:
-        if db_connection:
-            db_connection.close()
-            logger.info("Database connection closed.")
+    logger.info("Analyzing transcript for moderation")
+    moderation_data = prompt_llm_for_moderation(llm_client, transcript)
+    logger.info("Moderation analysis received from LLM.")
 
+    # Step 3: Combine enrichments with episode metadata and moderation
+    combined_data = combine_enrichments(metadata, enrichment_data, moderation_data)
+    logger.info("Combining enrichments with episode metadata for upload.")
+    upload_to_rds(combined_data, db_connection)
+    logger.info("Enrichment data uploaded successfully to RDS.")
 
-if __name__ == "__main__":
-    # Example event for local testing
-    test_event = {"episode_uri": "s3://c23-podex-ai-bucket/17/1956"}
-    print(lambda_handler(test_event, None))
+    return {
+        "statusCode": 200,
+        "message": "Enrichment upload successful!",
+        "episode_id": metadata.get("episode_id"),
+    }

@@ -19,7 +19,21 @@ CREATE TABLE IF NOT EXISTS episodes (
     pub_date TIMESTAMP NOT NULL,
     sentiment_score DOUBLE PRECISION,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    summary TEXT
+    summary TEXT,
+    harassment BOOLEAN,
+    harassment_threatening BOOLEAN,
+    hate BOOLEAN,
+    hate_threatening BOOLEAN,
+    illicit BOOLEAN,
+    illicit_violent BOOLEAN,
+    self_harm BOOLEAN,
+    self_harm_instructions BOOLEAN,
+    self_harm_intent BOOLEAN,
+    sexual BOOLEAN,
+    sexual_minors BOOLEAN,
+    violence BOOLEAN,
+    violence_graphic BOOLEAN,
+    flagged BOOLEAN
 );
 
 CREATE INDEX IF NOT EXISTS idx_episodes_podcast_id
