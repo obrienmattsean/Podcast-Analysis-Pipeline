@@ -59,7 +59,7 @@ resource "aws_sfn_state_machine" "extract_state_machine" {
   role_arn   = aws_iam_role.step_function_role.arn
   type       = "STANDARD"
   definition = jsonencode({
-    Comment       = "extract"
+    Comment       = "podcast-processing-pipeline"
     StartAt       = "extract"
     QueryLanguage = "JSONata"
     States = {
