@@ -46,7 +46,7 @@ codeFont = "SpaceMono"
 codeFontSize = ".75rem"
 codeBackgroundColor = "#ecebe4"
 showSidebarBorder = true
-chartCategoricalColors = ["#0ea5e9", "#059669", "#fbbf24"]
+chartCategoricalColors = ["#b1aeed", "#b4ddc7", "#efceb3"]
 
 [theme.sidebar]
 backgroundColor = "#f0f0ec"
