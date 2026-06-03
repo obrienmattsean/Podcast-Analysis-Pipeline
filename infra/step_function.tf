@@ -101,10 +101,24 @@ resource "aws_sfn_state_machine" "extract_state_machine" {
               Arguments = {
                 FunctionName = aws_lambda_function.transcribe.arn
                 Payload = {
-                  episode_s3_url = "$states.input"
+                  episode_s3_url = "{% $states.input %}"
                 }
               }
-              Output = "$states.result.Payload"
+              Output = "{% $states.result.Payload %}"
+              Retry = [
+                {
+                  ErrorEquals = [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ]
+                  IntervalSeconds = 1
+                  MaxAttempts     = 3
+                  BackoffRate     = 2
+                  JitterStrategy  = "FULL"
+                }
+              ]
               Next   = "Parallel"
             }
             Parallel = {
