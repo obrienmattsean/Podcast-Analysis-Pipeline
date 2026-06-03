@@ -5,7 +5,7 @@ from datetime import datetime
 from pprint import pprint
 
 import feedparser
-from bs4 import BeautifulSoup  # ty: ignore[unresolved-import]
+from bs4 import BeautifulSoup
 from psycopg2.extensions import connection
 from psycopg2.extras import RealDictCursor, RealDictRow
 
@@ -84,8 +84,7 @@ def get_podcast_metadata_from_url(rss_url: str) -> dict:
         raise ValueError(f"Unable to parse RSS feed: {rss_url}")
 
     podcast_title = clean_html(feed.feed.get("title", "Unknown Podcast"))
-    podcast_description = clean_html(feed.feed.get(
-        "subtitle", "No description available."))
+    podcast_description = clean_html(feed.feed.get("subtitle", "No description available."))
 
     logging.info(
         "Fetched podcast metadata from RSS URL %s: %s",
@@ -240,8 +239,7 @@ def get_new_episodes_for_podcast(conn: connection, podcast: dict) -> list[dict]:
     podcast_title = podcast.get("title", "unknown")
     logging.info("Checking podcast id=%s title=%s", podcast_id, podcast_title)
 
-    latest_episode_date = get_latest_episode_date_from_podcast(
-        conn, podcast["podcast_id"])
+    latest_episode_date = get_latest_episode_date_from_podcast(conn, podcast["podcast_id"])
     if latest_episode_date:
         logging.debug(
             "Latest stored episode date for podcast_id=%s is %s",
@@ -255,8 +253,7 @@ def get_new_episodes_for_podcast(conn: connection, podcast: dict) -> list[dict]:
         )
 
     episodes = get_episodes_from_rss(podcast["rss_url"])
-    filtered_episodes = filter_episodes_by_datetime(
-        episodes, cutoff_datetime=latest_episode_date)
+    filtered_episodes = filter_episodes_by_datetime(episodes, cutoff_datetime=latest_episode_date)
 
     logging.info(
         "Podcast id=%s title=%s has %d new episodes",
@@ -328,6 +325,6 @@ def extract_new_episodes(conn: connection) -> list[dict]:
 
 if __name__ == "__main__":
     # Run locally for testing
-    url = "https://feeds.megaphone.fm/QCD4626915194"
+    url = "https://media.rss.com/cheekyshenaniganspodcast/feed.xml"
     a = get_episodes_from_rss(url)[8]
     pprint(a)
