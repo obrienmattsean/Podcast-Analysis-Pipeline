@@ -69,13 +69,13 @@ def _build_badge_row(score: float | None, keywords: list[str]) -> str:
         hex_color = _SENTIMENT_COLOR_MAP.get(color, "#6c757d")
         spans.append(
             f'<span style="background-color:{hex_color};color:white;'
-            f'padding:3px 10px;border-radius:12px;font-size:12px;'
+            f"padding:3px 10px;border-radius:12px;font-size:12px;"
             f'font-weight:600;margin-right:6px;">{label}</span>'
         )
     for kw in keywords:
         spans.append(
             f'<span style="background-color:#0d6efd;color:white;'
-            f'padding:3px 10px;border-radius:12px;font-size:12px;'
+            f"padding:3px 10px;border-radius:12px;font-size:12px;"
             f'font-weight:600;margin-right:6px;">{kw}</span>'
         )
     if not spans:
