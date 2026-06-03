@@ -158,9 +158,9 @@ resource "aws_sfn_state_machine" "extract_state_machine" {
                   }
                 },
                 {
-                  StartAt = "vector"
+                  StartAt = "Vector"
                   States = {
-                    vector = {
+                    Vector = {
                       Type     = "Task"
                       Resource = "arn:aws:states:::lambda:invoke"
                       Output   = "{% $states.result.Payload %}"
