@@ -35,7 +35,8 @@ with btn_col:
     go = st.button("Search", icon=":material/arrow_forward:", use_container_width=True)
 
 if go and query:
-    st.session_state["ai_search_query"] = query
+    st.session_state["query"] = query
+    st.session_state["_home_search_pending"] = True
     st.switch_page("pages/2_AI_Search.py")
 
 st.write("")
