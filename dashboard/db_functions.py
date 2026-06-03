@@ -182,7 +182,8 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             e.title AS episode_title,
             e.pub_date,
             e.summary,
-            e.sentiment_score
+            e.sentiment_score,
+            e.flagged
             FROM episodes e
             JOIN podcasts p USING (podcast_id)
             ORDER BY e.pub_date DESC
@@ -198,6 +199,7 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
                 "time_since_published": format_time_since_published(row[2]),
                 "summary": row[3],
                 "sentiment_score": row[4],
+                "flagged": row[5],
             }
             for row in rows
         ]
@@ -205,7 +207,6 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
 
 if __name__ == "__main__":
     conn = get_db_connection()
-    podcasts = get_all_podcasts(conn)
-    for podcast in podcasts:
-        print(podcast)
-    conn.close()
+    episodes = get_recent_episodes(conn)
+    for ep in episodes[:3]:
+        print(ep)

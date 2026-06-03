@@ -57,20 +57,31 @@ def episode_card(episode: dict) -> None:
     score = episode.get("sentiment_score")
     summary = episode.get("summary")
     time_since_published = episode.get("time_since_published") or ""
+    brand_safe = not episode.get("flagged")
+
+    brand_safe_color = "#28a745" if brand_safe else "#dc3545"
+    brand_safe_label = "Brand Safe" if brand_safe else "Not Brand Safe"
 
     with st.container(border=True):
         left, right = st.columns([4, 1], vertical_alignment="top")
         with left:
             st.caption(f":primary[**{podcast_title}**]")
             st.subheader(episode_title, anchor=False, divider=False)
+            if score is not None:
+                label, color = _sentiment_label(float(score))
+                st.badge(label, color=color)
         with right:
             st.markdown(
                 f'<p style="text-align:right;margin:0;"><small>{time_since_published}</small></p>',
                 unsafe_allow_html=True,
             )
-        if score is not None:
-            label, color = _sentiment_label(float(score))
-            st.badge(label, color=color)
+            st.markdown(
+                f'<p style="text-align:right;margin-top:8px;">'
+                f'<span style="background-color:{brand_safe_color};color:white;'
+                f'padding:5px 12px;border-radius:14px;font-size:14px;font-weight:600;">'
+                f"{brand_safe_label}</span></p>",
+                unsafe_allow_html=True,
+            )
         if summary:
             st.caption(summary)
 
