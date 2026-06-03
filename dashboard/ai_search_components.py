@@ -59,7 +59,7 @@ def render_empty_state() -> tuple[str, bool]:
 
     with st.form("empty_state_search", border=False):
         query = st.text_input(
-            "",
+            "Search query",
             placeholder=SEARCH_PLACEHOLDER,
             label_visibility="collapsed",
         )
