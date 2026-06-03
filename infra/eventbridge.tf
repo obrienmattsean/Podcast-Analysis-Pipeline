@@ -31,11 +31,7 @@ resource "aws_iam_policy" "scheduler_policy" {
       {
         Sid    = "AllowStepFunctionExecution"
         Effect = "Allow"
-        Action = [
-          "states:StartExecution"
-        ]
-        Resource = "arn:aws:states:${var.aws_region}:*:stateMachine:${var.project_name}-*"
-      }
+        Resource = "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:${var.project_name}-state-machine"
     ]
   })
 }
