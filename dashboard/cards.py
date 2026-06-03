@@ -77,7 +77,7 @@ def _build_badge_row(score: float | None, keywords: list[str]) -> str:
         spans.append(
             f'<span style="background-color:#0d6efd;color:white;'
             f"padding:3px 10px;border-radius:12px;font-size:12px;"
-            f'font-weight:600;margin-right:6px;">{kw}</span>'
+            f'font-weight:600;margin-right:6px;">{kw.title()}</span>'
         )
     if not spans:
         return ""
@@ -122,6 +122,11 @@ def episode_card(episode: dict) -> None:
                 f"{brand_safe_label}</span></p>",
                 unsafe_allow_html=True,
             )
+            if keywords:
+                right.divider()
+                with right.expander(f"Keywords ({len(keywords)})"):
+                    st.write((", ".join(sorted(keywords))).title())
+
         if summary:
             st.caption(summary)
 
