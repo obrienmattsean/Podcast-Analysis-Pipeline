@@ -163,10 +163,10 @@ resource "aws_sfn_state_machine" "extract_state_machine" {
                     vector = {
                       Type     = "Task"
                       Resource = "arn:aws:states:::lambda:invoke"
-                      Output   = "$states.result.Payload"
+                      Output   = "{% $states.result.Payload %}"
                       Arguments = {
                         Payload = {
-                          episode_uri = "$states.input.episode_uri"
+                          episode_uri = "{% $states.input.episode_uri %}"
                         }
                         FunctionName = aws_lambda_function.vector.arn
                       }
