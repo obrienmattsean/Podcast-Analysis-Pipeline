@@ -24,7 +24,6 @@ st.markdown(
 )
 
 # Search bar — main CTA
-_, search_col, btn_col, _ = st.columns([1, 5, 1, 1], vertical_alignment="bottom")
 with st.form("home_search", border=False):
     _, search_col, btn_col, _ = st.columns([1, 5, 1, 1], vertical_alignment="bottom")
     with search_col:
@@ -38,10 +37,15 @@ with st.form("home_search", border=False):
             "Search", icon=":material/arrow_forward:", use_container_width=True
         )
 
+_, status_col, _ = st.columns([1, 6, 1])
+with status_col:
+    status = st.empty()
+
 if go and query:
     st.session_state["query"] = query
     st.session_state["_home_search_pending"] = True
-    st.switch_page("pages/2_AI_Search.py")
+    with status.status("Searching...", expanded=False):
+        st.switch_page("pages/2_AI_Search.py")
 
 st.write("")
 st.write("")

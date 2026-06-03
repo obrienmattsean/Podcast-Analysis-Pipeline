@@ -57,16 +57,16 @@ def render_empty_state() -> tuple[str, bool]:
         unsafe_allow_html=True,
     )
 
-    query = st.text_input(
-        "",
-        placeholder=SEARCH_PLACEHOLDER,
-        label_visibility="collapsed",
-    )
-
-    search_clicked = st.button(
-        "✨ Search",
-        use_container_width=True,
-    )
+    with st.form("empty_state_search", border=False):
+        query = st.text_input(
+            "",
+            placeholder=SEARCH_PLACEHOLDER,
+            label_visibility="collapsed",
+        )
+        search_clicked = st.form_submit_button(
+            "✨ Search",
+            use_container_width=True,
+        )
 
     st.write("")
 
@@ -102,17 +102,16 @@ def render_search_header(query: str) -> tuple[str, bool]:
     """
     st.title("AI Search")
 
-    col1, col2 = st.columns([8, 1])
-
-    with col1:
-        query = st.text_input(
-            "",
-            value=query,
-            label_visibility="collapsed",
-        )
-
-    with col2:
-        search_clicked = st.button("Search")
+    with st.form("search_header", border=False):
+        col1, col2 = st.columns([8, 1])
+        with col1:
+            query = st.text_input(
+                "",
+                value=query,
+                label_visibility="collapsed",
+            )
+        with col2:
+            search_clicked = st.form_submit_button("Search")
 
     return query, search_clicked
 
