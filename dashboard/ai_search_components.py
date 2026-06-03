@@ -207,13 +207,3 @@ def render_episode_cards(
                         st.caption(f"Similarity: {similarity:.2%}")
                         st.markdown(f"> {chunk['chunk_transcript']}")
                         st.divider()
-
-
-def render_new_search_button() -> bool:
-    """Render button to start new search.
-
-    Returns:
-        True if button clicked
-    """
-    st.write("")
-    return st.button("← New Search")

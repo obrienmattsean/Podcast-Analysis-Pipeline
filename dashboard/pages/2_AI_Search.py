@@ -11,14 +11,12 @@ from ai_search_components import (
     process_chunks,
     render_empty_state,
     render_episode_cards,
-    render_new_search_button,
     render_search_header,
     render_sidebar_settings,
     render_summary_card,
 )
 from ai_search_config import DEFAULT_SIMILARITY_THRESHOLD, DEFAULT_TOP_K, PAGE_CSS
 from ai_search_utils import (
-    clear_results,
     get_results,
     has_results,
     initialize_session_state,
@@ -89,7 +87,3 @@ else:
 
     render_summary_card(results["answer"], len(episodes), num_podcasts)
     render_episode_cards(episodes, show_sources)
-
-    if render_new_search_button():
-        clear_results()
-        st.rerun()
