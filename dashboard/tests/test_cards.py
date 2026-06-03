@@ -91,7 +91,7 @@ def test_episode_card_brand_safe_renders_green_html(base_episode: dict) -> None:
         episode_card(base_episode)
 
     right_col = mock_st.columns.return_value[1]
-    markdown_calls = [str(c) for c in right_col.__enter__.return_value.markdown.call_args_list]
+    markdown_calls = [str(c) for c in right_col.markdown.call_args_list]
     combined = " ".join(markdown_calls)
     assert "#28a745" in combined
     assert "Brand Safe" in combined
@@ -105,7 +105,7 @@ def test_episode_card_not_brand_safe_renders_red_html(base_episode: dict) -> Non
         episode_card(base_episode)
 
     right_col = mock_st.columns.return_value[1]
-    markdown_calls = [str(c) for c in right_col.__enter__.return_value.markdown.call_args_list]
+    markdown_calls = [str(c) for c in right_col.markdown.call_args_list]
     combined = " ".join(markdown_calls)
     assert "#dc3545" in combined
     assert "Not Brand Safe" in combined
@@ -119,7 +119,7 @@ def test_episode_card_missing_flagged_defaults_to_brand_safe(base_episode: dict)
         episode_card(base_episode)
 
     right_col = mock_st.columns.return_value[1]
-    markdown_calls = [str(c) for c in right_col.__enter__.return_value.markdown.call_args_list]
+    markdown_calls = [str(c) for c in right_col.markdown.call_args_list]
     combined = " ".join(markdown_calls)
     assert "#28a745" in combined
     assert "Brand Safe" in combined
