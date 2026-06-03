@@ -77,6 +77,12 @@ variable "lambda_memory_size" {
   default     = 1024
 }
 
+variable "cluster_name" {
+  type        = string
+  description = "The name of the ECS cluster"
+  default     = "c23-ecs-cluster"
+}
+
 variable "common_tags" {
   description = "Common tags to apply to all resources"
   type        = map(string)
