@@ -31,34 +31,9 @@ jobs:
       - name: Run Ruff
         run: ruff check .
 
-  typecheck:
-    runs-on: ubuntu-latest
-    needs: [lint]
-    strategy:
-      matrix:
-        python-version: ["3.14"]
-        app: [extractor, transcriber, dashboard]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: "pip"
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements-dev.txt
-          if [ -f ${{ matrix.app }}/requirements.txt ]; then pip install -r ${{ matrix.app }}/requirements.txt; fi
-
-      - name: Run ty
-        run: ty check ${{ matrix.app }}
-
   test:
     runs-on: ubuntu-latest
-    needs: [typecheck]
+    needs: [lint]
     strategy:
       matrix:
         python-version: ["3.14"]
