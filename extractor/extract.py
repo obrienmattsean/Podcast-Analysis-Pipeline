@@ -5,10 +5,9 @@ from datetime import datetime
 from pprint import pprint
 
 import feedparser
+from bs4 import BeautifulSoup  # ty: ignore[unresolved-import]
 from psycopg2.extensions import connection
 from psycopg2.extras import RealDictCursor, RealDictRow
-
-logger = logging.getLogger(__name__)
 
 
 def insert_podcast(conn: connection, rss_url: str) -> None:
@@ -29,21 +28,74 @@ def insert_podcast(conn: connection, rss_url: str) -> None:
     if not isinstance(rss_url, str) or not rss_url:
         raise ValueError("RSS URL must be a non-empty string.")
 
-    parts = rss_url.split("/")
-    title = parts[-2] if len(parts) > 1 else "unknown"
+    metadata = get_podcast_metadata_from_url(rss_url)
+    title = metadata["title"]
+    description = metadata["description"]
 
     try:
         with conn.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO podcasts (rss_url, title) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                (rss_url, title),
+                """INSERT INTO podcasts
+                (rss_url, title, description)
+                VALUES (%s, %s, %s) ON CONFLICT DO NOTHING""",
+                (rss_url, title, description),
             )
             conn.commit()
-            logger.info("Inserted podcast with RSS URL: %s and title: %s", rss_url, title)
+            logging.info(
+                "Inserted podcast with RSS URL: %s, title: %s, and description: %s",
+                rss_url,
+                title,
+                description,
+            )
     except Exception:
         conn.rollback()
-        logger.exception("Failed to insert podcast with RSS URL: %s", rss_url)
+        logging.exception("Failed to insert podcast with RSS URL: %s", rss_url)
         raise
+
+
+def clean_html(text: str) -> str:
+    """Remove HTML tags from text using BeautifulSoup.
+    Args:
+        text (str): The input string that may contain HTML tags.
+    Returns:
+        str: The cleaned string with HTML tags removed.
+    """
+    return BeautifulSoup(text, "html.parser").get_text(" ", strip=True)
+
+
+def get_podcast_metadata_from_url(rss_url: str) -> dict:
+    """Fetch podcast metadata from an RSS feed.
+
+    Args:
+        rss_url (str): RSS feed URL.
+
+    Returns:
+        dict: Podcast metadata containing title and description.
+    """
+
+    if not isinstance(rss_url, str) or not rss_url:
+        raise ValueError("RSS URL must be a non-empty string.")
+
+    logging.info("Fetching RSS feed: %s", rss_url)
+
+    feed = feedparser.parse(rss_url)
+
+    if not feed.feed:
+        raise ValueError(f"Unable to parse RSS feed: {rss_url}")
+
+    podcast_title = clean_html(feed.feed.get("title", "Unknown Podcast"))
+    podcast_description = clean_html(feed.feed.get("subtitle", "No description available."))
+
+    logging.info(
+        "Fetched podcast metadata from RSS URL %s: %s",
+        rss_url,
+        podcast_title,
+    )
+
+    return {
+        "title": podcast_title,
+        "description": podcast_description,
+    }
 
 
 def get_podcasts_from_database(conn: connection) -> list[RealDictRow]:
@@ -56,12 +108,18 @@ def get_podcasts_from_database(conn: connection) -> list[RealDictRow]:
         list: Podcast rows containing id, title, and rss_url.
     """
 
-    logger.info("Fetching podcasts from database")
-    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-        cursor.execute("SELECT id, title, rss_url FROM podcasts")
-        podcasts = cursor.fetchall()
+    logging.info("Fetching podcasts from database")
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute("SELECT podcast_id, title, rss_url FROM podcasts")
+            podcasts = cursor.fetchall()
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        logging.exception("Failed to fetch podcasts from database")
+        raise
 
-    logger.info("Fetched %d podcasts from database", len(podcasts))
+    logging.info("Fetched %d podcasts from database", len(podcasts))
     return podcasts
 
 
@@ -82,19 +140,29 @@ def get_latest_episode_date_from_podcast(conn: connection, podcast_id: int) -> d
     if not isinstance(podcast_id, int):
         raise ValueError("Podcast ID must be a non-empty integer.")
 
-    logger.debug("Querying latest episode date for podcast_id=%s", podcast_id)
-    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-        cursor.execute(
-            """
-            SELECT pub_date
-            FROM episodes
-            WHERE podcast_id = %s
-            ORDER BY pub_date
-            DESC LIMIT 1""",
-            (podcast_id,),
+    logging.debug("Querying latest episode date for podcast_id=%s", podcast_id)
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(
+                """
+                SELECT pub_date
+                FROM episodes
+                WHERE podcast_id = %s
+                ORDER BY pub_date
+                DESC LIMIT 1""",
+                (podcast_id,),
+            )
+            result = cursor.fetchone()
+        # Explicitly end the read transaction before any RSS/network calls.
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        logging.exception(
+            "Failed to query latest episode date for podcast_id=%s",
+            podcast_id,
         )
-        result = cursor.fetchone()
-    logger.debug(
+        raise
+    logging.debug(
         "Latest episode date query complete for podcast_id=%s",
         podcast_id,
     )
@@ -117,9 +185,9 @@ def get_episodes_from_rss(url: str) -> list:
     if not isinstance(url, str) or not url:
         raise ValueError("URL must be a non-empty string.")
 
-    logger.info("Fetching episodes from RSS feed: %s", url)
+    logging.info("Fetching episodes from RSS feed: %s", url)
     feed = feedparser.parse(url)
-    logger.info("Fetched %d episodes from RSS feed", len(feed.entries))
+    logging.info("Fetched %d episodes from RSS feed", len(feed.entries))
     return feed.entries
 
 
@@ -141,7 +209,7 @@ def filter_episodes_by_datetime(
         try:
             published_at = datetime(*episode["published_parsed"][:6])
         except Exception:
-            logger.warning("Skipping episode with invalid published date")
+            logging.warning("Skipping episode with invalid published date")
             continue
 
         if not cutoff_datetime:
@@ -161,25 +229,25 @@ def get_new_episodes_for_podcast(conn: connection, podcast: dict) -> list[dict]:
 
     Args:
         conn (connection): Active psycopg2 database connection.
-        podcast (dict): Podcast metadata containing id, title, and rss_url.
+        podcast (dict): Podcast metadata containing podcast_id, title, and rss_url.
 
     Returns:
         list[dict]: RSS entries that are newer than the latest stored episode.
     """
 
-    podcast_id = podcast["id"]
+    podcast_id = podcast["podcast_id"]
     podcast_title = podcast.get("title", "unknown")
-    logger.info("Checking podcast id=%s title=%s", podcast_id, podcast_title)
+    logging.info("Checking podcast id=%s title=%s", podcast_id, podcast_title)
 
-    latest_episode_date = get_latest_episode_date_from_podcast(conn, podcast["id"])
+    latest_episode_date = get_latest_episode_date_from_podcast(conn, podcast["podcast_id"])
     if latest_episode_date:
-        logger.debug(
+        logging.debug(
             "Latest stored episode date for podcast_id=%s is %s",
             podcast_id,
             latest_episode_date,
         )
     else:
-        logger.info(
+        logging.info(
             "No existing episodes found for podcast_id=%s. Will collect up to 15 episodes",
             podcast_id,
         )
@@ -187,7 +255,7 @@ def get_new_episodes_for_podcast(conn: connection, podcast: dict) -> list[dict]:
     episodes = get_episodes_from_rss(podcast["rss_url"])
     filtered_episodes = filter_episodes_by_datetime(episodes, cutoff_datetime=latest_episode_date)
 
-    logger.info(
+    logging.info(
         "Podcast id=%s title=%s has %d new episodes",
         podcast_id,
         podcast_title,
@@ -218,36 +286,36 @@ def extract_new_episodes(conn: connection) -> list[dict]:
               title, published, published_parsed, links, summary, etc.
     """
 
-    logger.info("Starting new episode extraction")
+    logging.info("Starting new episode extraction")
     podcasts = get_podcasts_from_database(conn)
     extracted_episodes = []
     for podcast in podcasts:
         try:
             new_episodes = get_new_episodes_for_podcast(conn, podcast)
             if not new_episodes:
-                logger.info(
+                logging.info(
                     "No new episodes found for podcast id=%s title=%s",
-                    podcast["id"],
+                    podcast["podcast_id"],
                     podcast.get("title", "unknown"),
                 )
                 continue
             podcast_episode_data = {
-                "podcast_id": podcast["id"],
+                "podcast_id": podcast["podcast_id"],
                 "podcast_title": podcast.get("title", "unknown"),
                 "new_episodes": new_episodes,
             }
             extracted_episodes.append(podcast_episode_data)
         except Exception:
-            logger.exception(
+            logging.exception(
                 "Failed to extract episodes for podcast title=%s id=%s",
-                podcast.get("title"),
-                podcast.get("id"),
+                podcast.get("title", "unknown"),
+                podcast.get("podcast_id"),
             )
 
     total_new_episodes = sum(
         len(episode_data["new_episodes"]) for episode_data in extracted_episodes
     )
-    logger.info(
+    logging.info(
         "Extraction complete. Processed podcasts=%d, total_new_episodes=%d",
         len(podcasts),
         total_new_episodes,
@@ -257,6 +325,6 @@ def extract_new_episodes(conn: connection) -> list[dict]:
 
 if __name__ == "__main__":
     # Run locally for testing
-    url = "https://media.rss.com/peopleofculture/feed.xml"
-    a = get_episodes_from_rss(url)
+    url = "https://media.rss.com/cheekyshenaniganspodcast/feed.xml"
+    a = get_episodes_from_rss(url)[8]
     pprint(a)

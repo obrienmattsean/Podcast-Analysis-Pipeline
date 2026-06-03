@@ -4,9 +4,7 @@ import logging
 from datetime import datetime
 
 from model import ValidatedEpisode
-from pydantic import ValidationError
-
-logger = logging.getLogger(__name__)
+from pydantic import HttpUrl, ValidationError
 
 
 def get_audio_link_from_entry(entry: dict) -> str:
@@ -29,7 +27,7 @@ def get_audio_link_from_entry(entry: dict) -> str:
     for link in links:
         if link.get("type", "").startswith("audio/"):
             audio_link = link.get("href")
-            logger.debug("Found audio link: %s", audio_link)
+            logging.debug("Found audio link: %s", audio_link)
             return audio_link
     raise ValueError("No audio link found in entry")
 
@@ -57,7 +55,7 @@ def parse_episode(episode: dict, podcast_id: int) -> ValidatedEpisode:
     published_at = datetime(*episode["published_parsed"][:6])
     title = episode.get("title", "").strip()
 
-    logger.debug(
+    logging.debug(
         "Parsing episode podcast_id=%s title=%s published_at=%s",
         podcast_id,
         title,
@@ -67,8 +65,9 @@ def parse_episode(episode: dict, podcast_id: int) -> ValidatedEpisode:
     return ValidatedEpisode(
         podcast_id=podcast_id,
         title=title,
-        audio_link=get_audio_link_from_entry(episode),  # ty: ignore[invalid-argument-type]
+        audio_link=HttpUrl(get_audio_link_from_entry(episode)),
         published_at=published_at,
+        duration_seconds=episode.get("itunes_duration"),
     )
 
 
@@ -98,10 +97,10 @@ def transform_episodes_for_podcast(podcast_episodes_data: dict) -> list[Validate
     raw_episodes = podcast_episodes_data.get("new_episodes", [])
 
     if not isinstance(podcast_id, int):
-        logger.error("Invalid or missing podcast_id=%s, skipping transform", podcast_id)
+        logging.error("Invalid or missing podcast_id=%s, skipping transform", podcast_id)
         return []
 
-    logger.info(
+    logging.info(
         "Transforming episodes for podcast id=%s title=%s count=%d",
         podcast_id,
         podcast_title,
@@ -114,14 +113,14 @@ def transform_episodes_for_podcast(podcast_episodes_data: dict) -> list[Validate
             parsed = parse_episode(raw_episode, podcast_id=podcast_id)
             transformed_episodes.append(parsed)
         except (ValueError, ValidationError):
-            logger.exception(
+            logging.exception(
                 "Failed to parse episode for podcast id=%s title=%s",
                 podcast_id,
                 podcast_title,
             )
             continue
 
-    logger.info(
+    logging.info(
         "Transformed episodes for podcast id=%s title=%s successful=%d failed=%d",
         podcast_id,
         podcast_title,
@@ -159,7 +158,7 @@ def transform_all_podcast_episodes(podcast_episodes_list: list[dict]) -> list[di
     if not isinstance(podcast_episodes_list, list):
         raise ValueError("Input must be a list of podcast data.")
 
-    logger.info(
+    logging.info(
         "Starting transform for %d podcasts",
         len(podcast_episodes_list),
     )
@@ -175,13 +174,13 @@ def transform_all_podcast_episodes(podcast_episodes_list: list[dict]) -> list[di
             }
             transformed_all.append(transformed_data)
         except Exception:
-            logger.exception(
+            logging.exception(
                 "Failed to transform episodes for podcast title=%s",
                 podcast_data.get("podcast_title", "unknown"),
             )
 
     total_transformed = sum(len(p.get("new_episodes") or []) for p in transformed_all)
-    logger.info(
+    logging.info(
         "Transform complete. Processed podcasts=%d total_episodes=%d",
         len(podcast_episodes_list),
         total_transformed,

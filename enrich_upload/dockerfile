@@ -1,0 +1,12 @@
+FROM public.ecr.aws/lambda/python:3.14
+
+COPY requirements.txt ${LAMBDA_TASK_ROOT}
+
+RUN pip install -r requirements.txt
+
+COPY enrichment_functions.py ${LAMBDA_TASK_ROOT}
+COPY enrichment_upload_handler.py ${LAMBDA_TASK_ROOT}
+COPY upload_functions.py ${LAMBDA_TASK_ROOT}
+COPY connection_functions.py ${LAMBDA_TASK_ROOT}
+
+CMD [ "enrichment_upload_handler.lambda_handler" ]
