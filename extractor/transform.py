@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 
 from model import ValidatedEpisode
-from pydantic import ValidationError
+from pydantic import HttpUrl, ValidationError
 
 
 def get_audio_link_from_entry(entry: dict) -> str:
@@ -65,7 +65,7 @@ def parse_episode(episode: dict, podcast_id: int) -> ValidatedEpisode:
     return ValidatedEpisode(
         podcast_id=podcast_id,
         title=title,
-        audio_link=get_audio_link_from_entry(episode),  # ty: ignore
+        audio_link=HttpUrl(get_audio_link_from_entry(episode)),
         published_at=published_at,
         duration_seconds=episode.get("itunes_duration"),
     )
