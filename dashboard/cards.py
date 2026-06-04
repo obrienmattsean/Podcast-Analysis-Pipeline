@@ -33,6 +33,12 @@ _BRAND_SAFETY_COLOR_MAP: dict[str, tuple[str, str]] = {
     "red": ("#f8d7da", "#842029"),
 }
 
+_SENTIMENT_COLOR_MAP: dict[str, tuple[str, str]] = {
+    "green": ("#dcfce7", "#166534"),
+    "red": ("#f8d7da", "#842029"),
+    "gray": ("#e9ecef", "#495057"),
+}
+
 
 def _sentiment_label(score: float) -> tuple[str, _BadgeColor]:
     """Return (label, badge_color) for a sentiment score.
@@ -74,6 +80,7 @@ def episode_card(episode: dict) -> None:
     score = episode.get("sentiment_score")
     brand_safety_score = episode.get("brand_safety_score")
     summary = episode.get("summary")
+    keywords = episode.get("keywords", [])
     time_since_published = episode.get("time_since_published") or ""
 
     with st.container(border=True):
@@ -84,12 +91,31 @@ def episode_card(episode: dict) -> None:
             st.subheader(episode_title, anchor=False, divider=False)
             if score is not None:
                 sent_label, sent_color = _sentiment_label(float(score))
-                st.badge(sent_label, color=sent_color)
+                sent_bg, sent_text = _SENTIMENT_COLOR_MAP[sent_color]
+                _pill = (
+                    "padding:4px 10px;border-radius:12px;"
+                    "font-size:0.82rem;font-weight:600;white-space:nowrap;"
+                )
+                sent_pill = (
+                    f'<span style="background-color:{sent_bg};color:{sent_text};{_pill}">'
+                    f"{sent_label}</span>"
+                )
+                kw_pills = "".join(
+                    f'<span style="background-color:#dbeafe;color:#1e40af;{_pill}">'
+                    f"{kw}</span>"
+                    for kw in (keywords or [])[:5]
+                )
+                st.markdown(
+                    '<div style="display:flex;flex-wrap:wrap;gap:6px;'
+                    f'align-items:center;">{sent_pill}{kw_pills}</div>',
+                    unsafe_allow_html=True,
+                )
             if summary:
                 st.caption(summary)
 
         sep.markdown(
-            '<div style="background-color:#dee2e6;width:2px;min-height:120px;margin:0 auto;"></div>',
+            '<div style="background-color:#dee2e6;width:2px;min-height:120px;'
+            'margin:0 auto;"></div>',
             unsafe_allow_html=True,
         )
 
