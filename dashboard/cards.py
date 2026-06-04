@@ -12,20 +12,20 @@ _BadgeColor = Literal[
 _STOPWORDS: frozenset[str] = frozenset({"the", "a", "an", "of", "in", "on", "at", "to", "for"})
 
 
-def _brand_safety_label(score: int) -> tuple[str, str]:
-    """Return (label, hex_color) for a brand safety score.
+def _brand_safety_label(score: int) -> tuple[str, str, str]:
+    """Return (label, bg_color, text_color) for a brand safety score.
 
     Args:
         score: Brand safety score between 0 and 100.
 
     Returns:
-        tuple[str, str]: A (label, hex_color) pair.
+        tuple[str, str, str]: A (label, bg_color, text_color) triple.
     """
     if score >= 70:
-        return f"Brand Safe {score}/100", "#28a745"
+        return f"\U0001F6E1\uFE0F Brand safe \u00B7 {score}/100", "#dcfce7", "#166534"
     if score >= 40:
-        return f"Brand Safe {score}/100", "#fd7e14"
-    return f"Unsafe {score}/100", "#dc3545"
+        return f"\U0001F6E1\uFE0F Brand safe \u00B7 {score}/100", "#fff3cd", "#856404"
+    return f"\u26A0\uFE0F Unsafe \u00B7 {score}/100", "#f8d7da", "#842029"
 
 
 def _sentiment_label(score: float) -> tuple[str, _BadgeColor]:
@@ -129,11 +129,11 @@ def episode_card(episode: dict) -> None:
                 unsafe_allow_html=True,
             )
             if brand_safety_score is not None:
-                bs_label, bs_color = _brand_safety_label(int(brand_safety_score))
+                bs_label, bs_bg, bs_color = _brand_safety_label(int(brand_safety_score))
                 right.markdown(
                     f'<p style="text-align:right;margin-top:8px;">'
-                    f'<span style="background-color:{bs_color};color:white;'
-                    f'padding:5px 12px;border-radius:14px;font-size:14px;font-weight:600;">'
+                    f'<span style="background-color:{bs_bg};color:{bs_color};'
+                    f'padding:5px 12px;border-radius:20px;font-size:13px;font-weight:600;">'
                     f"{bs_label}</span></p>",
                     unsafe_allow_html=True,
                 )

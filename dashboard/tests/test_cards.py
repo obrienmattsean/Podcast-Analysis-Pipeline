@@ -12,9 +12,9 @@ def base_episode() -> dict:
         "episode_title": "Test Episode",
         "podcast_title": "Test Podcast",
         "sentiment_score": 0.8,
+        "brand_safety_score": 92,
         "summary": "A great episode.",
         "time_since_published": "3 hours ago",
-        "flagged": False,
         "keywords": [],
     }
 
@@ -82,7 +82,7 @@ def test_build_badge_row_empty_score_and_no_keywords_returns_empty_string() -> N
 
 
 def test_episode_card_brand_safe_renders_green_html(base_episode: dict) -> None:
-    base_episode["flagged"] = False
+    base_episode["brand_safety_score"] = 92
 
     with patch("cards.st") as mock_st:
         mock_st.columns.return_value = [MagicMock(), MagicMock()]
@@ -91,12 +91,13 @@ def test_episode_card_brand_safe_renders_green_html(base_episode: dict) -> None:
     right_col = mock_st.columns.return_value[1]
     markdown_calls = [str(c) for c in right_col.markdown.call_args_list]
     combined = " ".join(markdown_calls)
-    assert "#28a745" in combined
-    assert "Brand Safe" in combined
+    assert "#dcfce7" in combined
+    assert "#166534" in combined
+    assert "Brand safe" in combined
 
 
 def test_episode_card_not_brand_safe_renders_red_html(base_episode: dict) -> None:
-    base_episode["flagged"] = True
+    base_episode["brand_safety_score"] = 20
 
     with patch("cards.st") as mock_st:
         mock_st.columns.return_value = [MagicMock(), MagicMock()]
@@ -105,12 +106,13 @@ def test_episode_card_not_brand_safe_renders_red_html(base_episode: dict) -> Non
     right_col = mock_st.columns.return_value[1]
     markdown_calls = [str(c) for c in right_col.markdown.call_args_list]
     combined = " ".join(markdown_calls)
-    assert "#dc3545" in combined
-    assert "Not Brand Safe" in combined
+    assert "#f8d7da" in combined
+    assert "#842029" in combined
+    assert "Unsafe" in combined
 
 
-def test_episode_card_missing_flagged_defaults_to_brand_safe(base_episode: dict) -> None:
-    del base_episode["flagged"]
+def test_episode_card_missing_brand_safety_score_omits_badge(base_episode: dict) -> None:
+    del base_episode["brand_safety_score"]
 
     with patch("cards.st") as mock_st:
         mock_st.columns.return_value = [MagicMock(), MagicMock()]
@@ -119,8 +121,8 @@ def test_episode_card_missing_flagged_defaults_to_brand_safe(base_episode: dict)
     right_col = mock_st.columns.return_value[1]
     markdown_calls = [str(c) for c in right_col.markdown.call_args_list]
     combined = " ".join(markdown_calls)
-    assert "#28a745" in combined
-    assert "Brand Safe" in combined
+    assert "Brand safe" not in combined
+    assert "Unsafe" not in combined
 
 
 # ---------------------------------------------------------------------------
