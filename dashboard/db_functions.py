@@ -53,6 +53,7 @@ def get_all_podcasts(conn: connection) -> list[dict]:
             """
         )
         rows = cursor.fetchall()
+
         return [
             {
                 "podcast_title": row[0],
@@ -64,6 +65,35 @@ def get_all_podcasts(conn: connection) -> list[dict]:
             }
             for row in rows
         ]
+
+
+def get_recent_average_sentiment(conn: connection, podcast_id: int, limit: int = 5) -> list[dict]:
+    """Fetch the average sentiment score for the most recent episodes of a specific podcast.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        podcast_id: The ID of the podcast to fetch recent sentiment scores for.
+        limit: Maximum number of recent episodes to include. Defaults to 5.
+    Returns:
+        float: The average sentiment score across the most recent episodes.
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            WITH recent_episodes AS (
+                SELECT sentiment_score
+                FROM episodes
+                WHERE podcast_id = %s
+                ORDER BY pub_date DESC
+                LIMIT %s
+            )
+            SELECT AVG(re.sentiment_score) AS avg_sentiment
+            FROM recent_episodes re;
+            """,
+            (podcast_id, limit),
+        )
+        row = cursor.fetchone()
+    return row[0]
 
 
 def trigger_pipeline(rss_url: str) -> str:
@@ -294,3 +324,40 @@ def get_sentiment_over_time(conn: connection, podcast_id: int) -> list[dict]:
         )
         rows = cursor.fetchall()
         return [{"pub_date": row[0], "sentiment_score": row[1]} for row in rows]
+
+
+def get_historical_average_sentiment(
+    conn: connection, podcast_id: int, limit: int = 5
+) -> float | None:
+    """Fetch the average sentiment score for a historical window of episodes,
+    skipping the most recent 'limit' episodes.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        podcast_id: The ID of the podcast.
+        limit: The number of recent episodes to skip, and the max number of
+               historical episodes to average. Defaults to 5.
+
+    Returns:
+        float: The average sentiment score of the historical episodes,
+               or None if no episodes match.
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            WITH historical_episodes AS (
+                SELECT sentiment_score
+                FROM episodes
+                WHERE podcast_id = %s
+                ORDER BY pub_date DESC
+                LIMIT %s
+                OFFSET %s
+            )
+            SELECT AVG(sentiment_score) AS avg_sentiment
+            FROM historical_episodes;
+            """,
+            (podcast_id, limit, limit),  # First 'limit' is LIMIT, second is OFFSET
+        )
+        row = cursor.fetchone()
+
+    return row[0] if row and row[0] is not None else None

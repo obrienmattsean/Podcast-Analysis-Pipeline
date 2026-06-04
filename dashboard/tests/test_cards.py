@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from cards import _build_badge_row, episode_card
+from cards import _build_badge_row, episode_card, podcast_card
 
 
 @pytest.fixture
@@ -150,3 +150,85 @@ def test_episode_card_missing_keywords_renders_no_keyword_html(base_episode: dic
 
     left_col = mock_st.columns.return_value[0]
     left_col.__enter__.return_value.markdown.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# podcast_card
+# ---------------------------------------------------------------------------
+
+
+def test_podcast_card_renders_episode_and_avg_sentiment_metrics() -> None:
+    podcast = {
+        "podcast_title": "AI Weekly",
+        "num_episodes": 42,
+        "avg_sentiment_score": 0.76,
+        "historical_sentiment_score": 0.64,
+        "last_updated": "2 days ago",
+        "podcast_id": 1,
+    }
+
+    with patch("cards.st") as mock_st:
+        mock_st.columns.return_value = [MagicMock(), MagicMock()]
+        podcast_card(podcast)
+
+    col_episodes, col_sentiment = mock_st.columns.return_value
+    col_episodes.metric.assert_called_once_with("Episodes", 42)
+    call_args = col_sentiment.metric.call_args
+    assert call_args.args == ("Avg Sentiment", "+0.76")
+    assert call_args.kwargs["delta"] == "+0.12"
+    assert "top 5 most recent episodes" in call_args.kwargs["help"]
+    assert "previous 5-episode average" in call_args.kwargs["help"]
+
+
+def test_podcast_card_formats_negative_delta() -> None:
+    podcast = {
+        "podcast_title": "AI Weekly",
+        "num_episodes": 10,
+        "avg_sentiment_score": -0.9,
+        "historical_sentiment_score": -0.5,
+        "last_updated": "1 hour ago",
+        "podcast_id": 9,
+    }
+
+    with patch("cards.st") as mock_st:
+        mock_st.columns.return_value = [MagicMock(), MagicMock()]
+        podcast_card(podcast)
+
+    col_sentiment = mock_st.columns.return_value[1]
+    call_kwargs = col_sentiment.metric.call_args.kwargs
+    assert call_kwargs["delta"] == "-0.40"
+
+
+def test_podcast_card_without_historical_score_has_no_delta() -> None:
+    podcast = {
+        "podcast_title": "AI Weekly",
+        "num_episodes": 10,
+        "avg_sentiment_score": 0.0,
+        "last_updated": "1 hour ago",
+        "podcast_id": 9,
+    }
+
+    with patch("cards.st") as mock_st:
+        mock_st.columns.return_value = [MagicMock(), MagicMock()]
+        podcast_card(podcast)
+
+    col_sentiment = mock_st.columns.return_value[1]
+    call_kwargs = col_sentiment.metric.call_args.kwargs
+    assert call_kwargs["delta"] is None
+
+
+def test_podcast_card_missing_score_shows_na_without_sentiment_pill() -> None:
+    podcast = {
+        "podcast_title": "AI Weekly",
+        "num_episodes": 10,
+        "avg_sentiment_score": None,
+        "last_updated": "1 hour ago",
+        "podcast_id": 9,
+    }
+
+    with patch("cards.st") as mock_st:
+        mock_st.columns.return_value = [MagicMock(), MagicMock()]
+        podcast_card(podcast)
+
+    col_sentiment = mock_st.columns.return_value[1]
+    col_sentiment.metric.assert_not_called()
