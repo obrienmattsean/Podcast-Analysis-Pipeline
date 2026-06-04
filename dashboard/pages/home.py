@@ -8,9 +8,11 @@ st.markdown(
     <style>
     .hero { text-align: center; padding: 3.5rem 0 2rem; }
     .hero-wordmark {
-        font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
-        opacity: 0.4; color: var(--text-color); margin: 0 0 1.5rem;
+        font-size: 3rem; letter-spacing: 0.2em; text-transform: uppercase;
+        opacity: 0.6; color: var(--text-color); margin: 0 0 1.5rem;
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
     }
+    .hero-wordmark img { height: 120px; width: 120px; }
     .hero-title {
         font-size: 3rem; font-weight: 700; letter-spacing: -0.04em;
         line-height: 1.1; color: var(--text-color); margin: 0;
@@ -25,21 +27,10 @@ st.markdown(
     </style>
     <div class="hero">
         <p class="hero-wordmark">
-            <svg xmlns="http://www.w3.org/2000/svg" height="14"
-                viewBox="0 0 239.5 239.5" width="14"
-                style="vertical-align:middle;opacity:0.4;margin-right:0.5rem"
-            ><path d="M239.5,120.8H0v-2h239.5V120.8z
-                M120.8,0h-2v239.5h2V0z
-                M205.2,203.8L35.8,34.4l-1.4,1.4l169.4,169.4 L205.2,203.8z
-                M205.2,35.8l-1.4-1.4L34.4,203.8l1.4,1.4L205.2,35.8z
-                M229,168.9L11.4,68.9l-0.8,1.8l217.7,100L229,168.9z
-                M170.7,11.3l-1.8-0.8l-100,217.7l1.8,0.8L170.7,11.3z
-                M162.3,231.7L79.1,7.1l-1.9,0.7l83.2,224.6L162.3,231.7z
-                M232.4,79.1 l-0.7-1.9L7.1,160.4l0.7,1.9L232.4,79.1z"
-            fill="currentColor"/></svg>
+            <img src="app/static/podex-logo.svg" alt="Podex logo" />
             PODEX
         </p>
-        <h1 class="hero-title">Your podcast intelligence,<br>all in one place.</h1>
+        <h1 class="hero-title">Understand every conversation.</h1>
     </div>
     """,
     unsafe_allow_html=True,
@@ -79,7 +70,7 @@ st.markdown(
 )
 
 with st.container(border=True):
-    st.markdown("### Understand every episode, at a glance.")
+    st.markdown("### Your podcast library, finally making sense.")
     st.caption("Track shows, analyse sentiment, surface keywords and search episode content.")
     st.write("")
     col1, col2, col3, col4 = st.columns(4)
@@ -87,19 +78,19 @@ with st.container(border=True):
     with col1:
         with st.container(border=True, height=100):
             st.markdown("**Sentiment**")
-            st.caption("Episode-level tone analysis")
+            st.caption("Tone scored per episode.")
 
     with col2:
         with st.container(border=True, height=100):
             st.markdown("**Keywords**")
-            st.caption("Top topics extracted automatically")
+            st.caption("Top topics, auto-extracted.")
 
     with col3:
         with st.container(border=True, height=100):
             st.markdown("**AI Search**")
-            st.caption("Semantic search across content")
+            st.caption("Semantic search across all episodes.")
 
     with col4:
         with st.container(border=True, height=100):
             st.markdown("**Brand Safety**")
-            st.caption("Flag episodes before committing budget")
+            st.caption("Flag risky content before you commit.")

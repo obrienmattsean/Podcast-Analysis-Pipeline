@@ -1,9 +1,11 @@
 """Visualization components for podcast analysis dashboard."""
 
+import altair as alt
 import circlify
 import matplotlib.pyplot as plt
+import pandas as pd
 import streamlit as st
-from db_functions import get_keywords_for_podcast
+from db_functions import get_keywords_for_podcast, get_sentiment_over_time
 from psycopg2.extensions import connection
 
 # Colours taken directly from .streamlit/config.toml
@@ -58,7 +60,7 @@ def render_keyword_bubble_chart(conn: connection, podcast_id: int) -> None:
 
     # --- CONFIGURING DIMENSIONS HERE ---
     # Width = 7 inches, Height = 5 inches
-    fig, ax = plt.subplots(figsize=(7, 5))
+    fig, ax = plt.subplots(figsize=(3.5, 2.5))
 
     fig.patch.set_facecolor(_BG_COLOR)
     ax.set_facecolor(_BG_COLOR)
@@ -86,3 +88,75 @@ def render_keyword_bubble_chart(conn: connection, podcast_id: int) -> None:
     plt.tight_layout(pad=0)
 
     st.pyplot(fig, use_container_width=True)
+
+
+def render_sentiment_line_chart(conn: connection, podcast_id: int) -> None:
+    """Render an Altair line graph of sentiment score over time for a podcast.
+
+    Each point represents an episode plotted by its publication date and
+    sentiment score. The line connects episodes in chronological order.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        podcast_id: The ID of the podcast to generate the chart for.
+
+    Example:
+        >>> render_sentiment_line_chart(conn, podcast_id=1)
+    """
+    data = get_sentiment_over_time(conn, podcast_id)
+
+    if not data:
+        st.info("No sentiment data available for this podcast yet.")
+        return
+
+    df = pd.DataFrame(data)
+    df["pub_date"] = pd.to_datetime(df["pub_date"])
+
+    line = (
+        alt.Chart(df)
+        .mark_line(color="#cb785c", strokeWidth=2)
+        .encode(
+            x=alt.X("pub_date:T", title="Publication Date", axis=alt.Axis(format="%b %Y")),
+            y=alt.Y(
+                "sentiment_score:Q",
+                title="Sentiment Score",
+                scale=alt.Scale(domain=[-1, 1]),
+            ),
+            tooltip=[
+                alt.Tooltip("pub_date:T", title="Date", format="%d %b %Y"),
+                alt.Tooltip("sentiment_score:Q", title="Sentiment", format=".2f"),
+            ],
+        )
+    )
+
+    points = (
+        alt.Chart(df)
+        .mark_point(color="#cb785c", filled=True, size=60)
+        .encode(
+            x=alt.X("pub_date:T"),
+            y=alt.Y("sentiment_score:Q"),
+            tooltip=[
+                alt.Tooltip("pub_date:T", title="Date", format="%d %b %Y"),
+                alt.Tooltip("sentiment_score:Q", title="Sentiment", format=".2f"),
+            ],
+        )
+    )
+
+    zero_line = (
+        alt.Chart(pd.DataFrame({"y": [0]}))
+        .mark_rule(color="#d3d2ca", strokeDash=[4, 4], strokeWidth=1)
+        .encode(y=alt.Y("y:Q"))
+    )
+
+    chart = (
+        (zero_line + line + points)
+        .properties(height=300)
+        .configure_axis(
+            labelColor="#3d3a2a",
+            titleColor="#3d3a2a",
+            gridColor="#ecebe3",
+        )
+        .configure_view(strokeWidth=0, fill="transparent")
+    )
+
+    st.altair_chart(chart, use_container_width=True)

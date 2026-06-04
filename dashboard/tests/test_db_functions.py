@@ -9,6 +9,7 @@ from db_functions import (
     format_tracked_since,
     get_all_podcasts,
     get_recent_episodes,
+    get_sentiment_over_time,
     trigger_pipeline,
 )
 
@@ -213,3 +214,65 @@ def test_get_recent_episodes_passes_limit_to_query(mock_conn: MagicMock) -> None
     cursor = mock_conn.cursor.return_value.__enter__.return_value
     executed_params = cursor.execute.call_args[0][1]
     assert executed_params == (5,)
+
+
+# ---------------------------------------------------------------------------
+# get_sentiment_over_time
+# ---------------------------------------------------------------------------
+
+
+def test_get_sentiment_over_time_with_no_rows_returns_empty_list(mock_conn: MagicMock) -> None:
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = []
+
+    result = get_sentiment_over_time(mock_conn, podcast_id=1)
+
+    assert result == []
+
+
+def test_get_sentiment_over_time_maps_rows_to_expected_dict_fields(
+    mock_conn: MagicMock,
+) -> None:
+    pub_date = datetime(2024, 5, 10)
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
+        (pub_date, 0.65),
+    ]
+
+    result = get_sentiment_over_time(mock_conn, podcast_id=3)
+
+    assert len(result) == 1
+    assert result[0]["pub_date"] == pub_date
+    assert result[0]["sentiment_score"] == 0.65
+
+
+def test_get_sentiment_over_time_returns_all_rows(mock_conn: MagicMock) -> None:
+    rows = [
+        (datetime(2024, 1, 1), 0.1),
+        (datetime(2024, 2, 1), -0.3),
+        (datetime(2024, 3, 1), 0.7),
+    ]
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = rows
+
+    result = get_sentiment_over_time(mock_conn, podcast_id=5)
+
+    assert len(result) == 3
+
+
+def test_get_sentiment_over_time_passes_podcast_id_to_query(mock_conn: MagicMock) -> None:
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = []
+
+    get_sentiment_over_time(mock_conn, podcast_id=42)
+
+    cursor = mock_conn.cursor.return_value.__enter__.return_value
+    executed_params = cursor.execute.call_args[0][1]
+    assert executed_params == (42,)
+
+
+def test_get_sentiment_over_time_handles_none_sentiment_score(mock_conn: MagicMock) -> None:
+    pub_date = datetime(2024, 4, 1)
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
+        (pub_date, None),
+    ]
+
+    result = get_sentiment_over_time(mock_conn, podcast_id=1)
+
+    assert result[0]["sentiment_score"] is None

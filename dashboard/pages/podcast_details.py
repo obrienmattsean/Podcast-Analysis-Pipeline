@@ -7,7 +7,7 @@ from db_functions import (
     get_all_podcasts,
     get_db_connection,
 )
-from visualisation import render_keyword_bubble_chart
+from visualisation import render_keyword_bubble_chart, render_sentiment_line_chart
 
 # ── Query params ────────────────────────────────────────────────────────────
 podcast_title = st.query_params.get("podcast_title", "Unknown Podcast")
@@ -37,14 +37,14 @@ if podcast:
     st.divider()
 
 # ── Charts grid ─────────────────────────────────────────────────────────────
-chart_col, spacer_col = st.columns([3, 2], gap="large")
+chart_col, sentiment_col = st.columns(2, gap="large")
 
 with chart_col:
     st.subheader("Top Keywords")
     st.caption("Bubble size reflects how frequently each topic appears across episodes.")
     render_keyword_bubble_chart(conn, podcast_id)
 
-with spacer_col:
-    # Placeholder — additional charts (e.g. sentiment over time) can go here
-    st.subheader("Coming Soon")
-    st.caption("Sentiment trend and episode breakdown charts will appear here.")
+with sentiment_col:
+    st.subheader("Sentiment Over Time")
+    st.caption("Sentiment score for each episode, plotted chronologically.")
+    render_sentiment_line_chart(conn, podcast_id)

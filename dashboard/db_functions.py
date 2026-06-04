@@ -265,3 +265,32 @@ def get_keywords_for_podcast(conn: connection, podcast_id: int) -> list[str]:
         rows = cursor.fetchall()
 
         return list(rows)
+
+
+def get_sentiment_over_time(conn: connection, podcast_id: int) -> list[dict]:
+    """Fetch the sentiment score per episode for a podcast, ordered by publication date.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        podcast_id: The ID of the podcast to fetch sentiment data for.
+
+    Returns:
+        list[dict]: List of dicts, each containing ``pub_date`` and
+            ``sentiment_score``, ordered chronologically.
+
+    Example:
+        >>> get_sentiment_over_time(conn, podcast_id=1)
+        [{'pub_date': datetime(2024, 1, 1), 'sentiment_score': 0.5}, ...]
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT pub_date, sentiment_score
+            FROM episodes
+            WHERE podcast_id = %s
+            ORDER BY pub_date ASC;
+            """,
+            (podcast_id,),
+        )
+        rows = cursor.fetchall()
+        return [{"pub_date": row[0], "sentiment_score": row[1]} for row in rows]
