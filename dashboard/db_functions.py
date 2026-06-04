@@ -34,13 +34,15 @@ def get_all_podcasts(conn: connection) -> list[dict]:
         conn: An open psycopg2 database connection.
 
     Returns:
-        list[dict]: List of podcast dicts, each containing ``podcast_title``, ``num_episodes``,
-            ``avg_sentiment_score``, ``tracked_since``, and ``last_updated``.
+        list[dict]: List of podcast dicts, each containing ``podcast_id``,
+            ``podcast_title``, ``num_episodes``, ``avg_sentiment_score``,
+            ``tracked_since``, and ``last_updated``.
     """
     with conn.cursor() as cursor:
         cursor.execute(
             """
-            SELECT p.title AS podcast_title,
+            SELECT p.podcast_id,
+            p.title AS podcast_title,
             COUNT(e.episode_id) AS num_episodes,
             ROUND(AVG(e.sentiment_score)::numeric, 2) AS avg_sentiment_score,
             MIN(e.pub_date) AS tracked_since,
@@ -54,11 +56,12 @@ def get_all_podcasts(conn: connection) -> list[dict]:
         rows = cursor.fetchall()
         return [
             {
-                "podcast_title": row[0],
-                "num_episodes": row[1],
-                "avg_sentiment_score": row[2],
-                "tracked_since": row[3],
-                "last_updated": row[4],
+                "podcast_id": row[0],
+                "podcast_title": row[1],
+                "num_episodes": row[2],
+                "avg_sentiment_score": row[3],
+                "tracked_since": row[4],
+                "last_updated": row[5],
             }
             for row in rows
         ]
@@ -209,6 +212,87 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
                 "sentiment_score": row[4],
                 "flagged": row[5],
                 "keywords": row[6],
+            }
+            for row in rows
+        ]
+
+
+def get_episode_sentiment_by_podcast(conn: connection) -> list[dict]:
+    """Fetch sentiment scores and publish dates for every episode, grouped by podcast.
+
+    Args:
+        conn: An open psycopg2 database connection.
+
+    Returns:
+        list[dict]: List of dicts, each containing ``podcast_title``,
+            ``episode_title``, ``pub_date``, and ``sentiment_score``.
+            Rows are ordered by podcast title then episode publish date.
+
+    Example:
+        >>> rows = get_episode_sentiment_by_podcast(conn)
+        >>> rows[0].keys()
+        dict_keys(['podcast_title', 'episode_title', 'pub_date', 'sentiment_score'])
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT p.title AS podcast_title,
+                e.title AS episode_title,
+                e.pub_date,
+                e.sentiment_score
+            FROM episodes e
+            JOIN podcasts p USING (podcast_id)
+            ORDER BY p.title, e.pub_date;
+            """
+        )
+        rows = cursor.fetchall()
+        return [
+            {
+                "podcast_title": row[0],
+                "episode_title": row[1],
+                "pub_date": row[2],
+                "sentiment_score": row[3],
+            }
+            for row in rows
+        ]
+
+
+def get_episode_sentiment_for_podcast(
+    conn: connection, podcast_id: int
+) -> list[dict]:
+    """Fetch sentiment scores and publish dates for all episodes of a single podcast.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        podcast_id: The ID of the podcast to fetch episode sentiment for.
+
+    Returns:
+        list[dict]: List of dicts ordered by ``pub_date`` ascending, each
+            containing ``episode_title``, ``pub_date``, and ``sentiment_score``.
+
+    Example:
+        >>> rows = get_episode_sentiment_for_podcast(conn, 42)
+        >>> rows[0].keys()
+        dict_keys(['episode_title', 'pub_date', 'sentiment_score'])
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT e.title AS episode_title,
+                e.pub_date,
+                e.sentiment_score
+            FROM episodes e
+            WHERE e.podcast_id = %s
+            ORDER BY e.pub_date ASC;
+            """,
+            (podcast_id,),
+        )
+        rows = cursor.fetchall()
+        return [
+            {
+                "episode_title": row[0],
+                "pub_date": row[1],
+                "sentiment_score": row[2],
             }
             for row in rows
         ]
