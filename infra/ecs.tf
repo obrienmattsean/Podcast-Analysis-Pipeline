@@ -35,7 +35,7 @@ resource "aws_security_group" "ecs_tasks" {
 # ECS Task Definition for Streamlit Dashboard
 # ==============================================================================
 resource "aws_ecs_task_definition" "streamlit" {
-  family                   = "c23-ecs-cluster-dashboard"
+  family                   = "c23-podex-ai-dashboard-ecs"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -103,7 +103,7 @@ data "aws_ecs_cluster" "podex_host_cluster" {
 
 resource "aws_ecs_service" "dashboard" {
   name            = "c23-dashboard-service"
-  cluster         = data.aws_ecs_cluster.podex_host_cluster.name
+  cluster         = data.aws_ecs_cluster.podex_host_cluster.arn
   task_definition = aws_ecs_task_definition.streamlit.arn
   desired_count   = 1
   launch_type     = "FARGATE"
