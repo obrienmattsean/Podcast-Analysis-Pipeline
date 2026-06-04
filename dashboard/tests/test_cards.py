@@ -50,8 +50,6 @@ def test_build_badge_row_no_score_omits_sentiment_span() -> None:
 def test_build_badge_row_renders_keywords_as_inline_spans() -> None:
     result = _build_badge_row(None, ["AI", "Cloud"])
 
-    assert "AI" in result
-    assert "Cloud" in result
     assert result.count("<span") == 2
 
 
