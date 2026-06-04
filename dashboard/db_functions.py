@@ -8,6 +8,7 @@ import boto3
 from dotenv import load_dotenv
 from psycopg2 import connect
 from psycopg2.extensions import connection
+from psycopg2.extras import RealDictCursor
 
 load_dotenv()
 
@@ -165,7 +166,7 @@ def format_time_since_published(pub_date: datetime) -> str:
     return f"{days} days ago"
 
 
-def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
+def get_recent_episodes(conn: connection, limit: int = 15) -> list[dict]:
     """Fetch the most recent episodes from the database.
 
     Args:
@@ -189,7 +190,8 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             COALESCE(
                 ARRAY_AGG(ent.name ORDER BY ent.name) FILTER (WHERE ent.name IS NOT NULL),
                 ARRAY[]::text[]
-            ) AS keywords
+            ) AS keywords,
+            e.episode_id
             FROM episodes e
             JOIN podcasts p USING (podcast_id)
             LEFT JOIN episode_entities ee USING (episode_id)
@@ -211,6 +213,7 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
                 "sentiment_score": row[4],
                 "flagged": row[5],
                 "keywords": row[6],
+                "episode_id": row[7],
             }
             for row in rows
         ]
@@ -265,3 +268,44 @@ def get_keywords_for_podcast(conn: connection, podcast_id: int) -> list[str]:
         rows = cursor.fetchall()
 
         return list(rows)
+
+
+def get_flagged_categories_given_episode(conn: connection, episode_id: int) -> list[str]:
+    """Fetch the categories of all flags raised for a given episode.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        episode_id: The ID of the episode to fetch flagged categories for.
+    Returns:
+        list[str]: A list of category strings for all flags raised on the episode.
+    """
+    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        cursor.execute(
+            """
+            SELECT
+                harassment,
+                harassment_threatening,
+                hate,
+                hate_threatening,
+                illicit,
+                illicit_violent,
+                self_harm,
+                self_harm_instructions,
+                self_harm_intent,
+                sexual,
+                sexual_minors,
+                violence,
+                violence_graphic
+            FROM episodes
+            WHERE episode_id = %s;
+            """,
+            (episode_id,),
+        )
+        rows = cursor.fetchall()
+        return [category for category, flagged in rows[0].items() if flagged is True]
+
+
+if __name__ == "__main__":
+    conn = get_db_connection()
+    categories = get_flagged_categories_given_episode(conn, 56)
+    print(categories)

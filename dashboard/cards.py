@@ -3,6 +3,7 @@
 from typing import Literal
 
 import streamlit as st
+from db_functions import get_db_connection, get_flagged_categories_given_episode
 
 _BadgeColor = Literal[
     "red", "orange", "yellow", "blue", "green", "violet", "gray", "grey", "primary"
@@ -52,6 +53,18 @@ _SENTIMENT_COLOR_MAP: dict[str, str] = {
 }
 
 
+def _format_category_label(category: str) -> str:
+    """Format unsafe category names for display.
+
+    Args:
+        category: Raw category key (e.g. ``self_harm_intent``).
+
+    Returns:
+        str: Human-friendly label (e.g. ``Self Harm Intent``).
+    """
+    return category.replace("_", " ").title()
+
+
 def _build_badge_row(score: float | None, keywords: list[str]) -> str:
     """Build an HTML string of horizontally laid-out badge pills.
 
@@ -83,6 +96,50 @@ def _build_badge_row(score: float | None, keywords: list[str]) -> str:
     return '<div style="margin-bottom:6px;">' + "".join(spans) + "</div>"
 
 
+def _resolve_flagged_categories(episode: dict) -> list[str]:
+    """Resolve flagged categories from episode payload or database.
+
+    Args:
+        episode: Episode payload rendered by ``episode_card``.
+
+    Returns:
+        list[str]: Unsafe categories for the episode, if available.
+    """
+    payload_categories = episode.get("flagged_categories")
+    if isinstance(payload_categories, list):
+        return payload_categories
+
+    episode_id = episode.get("episode_id")
+    if episode_id is None:
+        return []
+
+    conn = get_db_connection()
+    try:
+        return get_flagged_categories_given_episode(conn, int(episode_id))
+    finally:
+        conn.close()
+
+
+def _build_brand_safety_badge_html(
+    brand_safe_color: str,
+    brand_safe_label: str,
+) -> str:
+    """Build HTML for the brand safety badge.
+
+    Args:
+        brand_safe_color: Hex color for the badge background.
+        brand_safe_label: Badge text label.
+
+    Returns:
+        str: HTML snippet for rendering the badge.
+    """
+    badge_style = (
+        f"background-color:{brand_safe_color};color:white;padding:5px 12px;"
+        "border-radius:14px;font-size:14px;font-weight:600;"
+    )
+    return f'<span style="{badge_style}">{brand_safe_label}</span>'
+
+
 def episode_card(episode: dict) -> None:
     """Render a native Streamlit card for a single episode.
 
@@ -97,9 +154,9 @@ def episode_card(episode: dict) -> None:
     time_since_published = episode.get("time_since_published") or ""
     brand_safe = not episode.get("flagged")
     keywords: list[str] = episode.get("keywords") or []
-
     brand_safe_color = "#28a745" if brand_safe else "#dc3545"
     brand_safe_label = "Brand Safe" if brand_safe else "Not Brand Safe"
+    flagged_categories = _resolve_flagged_categories(episode) if not brand_safe else []
 
     with st.container(border=True):
         left, right = st.columns([4, 1], vertical_alignment="top")
@@ -114,13 +171,22 @@ def episode_card(episode: dict) -> None:
                 f'<p style="text-align:right;margin:0;"><small>{time_since_published}</small></p>',
                 unsafe_allow_html=True,
             )
+            badge_html = _build_brand_safety_badge_html(
+                brand_safe_color=brand_safe_color,
+                brand_safe_label=brand_safe_label,
+            )
             right.markdown(
-                f'<p style="text-align:right;margin-top:8px;">'
-                f'<span style="background-color:{brand_safe_color};color:white;'
-                f'padding:5px 12px;border-radius:14px;font-size:14px;font-weight:600;">'
-                f"{brand_safe_label}</span></p>",
+                f'<p style="text-align:right;margin-top:8px;">{badge_html}</p>',
                 unsafe_allow_html=True,
             )
+            if not brand_safe:
+                with right.popover("ℹ️"):
+                    st.markdown("**Not Safe Categories**")
+                    if flagged_categories:
+                        for category in sorted(set(flagged_categories)):
+                            st.caption(f"• {_format_category_label(category)}")
+                    else:
+                        st.caption("Unsafe categories detected")
         if summary:
             st.caption(summary)
 
