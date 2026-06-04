@@ -73,11 +73,8 @@ def episode_card(episode: dict) -> None:
         left, sep, right = st.columns([5, 0.3, 1.5], vertical_alignment="center")
 
         with left:
-            st.caption(f":primary[**{podcast_title}**]")
+            st.caption(f":primary[**{podcast_title}**] :gray[· {time_since_published}]")
             st.subheader(episode_title, anchor=False, divider=False)
-            if score is not None:
-                sent_label, sent_color = _sentiment_label(float(score))
-                st.badge(sent_label, color=sent_color)
             if summary:
                 st.caption(summary)
 
@@ -87,10 +84,12 @@ def episode_card(episode: dict) -> None:
         )
 
         with right:
-            st.caption(time_since_published)
             if brand_safety_score is not None:
                 bs_label, bs_color = _brand_safety_label(int(brand_safety_score))
                 st.badge(bs_label, color=bs_color)
+            if score is not None:
+                sent_label, sent_color = _sentiment_label(float(score))
+                st.badge(sent_label, color=sent_color)
 
 
 def podcast_card(podcast: dict) -> None:
