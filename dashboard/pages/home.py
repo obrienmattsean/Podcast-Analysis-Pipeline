@@ -24,10 +24,10 @@ st.markdown(
     .feature-badge-wrap { text-align: center; margin-bottom: 1.25rem; }
     </style>
     <div class="hero">
-        <p class="hero-wordmark">
-            <svg xmlns="http://www.w3.org/2000/svg" height="14"
-                viewBox="0 0 239.5 239.5" width="14"
-                style="vertical-align:middle;opacity:0.4;margin-right:0.5rem"
+        <div style="display:inline-flex;align-items:center;gap:1rem;margin-bottom:1.25rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" height="72" width="72"
+                viewBox="0 0 239.5 239.5"
+                style="opacity:0.85;flex-shrink:0;"
             ><path d="M239.5,120.8H0v-2h239.5V120.8z
                 M120.8,0h-2v239.5h2V0z
                 M205.2,203.8L35.8,34.4l-1.4,1.4l169.4,169.4 L205.2,203.8z
@@ -37,9 +37,9 @@ st.markdown(
                 M162.3,231.7L79.1,7.1l-1.9,0.7l83.2,224.6L162.3,231.7z
                 M232.4,79.1 l-0.7-1.9L7.1,160.4l0.7,1.9L232.4,79.1z"
             fill="currentColor"/></svg>
-            PODEX
-        </p>
-        <h1 class="hero-title">Your podcast intelligence,<br>all in one place.</h1>
+            <span class="hero-wordmark" style="margin:0;font-size:1.5rem;">PODEX</span>
+        </div>
+        <h1 class="hero-title">Understand every conversation.</h1>
     </div>
     """,
     unsafe_allow_html=True,
@@ -79,7 +79,7 @@ st.markdown(
 )
 
 with st.container(border=True):
-    st.markdown("### Understand every episode, at a glance.")
+    st.markdown("### Your podcast library, finally making sense.")
     st.caption("Track shows, analyse sentiment, surface keywords and search episode content.")
     st.write("")
     col1, col2, col3, col4 = st.columns(4)
@@ -92,7 +92,7 @@ with st.container(border=True):
     with col2:
         with st.container(border=True, height=100):
             st.markdown("**Keywords**")
-            st.caption("Top topics extracted automatically")
+            st.caption("Auto-extracted topics")
 
     with col3:
         with st.container(border=True, height=100):
@@ -102,4 +102,4 @@ with st.container(border=True):
     with col4:
         with st.container(border=True, height=100):
             st.markdown("**Brand Safety**")
-            st.caption("Flag episodes before committing budget")
+            st.caption("Flag risky episodes early")
