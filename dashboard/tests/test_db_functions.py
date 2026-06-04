@@ -82,7 +82,7 @@ def test_get_all_podcasts_maps_rows_to_expected_dict_fields(mock_conn: MagicMock
     tracked_date = datetime(2024, 3, 10)
     last_updated_date = datetime(2024, 6, 1)
     mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
-        ("The Daily", 42, 0.35, tracked_date, last_updated_date),
+        ("The Daily", 42, 0.35, tracked_date, last_updated_date, 7),
     ]
 
     result = get_all_podcasts(mock_conn)
@@ -93,16 +93,16 @@ def test_get_all_podcasts_maps_rows_to_expected_dict_fields(mock_conn: MagicMock
     assert result[0]["avg_sentiment_score"] == 0.35
     assert result[0]["tracked_since"] == tracked_date
     assert result[0]["last_updated"] == last_updated_date
+    assert result[0]["podcast_id"] == 7
 
 
 def test_get_all_podcasts_returns_all_rows(mock_conn: MagicMock) -> None:
     mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
-        ("Podcast A", 10, 0.1, datetime(2024, 1, 1), datetime(2024, 3, 1)),
-        ("Podcast B", 5, -0.2, datetime(2023, 6, 15), datetime(2024, 2, 1)),
+        ("Podcast A", 10, 0.1, datetime(2024, 1, 1), datetime(2024, 3, 1), 1),
+        ("Podcast B", 5, -0.2, datetime(2023, 6, 15), datetime(2024, 2, 1), 2),
     ]
 
     result = get_all_podcasts(mock_conn)
-
     assert len(result) == 2
     assert result[0]["podcast_title"] == "Podcast A"
     assert result[1]["podcast_title"] == "Podcast B"
