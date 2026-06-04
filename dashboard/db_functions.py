@@ -265,9 +265,3 @@ def get_keywords_for_podcast(conn: connection, podcast_id: int) -> list[str]:
         rows = cursor.fetchall()
 
         return list(rows)
-
-
-if __name__ == "__main__":
-    conn = get_db_connection()
-    episodes = get_keywords_for_podcast(conn, 1)
-    print(episodes)
