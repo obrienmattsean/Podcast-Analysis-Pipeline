@@ -4,9 +4,7 @@ locals {
     "extract",
     "transcribe",
     "enrich",
-    "upload",
     "vector",
-    "email-notifications",
     "streamlit-ui"
   ]
 }

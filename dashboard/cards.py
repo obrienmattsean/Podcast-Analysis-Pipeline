@@ -8,7 +8,8 @@ _BadgeColor = Literal[
     "red", "orange", "yellow", "blue", "green", "violet", "gray", "grey", "primary"
 ]
 
-_STOPWORDS: frozenset[str] = frozenset({"the", "a", "an", "of", "in", "on", "at", "to", "for"})
+_STOPWORDS: frozenset[str] = frozenset(
+    {"the", "a", "an", "of", "in", "on", "at", "to", "for"})
 
 
 def _sentiment_label(score: float) -> tuple[str, _BadgeColor]:
@@ -37,7 +38,8 @@ def _podcast_initials(title: str) -> str:
     Returns:
         str: Uppercase initials.
     """
-    words = [w for w in title.split() if len(w) > 1 and w.lower() not in _STOPWORDS]
+    words = [w for w in title.split() if len(
+        w) > 1 and w.lower() not in _STOPWORDS]
     if len(words) >= 2:
         return (words[0][0] + words[1][0]).upper()
     if len(words) == 1:
@@ -45,36 +47,42 @@ def _podcast_initials(title: str) -> str:
     return title[:2].upper()
 
 
-_SENTIMENT_COLOR_MAP: dict[str, str] = {
-    "green": "#28a745",
-    "red": "#dc3545",
-    "gray": "#6c757d",
-}
-
-
 def _build_badge_row(score: float | None, keywords: list[str]) -> str:
     """Build an HTML string of horizontally laid-out badge pills.
 
     Args:
         score: Sentiment score, or None to omit the sentiment pill.
-        keywords: Keyword strings to render as blue pills.
+        keywords: Keyword strings to render as pills with colors from theme.
 
     Returns:
         str: An HTML ``<div>`` containing inline ``<span>`` pill elements,
             or an empty string if there is nothing to render.
     """
+    # Get all badge colors from Streamlit theme
+    theme_colors = st.get_option(
+        "theme.chartCategoricalColors") or ["#b1aeed", "#b4ddc7", "#efceb3"]
+
+    # Ensure we have at least 3 colors (for positive, negative, neutral + keywords)
+    while len(theme_colors) < 3:
+        theme_colors.append("#6c757d")
+
     spans: list[str] = []
     if score is not None:
         label, color = _sentiment_label(float(score))
-        hex_color = _SENTIMENT_COLOR_MAP.get(color, "#6c757d")
+        # Map sentiment types to theme colors: neutral=0, positive=1, negative=2
+        sentiment_color_map = {"gray": 0, "green": 1, "red": 2}
+        hex_color = theme_colors[sentiment_color_map.get(color, 0)]
         spans.append(
             f'<span style="background-color:{hex_color};color:white;'
             f"padding:3px 10px;border-radius:12px;font-size:12px;"
             f'font-weight:600;margin-right:6px;">{label}</span>'
         )
-    for kw in keywords:
+
+    for idx, kw in enumerate(keywords):
+        # Cycle through available colors if there are more keywords than colors
+        color = theme_colors[idx % len(theme_colors)]
         spans.append(
-            f'<span style="background-color:#0d6efd;color:white;'
+            f'<span style="background-color:{color};color:white;'
             f"padding:3px 10px;border-radius:12px;font-size:12px;"
             f'font-weight:600;margin-right:6px;">{kw}</span>'
         )
@@ -153,5 +161,6 @@ def podcast_card(podcast: dict) -> None:
             label="View Analytics",
             use_container_width=True,
             icon=None,
-            query_params={"podcast_title": title, "podcast_id": podcast.get("podcast_id")},
+            query_params={"podcast_title": title,
+                          "podcast_id": podcast.get("podcast_id")},
         )
