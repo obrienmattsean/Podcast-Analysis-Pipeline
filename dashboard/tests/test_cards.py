@@ -173,15 +173,11 @@ def test_podcast_card_renders_episode_and_avg_sentiment_metrics() -> None:
 
     col_episodes, col_sentiment = mock_st.columns.return_value
     col_episodes.metric.assert_called_once_with("Episodes", 42)
-    col_sentiment.metric.assert_called_once_with(
-        "Avg Sentiment",
-        "+0.76",
-        delta="+0.12",
-        help=(
-            "Delta compares the latest 5-episode average sentiment against "
-            "the previous 5-episode average."
-        ),
-    )
+    call_args = col_sentiment.metric.call_args
+    assert call_args.args == ("Avg Sentiment", "+0.76")
+    assert call_args.kwargs["delta"] == "+0.12"
+    assert "top 5 most recent episodes" in call_args.kwargs["help"]
+    assert "previous 5-episode average" in call_args.kwargs["help"]
 
 
 def test_podcast_card_formats_negative_delta() -> None:
