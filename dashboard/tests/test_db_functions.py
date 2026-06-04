@@ -9,6 +9,7 @@ from db_functions import (
     format_tracked_since,
     get_all_podcasts,
     get_recent_episodes,
+    get_sentiment_over_time,
     trigger_pipeline,
 )
 
