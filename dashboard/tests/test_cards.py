@@ -15,7 +15,6 @@ def base_episode() -> dict:
         "brand_safety_score": 92,
         "summary": "A great episode.",
         "time_since_published": "3 hours ago",
-        "keywords": [],
     }
 
 
@@ -35,45 +34,20 @@ def base_episode() -> dict:
 def test_build_badge_row_sentiment_label_and_color(
     score: float, expected_label: str, expected_color: str
 ) -> None:
-    result = _build_badge_row(score, [])
+    result = _build_badge_row(score)
 
     assert expected_label in result
     assert expected_color in result
 
 
 def test_build_badge_row_no_score_omits_sentiment_span() -> None:
-    result = _build_badge_row(None, [])
+    result = _build_badge_row(None)
 
     assert result == ""
 
 
-def test_build_badge_row_renders_keywords_as_inline_spans() -> None:
-    result = _build_badge_row(None, ["AI", "Cloud"])
-
-    assert result.count("<span") == 2
-
-
-def test_build_badge_row_renders_all_passed_keywords() -> None:
-    result = _build_badge_row(None, ["A", "B", "C", "D", "E"])
-
-    assert result.count("<span") == 5
-
-
-def test_build_badge_row_keywords_use_blue_color() -> None:
-    result = _build_badge_row(None, ["Python"])
-
-    assert "#0d6efd" in result
-
-
-def test_build_badge_row_renders_sentiment_and_keywords_in_one_div() -> None:
-    result = _build_badge_row(0.8, ["AI", "Cloud"])
-
-    assert result.startswith("<div")
-    assert result.count("<span") == 3
-
-
-def test_build_badge_row_empty_score_and_no_keywords_returns_empty_string() -> None:
-    assert _build_badge_row(None, []) == ""
+def test_build_badge_row_empty_score_returns_empty_string() -> None:
+    assert _build_badge_row(None) == ""
 
 
 # ---------------------------------------------------------------------------
@@ -130,20 +104,7 @@ def test_episode_card_missing_brand_safety_score_omits_badge(base_episode: dict)
 # ---------------------------------------------------------------------------
 
 
-def test_episode_card_no_score_and_no_keywords_skips_badge_row(base_episode: dict) -> None:
-    base_episode["sentiment_score"] = None
-    base_episode["keywords"] = []
-
-    with patch("cards.st") as mock_st:
-        mock_st.columns.return_value = [MagicMock(), MagicMock()]
-        episode_card(base_episode)
-
-    left_col = mock_st.columns.return_value[0]
-    left_col.__enter__.return_value.markdown.assert_not_called()
-
-
-def test_episode_card_missing_keywords_renders_no_keyword_html(base_episode: dict) -> None:
-    base_episode.pop("keywords", None)
+def test_episode_card_no_score_skips_badge_row(base_episode: dict) -> None:
     base_episode["sentiment_score"] = None
 
     with patch("cards.st") as mock_st:

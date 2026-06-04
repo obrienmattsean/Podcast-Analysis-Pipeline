@@ -1,6 +1,5 @@
 """Reusable card components for episode and podcast display."""
 
-import random
 from typing import Literal
 
 import streamlit as st
@@ -22,10 +21,10 @@ def _brand_safety_label(score: int) -> tuple[str, str, str]:
         tuple[str, str, str]: A (label, bg_color, text_color) triple.
     """
     if score >= 70:
-        return f"\U0001F6E1\uFE0F Brand safe \u00B7 {score}/100", "#dcfce7", "#166534"
+        return f"\U0001f6e1\ufe0f Brand safe \u00b7 {score}/100", "#dcfce7", "#166534"
     if score >= 40:
-        return f"\U0001F6E1\uFE0F Brand safe \u00B7 {score}/100", "#fff3cd", "#856404"
-    return f"\u26A0\uFE0F Unsafe \u00B7 {score}/100", "#f8d7da", "#842029"
+        return f"\U0001f6e1\ufe0f Brand safe \u00b7 {score}/100", "#fff3cd", "#856404"
+    return f"\u26a0\ufe0f Unsafe \u00b7 {score}/100", "#f8d7da", "#842029"
 
 
 def _sentiment_label(score: float) -> tuple[str, _BadgeColor]:
@@ -69,35 +68,26 @@ _SENTIMENT_COLOR_MAP: dict[str, str] = {
 }
 
 
-def _build_badge_row(score: float | None, keywords: list[str]) -> str:
+def _build_badge_row(score: float | None) -> str:
     """Build an HTML string of horizontally laid-out badge pills.
 
     Args:
         score: Sentiment score, or None to omit the sentiment pill.
-        keywords: Keyword strings to render as blue pills.
 
     Returns:
         str: An HTML ``<div>`` containing inline ``<span>`` pill elements,
             or an empty string if there is nothing to render.
     """
-    spans: list[str] = []
-    if score is not None:
-        label, color = _sentiment_label(float(score))
-        hex_color = _SENTIMENT_COLOR_MAP.get(color, "#6c757d")
-        spans.append(
-            f'<span style="background-color:{hex_color};color:white;'
-            f"padding:3px 10px;border-radius:12px;font-size:12px;"
-            f'font-weight:600;margin-right:6px;">{label}</span>'
-        )
-    for kw in keywords:
-        spans.append(
-            f'<span style="background-color:#0d6efd;color:white;'
-            f"padding:3px 10px;border-radius:12px;font-size:12px;"
-            f'font-weight:600;margin-right:6px;">{kw.title()}</span>'
-        )
-    if not spans:
+    if score is None:
         return ""
-    return '<div style="margin-bottom:6px;">' + "".join(spans) + "</div>"
+    label, color = _sentiment_label(float(score))
+    hex_color = _SENTIMENT_COLOR_MAP.get(color, "#6c757d")
+    span = (
+        f'<span style="background-color:{hex_color};color:white;'
+        f"padding:3px 10px;border-radius:12px;font-size:12px;"
+        f'font-weight:600;margin-right:6px;">{label}</span>'
+    )
+    return '<div style="margin-bottom:6px;">' + span + "</div>"
 
 
 def episode_card(episode: dict) -> None:
@@ -113,14 +103,13 @@ def episode_card(episode: dict) -> None:
     brand_safety_score = episode.get("brand_safety_score")
     summary = episode.get("summary")
     time_since_published = episode.get("time_since_published") or ""
-    keywords: list[str] = episode.get("keywords") or []
 
     with st.container(border=True):
         left, right = st.columns([4, 1], vertical_alignment="top")
         with left:
             left.caption(f":primary[**{podcast_title}**]")
             left.subheader(episode_title, anchor=False, divider=False)
-            badge_html = _build_badge_row(score, random.sample(keywords, k=min(5, len(keywords))))
+            badge_html = _build_badge_row(score)
             if badge_html:
                 left.markdown(badge_html, unsafe_allow_html=True)
         with right:
@@ -137,10 +126,6 @@ def episode_card(episode: dict) -> None:
                     f"{bs_label}</span></p>",
                     unsafe_allow_html=True,
                 )
-            if keywords:
-                right.divider()
-                with right.expander(f"Keywords ({len(keywords)})"):
-                    st.write((", ".join(sorted(keywords))).title())
 
         if summary:
             st.caption(summary)
