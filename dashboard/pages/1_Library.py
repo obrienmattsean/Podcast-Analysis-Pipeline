@@ -6,6 +6,8 @@ from db_functions import (
     format_last_updated,
     get_all_podcasts,
     get_db_connection,
+    get_historical_average_sentiment,
+    get_recent_average_sentiment,
     trigger_pipeline,
 )
 
@@ -59,7 +61,6 @@ def render_library() -> None:
 
     conn = get_db_connection()
     podcasts = get_all_podcasts(conn)
-    conn.close()
 
     if not podcasts:
         st.info("No podcasts tracked yet.")
@@ -78,12 +79,21 @@ def render_library() -> None:
         with cols[0]:
             p = dict(podcasts[i])
             p["last_updated"] = format_last_updated(p.get("last_updated"))
+            p["avg_sentiment_score"] = get_recent_average_sentiment(conn, p["podcast_id"])
+            p["historical_sentiment_score"] = get_historical_average_sentiment(
+                conn, p["podcast_id"]
+            )
             podcast_card(p)
         if i + 1 < len(podcasts):
             with cols[1]:
                 p = dict(podcasts[i + 1])
                 p["last_updated"] = format_last_updated(p.get("last_updated"))
+                p["avg_sentiment_score"] = get_recent_average_sentiment(conn, p["podcast_id"])
+                p["historical_sentiment_score"] = get_historical_average_sentiment(
+                    conn, p["podcast_id"]
+                )
                 podcast_card(p)
+    conn.close()
 
 
 render_library()
