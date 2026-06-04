@@ -70,26 +70,27 @@ def episode_card(episode: dict) -> None:
     time_since_published = episode.get("time_since_published") or ""
 
     with st.container(border=True):
-        # Row 1: podcast title (left) | time since published (right)
-        col1, col2 = st.columns([3, 1])
-        col1.caption(f":primary[**{podcast_title}**]")
-        col2.caption(time_since_published)
+        left, sep, right = st.columns([5, 0.3, 1.5], vertical_alignment="center")
 
-        # Row 2: episode title (left) | brand safety badge (right)
-        col1, col2 = st.columns([3, 1])
-        col1.subheader(episode_title, anchor=False, divider=False)
-        if brand_safety_score is not None:
-            bs_label, bs_color = _brand_safety_label(int(brand_safety_score))
-            col2.badge(bs_label, color=bs_color)
+        with left:
+            st.caption(f":primary[**{podcast_title}**]")
+            st.subheader(episode_title, anchor=False, divider=False)
+            if score is not None:
+                sent_label, sent_color = _sentiment_label(float(score))
+                st.badge(sent_label, color=sent_color)
+            if summary:
+                st.caption(summary)
 
-        # Sentiment badge
-        if score is not None:
-            sent_label, sent_color = _sentiment_label(float(score))
-            st.badge(sent_label, color=sent_color)
+        sep.markdown(
+            '<div style="background-color:#dee2e6;width:2px;min-height:120px;margin:0 auto;"></div>',
+            unsafe_allow_html=True,
+        )
 
-        # Summary
-        if summary:
-            st.caption(summary)
+        with right:
+            st.caption(time_since_published)
+            if brand_safety_score is not None:
+                bs_label, bs_color = _brand_safety_label(int(brand_safety_score))
+                st.badge(bs_label, color=bs_color)
 
 
 def podcast_card(podcast: dict) -> None:
