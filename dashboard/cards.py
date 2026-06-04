@@ -180,13 +180,16 @@ def episode_card(episode: dict) -> None:
                 unsafe_allow_html=True,
             )
             if not brand_safe:
-                with right.popover("ℹ️"):
-                    st.markdown("**Not Safe Categories**")
-                    if flagged_categories:
-                        for category in sorted(set(flagged_categories)):
-                            st.caption(f"• {_format_category_label(category)}")
-                    else:
-                        st.caption("Unsafe categories detected")
+                spacer_col, popover_col = right.columns([4, 1])
+                with spacer_col:
+                    st.empty()
+                with popover_col:
+                    with popover_col.popover(""):
+                        if flagged_categories:
+                            for category in sorted(set(flagged_categories)):
+                                st.caption(f"• {_format_category_label(category)}")
+                        else:
+                            st.caption("Unsafe categories detected")
         if summary:
             st.caption(summary)
 
