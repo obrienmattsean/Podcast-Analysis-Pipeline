@@ -138,7 +138,7 @@ def podcast_card(podcast: dict) -> None:
     last_updated = podcast.get("last_updated") or ""
 
     initials = _podcast_initials(title)
-    print(podcast)
+
     with st.container(border=True):
         st.subheader(f"{initials}  {title}", anchor=False)
         st.caption(f"Updated {last_updated}")
