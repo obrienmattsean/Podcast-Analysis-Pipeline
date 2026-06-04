@@ -244,10 +244,10 @@ class TestBuildPodcastPattern:
         ),
         (
             "The 6G Podcast by Moor Insights & Strategy",
-            """6G Podcast Episode 250: Nvidia–Corning Optics Expansion, NTIA Spectrum Progress,
-             5G FWA Uplink Gains, and Socorro Data Center Update""",
-            """Nvidia–Corning Optics Expansion, NTIA Spectrum Progress, 5G FWA Uplink Gains,
-             and Socorro Data Center Update""",
+            """6G Podcast Episode 250: Nvidia–Corning Optics Expansion, NTIA Spectrum Progress,\
+                5G FWA Uplink Gains, and Socorro Data Center Update""",
+            """Nvidia–Corning Optics Expansion, NTIA Spectrum Progress,\
+                5G FWA Uplink Gains, and Socorro Data Center Update""",
         ),
         (
             "SmartTechCheck Podcast and Audio Newsletter",
