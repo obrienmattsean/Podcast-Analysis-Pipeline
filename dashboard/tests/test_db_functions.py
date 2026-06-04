@@ -8,6 +8,8 @@ from db_functions import (
     format_time_since_published,
     format_tracked_since,
     get_all_podcasts,
+    get_episode_sentiment_by_podcast,
+    get_episode_sentiment_for_podcast,
     get_recent_episodes,
     trigger_pipeline,
 )
@@ -82,12 +84,13 @@ def test_get_all_podcasts_maps_rows_to_expected_dict_fields(mock_conn: MagicMock
     tracked_date = datetime(2024, 3, 10)
     last_updated_date = datetime(2024, 6, 1)
     mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
-        ("The Daily", 42, 0.35, tracked_date, last_updated_date),
+        (7, "The Daily", 42, 0.35, tracked_date, last_updated_date),
     ]
 
     result = get_all_podcasts(mock_conn)
 
     assert len(result) == 1
+    assert result[0]["podcast_id"] == 7
     assert result[0]["podcast_title"] == "The Daily"
     assert result[0]["num_episodes"] == 42
     assert result[0]["avg_sentiment_score"] == 0.35
@@ -97,8 +100,8 @@ def test_get_all_podcasts_maps_rows_to_expected_dict_fields(mock_conn: MagicMock
 
 def test_get_all_podcasts_returns_all_rows(mock_conn: MagicMock) -> None:
     mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
-        ("Podcast A", 10, 0.1, datetime(2024, 1, 1), datetime(2024, 3, 1)),
-        ("Podcast B", 5, -0.2, datetime(2023, 6, 15), datetime(2024, 2, 1)),
+        (1, "Podcast A", 10, 0.1, datetime(2024, 1, 1), datetime(2024, 3, 1)),
+        (2, "Podcast B", 5, -0.2, datetime(2023, 6, 15), datetime(2024, 2, 1)),
     ]
 
     result = get_all_podcasts(mock_conn)
@@ -213,3 +216,138 @@ def test_get_recent_episodes_passes_limit_to_query(mock_conn: MagicMock) -> None
     cursor = mock_conn.cursor.return_value.__enter__.return_value
     executed_params = cursor.execute.call_args[0][1]
     assert executed_params == (5,)
+
+
+# ---------------------------------------------------------------------------
+# get_episode_sentiment_by_podcast
+# ---------------------------------------------------------------------------
+
+
+def test_get_episode_sentiment_by_podcast_with_no_rows_returns_empty_list(
+    mock_conn: MagicMock,
+) -> None:
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = []
+
+    result = get_episode_sentiment_by_podcast(mock_conn)
+
+    assert result == []
+
+
+def test_get_episode_sentiment_by_podcast_maps_row_to_expected_fields(
+    mock_conn: MagicMock,
+) -> None:
+    pub_date = datetime(2024, 3, 15)
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
+        ("Tech Podcast", "Episode One", pub_date, 0.65),
+    ]
+
+    result = get_episode_sentiment_by_podcast(mock_conn)
+
+    assert len(result) == 1
+    row = result[0]
+    assert row["podcast_title"] == "Tech Podcast"
+    assert row["episode_title"] == "Episode One"
+    assert row["pub_date"] == pub_date
+    assert row["sentiment_score"] == 0.65
+
+
+def test_get_episode_sentiment_by_podcast_handles_null_sentiment(
+    mock_conn: MagicMock,
+) -> None:
+    pub_date = datetime(2024, 5, 1)
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
+        ("Podcast A", "Episode", pub_date, None),
+    ]
+
+    result = get_episode_sentiment_by_podcast(mock_conn)
+
+    assert result[0]["sentiment_score"] is None
+
+
+def test_get_episode_sentiment_by_podcast_returns_all_rows(
+    mock_conn: MagicMock,
+) -> None:
+    pub_date = datetime(2024, 1, 1)
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
+        ("Podcast A", "Ep 1", pub_date, 0.3),
+        ("Podcast A", "Ep 2", pub_date, 0.7),
+        ("Podcast B", "Ep 1", pub_date, -0.1),
+    ]
+
+    result = get_episode_sentiment_by_podcast(mock_conn)
+
+    assert len(result) == 3
+    assert result[0]["podcast_title"] == "Podcast A"
+    assert result[2]["podcast_title"] == "Podcast B"
+
+
+# ---------------------------------------------------------------------------
+# get_episode_sentiment_for_podcast
+# ---------------------------------------------------------------------------
+
+
+def test_get_episode_sentiment_for_podcast_with_no_rows_returns_empty_list(
+    mock_conn: MagicMock,
+) -> None:
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = []
+
+    result = get_episode_sentiment_for_podcast(mock_conn, podcast_id=1)
+
+    assert result == []
+
+
+def test_get_episode_sentiment_for_podcast_maps_row_to_expected_fields(
+    mock_conn: MagicMock,
+) -> None:
+    pub_date = datetime(2024, 3, 15)
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
+        ("Episode One", pub_date, 0.65),
+    ]
+
+    result = get_episode_sentiment_for_podcast(mock_conn, podcast_id=1)
+
+    assert len(result) == 1
+    row = result[0]
+    assert row["episode_title"] == "Episode One"
+    assert row["pub_date"] == pub_date
+    assert row["sentiment_score"] == 0.65
+
+
+def test_get_episode_sentiment_for_podcast_handles_null_sentiment(
+    mock_conn: MagicMock,
+) -> None:
+    pub_date = datetime(2024, 5, 1)
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
+        ("Episode", pub_date, None),
+    ]
+
+    result = get_episode_sentiment_for_podcast(mock_conn, podcast_id=2)
+
+    assert result[0]["sentiment_score"] is None
+
+
+def test_get_episode_sentiment_for_podcast_returns_all_rows(
+    mock_conn: MagicMock,
+) -> None:
+    pub_date = datetime(2024, 1, 1)
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [
+        ("Ep 1", pub_date, 0.3),
+        ("Ep 2", pub_date, 0.7),
+        ("Ep 3", pub_date, -0.1),
+    ]
+
+    result = get_episode_sentiment_for_podcast(mock_conn, podcast_id=5)
+
+    assert len(result) == 3
+
+
+def test_get_episode_sentiment_for_podcast_passes_podcast_id_to_query(
+    mock_conn: MagicMock,
+) -> None:
+    mock_conn.cursor.return_value.__enter__.return_value.fetchall.return_value = []
+
+    get_episode_sentiment_for_podcast(mock_conn, podcast_id=42)
+
+    cursor = mock_conn.cursor.return_value.__enter__.return_value
+    executed_params = cursor.execute.call_args[0][1]
+    assert executed_params == (42,)
