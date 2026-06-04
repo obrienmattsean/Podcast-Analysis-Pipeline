@@ -46,7 +46,8 @@ def get_all_podcasts(conn: connection) -> list[dict]:
             COUNT(e.episode_id) AS num_episodes,
             ROUND(AVG(e.sentiment_score)::numeric, 2) AS avg_sentiment_score,
             MIN(e.pub_date) AS tracked_since,
-            MAX(e.pub_date) AS last_updated
+            MAX(e.pub_date) AS last_updated,
+            p.podcast_id
             FROM podcasts p
             LEFT JOIN episodes e USING (podcast_id)
             GROUP BY p.podcast_id
@@ -321,8 +322,29 @@ def get_keywords_for_episode(conn: connection, episode_id: int) -> list[str]:
         return [row[0] for row in rows]
 
 
-if __name__ == "__main__":
-    conn = get_db_connection()
-    episodes = get_recent_episodes(conn)
-    for ep in episodes[:3]:
-        print(ep)
+def get_keywords_for_podcast(conn: connection, podcast_id: int) -> list[str]:
+    """Fetch the top keywords for a given podcast.
+
+    Args:
+        conn: An open psycopg2 database connection.
+        podcast_id: The ID of the podcast to fetch keywords for.
+    Returns:
+        list[str]: A list of keyword strings associated with the podcast.
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT entities.name, count(*) AS mention_count
+            FROM podcasts
+            JOIN episodes USING (podcast_id)
+            JOIN episode_entities USING (episode_id)
+            JOIN entities USING (entity_id)
+            WHERE podcast_id = %s AND entity_type = 'topic'
+            GROUP BY entities.name
+            ORDER BY mention_count DESC;
+            """,
+            (podcast_id,),
+        )
+        rows = cursor.fetchall()
+
+        return list(rows)

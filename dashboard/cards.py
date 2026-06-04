@@ -1,5 +1,6 @@
 """Reusable card components for episode and podcast display."""
 
+import random
 from typing import Literal
 
 import streamlit as st
@@ -76,7 +77,7 @@ def _build_badge_row(score: float | None, keywords: list[str]) -> str:
         spans.append(
             f'<span style="background-color:#0d6efd;color:white;'
             f"padding:3px 10px;border-radius:12px;font-size:12px;"
-            f'font-weight:600;margin-right:6px;">{kw}</span>'
+            f'font-weight:600;margin-right:6px;">{kw.title()}</span>'
         )
     if not spans:
         return ""
@@ -106,7 +107,7 @@ def episode_card(episode: dict) -> None:
         with left:
             left.caption(f":primary[**{podcast_title}**]")
             left.subheader(episode_title, anchor=False, divider=False)
-            badge_html = _build_badge_row(score, keywords[:5])
+            badge_html = _build_badge_row(score, random.sample(keywords, k=min(5, len(keywords))))
             if badge_html:
                 left.markdown(badge_html, unsafe_allow_html=True)
         with right:
@@ -121,6 +122,11 @@ def episode_card(episode: dict) -> None:
                 f"{brand_safe_label}</span></p>",
                 unsafe_allow_html=True,
             )
+            if keywords:
+                right.divider()
+                with right.expander(f"Keywords ({len(keywords)})"):
+                    st.write((", ".join(sorted(keywords))).title())
+
         if summary:
             st.caption(summary)
 

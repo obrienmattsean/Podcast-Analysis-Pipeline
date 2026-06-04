@@ -96,6 +96,7 @@ def test_get_all_podcasts_maps_rows_to_expected_dict_fields(mock_conn: MagicMock
     assert result[0]["avg_sentiment_score"] == 0.35
     assert result[0]["tracked_since"] == tracked_date
     assert result[0]["last_updated"] == last_updated_date
+    assert result[0]["podcast_id"] == 7
 
 
 def test_get_all_podcasts_returns_all_rows(mock_conn: MagicMock) -> None:
@@ -105,7 +106,6 @@ def test_get_all_podcasts_returns_all_rows(mock_conn: MagicMock) -> None:
     ]
 
     result = get_all_podcasts(mock_conn)
-
     assert len(result) == 2
     assert result[0]["podcast_title"] == "Podcast A"
     assert result[1]["podcast_title"] == "Podcast B"
