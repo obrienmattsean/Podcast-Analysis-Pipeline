@@ -12,6 +12,22 @@ _BadgeColor = Literal[
 _STOPWORDS: frozenset[str] = frozenset({"the", "a", "an", "of", "in", "on", "at", "to", "for"})
 
 
+def _brand_safety_label(score: int) -> tuple[str, str]:
+    """Return (label, hex_color) for a brand safety score.
+
+    Args:
+        score: Brand safety score between 0 and 100.
+
+    Returns:
+        tuple[str, str]: A (label, hex_color) pair.
+    """
+    if score >= 70:
+        return f"Brand Safe {score}/100", "#28a745"
+    if score >= 40:
+        return f"Brand Safe {score}/100", "#fd7e14"
+    return f"Unsafe {score}/100", "#dc3545"
+
+
 def _sentiment_label(score: float) -> tuple[str, _BadgeColor]:
     """Return (label, badge_color) for a sentiment score.
 
@@ -89,18 +105,15 @@ def episode_card(episode: dict) -> None:
 
     Args:
         episode: Dict with keys ``episode_title``, ``podcast_title``,
-            ``sentiment_score``, ``summary``, and ``time_since_published``.
+            ``sentiment_score``, ``brand_safety_score``, ``summary``, and ``time_since_published``.
     """
     episode_title = episode.get("episode_title") or "Untitled Episode"
     podcast_title = episode.get("podcast_title") or "Unknown Podcast"
     score = episode.get("sentiment_score")
+    brand_safety_score = episode.get("brand_safety_score")
     summary = episode.get("summary")
     time_since_published = episode.get("time_since_published") or ""
-    brand_safe = not episode.get("flagged")
     keywords: list[str] = episode.get("keywords") or []
-
-    brand_safe_color = "#28a745" if brand_safe else "#dc3545"
-    brand_safe_label = "Brand Safe" if brand_safe else "Not Brand Safe"
 
     with st.container(border=True):
         left, right = st.columns([4, 1], vertical_alignment="top")
@@ -115,13 +128,15 @@ def episode_card(episode: dict) -> None:
                 f'<p style="text-align:right;margin:0;"><small>{time_since_published}</small></p>',
                 unsafe_allow_html=True,
             )
-            right.markdown(
-                f'<p style="text-align:right;margin-top:8px;">'
-                f'<span style="background-color:{brand_safe_color};color:white;'
-                f'padding:5px 12px;border-radius:14px;font-size:14px;font-weight:600;">'
-                f"{brand_safe_label}</span></p>",
-                unsafe_allow_html=True,
-            )
+            if brand_safety_score is not None:
+                bs_label, bs_color = _brand_safety_label(int(brand_safety_score))
+                right.markdown(
+                    f'<p style="text-align:right;margin-top:8px;">'
+                    f'<span style="background-color:{bs_color};color:white;'
+                    f'padding:5px 12px;border-radius:14px;font-size:14px;font-weight:600;">'
+                    f"{bs_label}</span></p>",
+                    unsafe_allow_html=True,
+                )
             if keywords:
                 right.divider()
                 with right.expander(f"Keywords ({len(keywords)})"):

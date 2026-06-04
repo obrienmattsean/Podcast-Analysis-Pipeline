@@ -3,7 +3,7 @@ set -euo pipefail
 
 REGION="eu-west-2"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-REPO_NAME="c23-podex-ai-enrich"
+REPO_NAME="c23-podex-ai-streamlit-ui"
 
 echo "Logging in to ECR..."
 aws ecr get-login-password --region "$REGION" | \

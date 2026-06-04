@@ -21,14 +21,12 @@ from psycopg2.extensions import connection
 load_dotenv()
 
 
-def combine_enrichments(episode_metadata: dict, enrichments: dict, moderation: dict) -> dict:
+def combine_enrichments(episode_metadata: dict, enrichments: dict) -> dict:
     """Combines all the enrichments into a single dictionary to be uploaded to RDS.
 
     Args:
         episode_metadata (dict): The metadata of the episode.
         enrichments (dict): The enrichments generated from the episode transcript.
-        moderation (dict): The moderation analysis of the episode transcript.
-
 
     Returns:
         dict: A dictionary containing all the enrichments and metadata to be uploaded to RDS.
@@ -46,16 +44,10 @@ def combine_enrichments(episode_metadata: dict, enrichments: dict, moderation: d
         "pub_date": published_at[:10] if published_at else None,
         "duration_seconds": None,
         "sentiment_score": enrichments.get("sentiment score"),
+        "brand_safety_score": enrichments.get("brand_safety_score"),
         "created_at": datetime.now(),
         "summary": enrichments.get("summary"),
     }
-    for key in moderation:
-        episode[key] = moderation[key]
-
-    if any(moderation.values()) is True:
-        episode["flagged"] = True
-    else:
-        episode["flagged"] = False
 
     entities = {}
     for entity in enrichments.get("keywords", []):
@@ -92,40 +84,14 @@ def upload_to_rds(enrichment_dict: dict, db_connection: connection) -> None:
             """
             UPDATE episodes
             SET sentiment_score = %s,
-            summary = %s,
-            harassment = %s,
-            harassment_threatening = %s,
-            hate = %s,
-            hate_threatening = %s,
-            illicit = %s,
-            illicit_violent = %s,
-            self_harm = %s,
-            self_harm_instructions = %s,
-            self_harm_intent = %s,
-            sexual = %s,
-            sexual_minors = %s,
-            violence = %s,
-            violence_graphic = %s,
-            flagged = %s
+            brand_safety_score = %s,
+            summary = %s
             WHERE episode_id = %s;
         """,
             (
                 episode_data["sentiment_score"],
+                episode_data["brand_safety_score"],
                 episode_data["summary"],
-                episode_data["harassment"],
-                episode_data["harassment_threatening"],
-                episode_data["hate"],
-                episode_data["hate_threatening"],
-                episode_data["illicit"],
-                episode_data["illicit_violent"],
-                episode_data["self_harm"],
-                episode_data["self_harm_instructions"],
-                episode_data["self_harm_intent"],
-                episode_data["sexual"],
-                episode_data["sexual_minors"],
-                episode_data["violence"],
-                episode_data["violence_graphic"],
-                episode_data["flagged"],
                 episode_data["episode_id"],
             ),
         )

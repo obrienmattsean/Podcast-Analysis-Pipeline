@@ -14,26 +14,23 @@ Example:
 
 import json
 import logging
+import os
 
-import openai as oa
+import boto3
 from botocore.client import BaseClient
 from dotenv import load_dotenv
+from openai import OpenAI
 
-load_dotenv()  # Load environment variables from .env file
+load_dotenv()
 
 
 prompt = """
-You are an expert data analyst specializing in Natural Language Processing (NLP),
-sentiment analysis, and data enrichment.
-
-Analyze the text provided at the end of this prompt and return the results strictly as a
-valid JSON object. Do not include any of your own conversational intro or
-outro text. Use the exact JSON structure defined below:
+You are an expert in analyzing podcast transcripts to extract key insights and enrich the data for advertisers.
+Your task is to analyze the provided podcast transcript and generate a JSON object containing the following fields:
 
 {
-
     "sentiment score": float,
-    "classification": "string",
+    "brand_safety_score": int,
     "summary": "string",
     "hosts": ["string"],
     "guests": ["string"],
@@ -41,36 +38,38 @@ outro text. Use the exact JSON structure defined below:
 }
 
 Strictly adhere to the following rules for the data fields:
-1. **sentiment score**: A float value from -1.00 to 1.00 rounded to 2 decimal places.
-(-1.00 = extremely negative, 1.00 = extremely positive) reflecting the overall
-sentiment of the transcript.
-2. **classification**: Map the score using these precise boundaries:
-   - -1.00 to -0.60: "very negative"
-   - -0.59 to -0.20: "negative"
-   - -0.19 to 0.19: "neutral"
-   - 0.20 to 0.59: "positive"
-   - 0.60 to 1.00: "very positive"
-3. **summary**: A concise summary of the podcast episode in 3-5 sentences.
-4. **hosts**: Extract the names of the hosts mentioned in the transcript as a list of strings.
-If no hosts are explicitly mentioned, return an empty list.
-5. **guests**: Extract the names of the guests mentioned in the transcript as a list of strings.
-If no guests are explicitly mentioned, return an empty list.
-6. **keywords**: A JSON array where each element is a 2-element array containing a lowercase keyword
-and the word "topic" as the second element. Each keyword should capture a general topic,
-overarching theme, or person discussed. The keywords should be extracted based on their relevance
-and frequency in the transcript, not just their presence. Preference should be given for Keywords
-which would be the most interesting and relevant for advertisers. Return the top 10 keywords.
 
+1. **sentiment score**: A float value from -1.00 to 1.00 rounded to 2 decimal places, where -1.00 indicates extremely negative sentiment and 1.00 indicates extremely positive sentiment. 
+This score should reflect the overall sentiment of the transcript, taking into account the tone, language, and context of the discussion. 
+The sentiment score should be calculated based on the entire transcript, not just individual sentences or sections.
+
+
+2. **brand_safety_score**" An integer value from 0 to 100 representing the brand safety score of the transcript, where 0 indicates extremely unsafe content and 100 indicates completely safe content.
+This score should be determined by analyzing the transcript for any potentially harmful or controversial content, such as hate speech, violence, adult content, or any other content that may be deemed inappropriate for advertising.
+The brand safety score should be calculated based on the overall content of the transcript, considering the frequency and severity of any potentially unsafe content, as well as the context in which it is presented.
+
+3. **summary**: A clear, concise and compelling summary of the podcast episode, limited to 2 sentences. 
+The summary should capture the main topics discussed, the overall theme of the episode, and any key insights or takeaways that would be relevant and interesting for advertisers.
+ The summary should be written in a way that is engaging and informative, providing a snapshot of what the episode is about without giving away too much detail.
+
+4. **hosts**: Extract the names of the hosts mentioned in the transcript as a list of strings. If no hosts are explicitly mentioned, return an empty list.
+
+5. **guests**: Extract the names of the guests mentioned in the transcript as a list of strings. If no guests are explicitly mentioned, return an empty list.
+
+
+6. **keywords**: A list of the top 10 most relevant keywords extracted from the transcript, where each keyword is represented as a 2-element array containing the keyword in lowercase and the word "topic" as the second element.
+A keyword should capture a general topic, overarching theme, or person discussed in the transcript.
+The keywords should be extracted based on their relevance and frequency in the transcript, not just their presence. Preference should be given for keywords which would be the most interesting and relevant for advertisers.
 
 
 """
 
 
-def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
+def prompt_llm_for_enrichment(openai_client: OpenAI, transcript: str) -> dict:
     """Generates a summary of the podcast transcript using the OpenAI API.
 
     Args:
-        llm_client (oa.OpenAI): The initialized OpenAI client.
+        openai_client (OpenAI): The initialized OpenAI client.
         transcript (str): The podcast transcript to be summarized.
 
     Returns:
@@ -83,7 +82,7 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
 
     try:
         logging.info("Analyzing podcast transcript for enriched data.")
-        response = llm_client.chat.completions.create(
+        response = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
@@ -121,34 +120,34 @@ def prompt_llm_for_enrichment(llm_client: oa.OpenAI, transcript: str) -> dict:
         raise
 
 
-def prompt_llm_for_moderation(llm_client: oa.OpenAI, transcript: str) -> dict:
-    """Generates a moderation analysis of the podcast transcript using the OpenAI API.
+# def prompt_llm_for_moderation(llm_client: oa.OpenAI, transcript: str) -> dict:
+#     """Generates a moderation analysis of the podcast transcript using the OpenAI API.
 
-    Args:
-        llm_client (oa.OpenAI): The initialized OpenAI client.
-        transcript (str): The podcast transcript to be analyzed.
+#     Args:
+#         llm_client (oa.OpenAI): The initialized OpenAI client.
+#         transcript (str): The podcast transcript to be analyzed.
 
-    Returns:
-        dict: A dictionary containing the moderation analysis from the podcast transcript
-        keys have boolean values.
+#     Returns:
+#         dict: A dictionary containing the moderation analysis from the podcast transcript
+#         keys have boolean values.
 
-    Raises:
-        Exception: If there is an error generating the moderation analysis from the OpenAI API,
-        an exception will be raised with the error message.
-    """
+#     Raises:
+#         Exception: If there is an error generating the moderation analysis from the OpenAI API,
+#         an exception will be raised with the error message.
+#     """
 
-    try:
-        logging.info("Analyzing podcast transcript for moderation.")
-        response = llm_client.moderations.create(
-            model="omni-moderation-latest",
-            input=transcript,
-        )
-        logging.info("Transcript moderation analysis completed successfully.")
-        return response.results[0].categories.model_dump()
+#     try:
+#         logging.info("Analyzing podcast transcript for moderation.")
+#         response = llm_client.moderations.create(
+#             model="omni-moderation-latest",
+#             input=transcript,
+#         )
+#         logging.info("Transcript moderation analysis completed successfully.")
+#         return response.results[0].categories.model_dump()
 
-    except Exception as e:
-        logging.error(f"Failed to analyze transcript for moderation: {e}")
-        raise
+#     except Exception as e:
+#         logging.error(f"Failed to analyze transcript for moderation: {e}")
+#         raise
 
 
 def get_episode_metadata_from_s3(s3_client: BaseClient, s3_path: str) -> dict:
@@ -226,3 +225,13 @@ def get_episode_transcript_from_s3(s3_client: BaseClient, s3_path: str) -> str:
     except Exception as e:
         logging.error(f"Failed to retrieve transcript from S3: {e}")
         raise
+
+
+if __name__ == "__main__":
+    s3_client = boto3.client("s3")
+    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    s3_path = "s3://c23-podex-ai-bucket/8/73/"
+    transcript = get_episode_transcript_from_s3(s3_client, s3_path)
+    enrichment = prompt_llm_for_enrichment(openai_client, transcript)
+    print(enrichment)

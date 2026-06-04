@@ -175,7 +175,7 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
     Returns:
         list[dict]: List of episode dicts, each containing ``podcast_title``,
             ``episode_title``, ``time_since_published``, ``summary``,
-            ``sentiment_score``, ``flagged``, and ``keywords``.
+            ``sentiment_score``, ``brand_safety_score``, and ``keywords``.
     """
     with conn.cursor() as cursor:
         cursor.execute(
@@ -185,7 +185,7 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             e.pub_date,
             e.summary,
             e.sentiment_score,
-            e.flagged,
+            e.brand_safety_score,
             COALESCE(
                 ARRAY_AGG(ent.name ORDER BY ent.name) FILTER (WHERE ent.name IS NOT NULL),
                 ARRAY[]::text[]
@@ -195,7 +195,7 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
             LEFT JOIN episode_entities ee USING (episode_id)
             LEFT JOIN entities ent ON ee.entity_id = ent.entity_id AND ent.entity_type = 'topic'
             GROUP BY e.episode_id, p.title, e.title, e.pub_date,
-                e.summary, e.sentiment_score, e.flagged
+                e.summary, e.sentiment_score, e.brand_safety_score
             ORDER BY e.pub_date DESC
             LIMIT %s;
             """,
@@ -209,7 +209,7 @@ def get_recent_episodes(conn: connection, limit: int = 10) -> list[dict]:
                 "time_since_published": format_time_since_published(row[2]),
                 "summary": row[3],
                 "sentiment_score": row[4],
-                "flagged": row[5],
+                "brand_safety_score": row[5],
                 "keywords": row[6],
             }
             for row in rows
