@@ -27,6 +27,13 @@ def _brand_safety_label(score: int) -> tuple[str, _BadgeColor]:
     return f"\u26a0\ufe0f Unsafe \u00b7 {score}/100", "red"
 
 
+_BRAND_SAFETY_COLOR_MAP: dict[str, tuple[str, str]] = {
+    "green": ("#dcfce7", "#166534"),
+    "orange": ("#fff3cd", "#856404"),
+    "red": ("#f8d7da", "#842029"),
+}
+
+
 def _sentiment_label(score: float) -> tuple[str, _BadgeColor]:
     """Return (label, badge_color) for a sentiment score.
 
@@ -86,7 +93,13 @@ def episode_card(episode: dict) -> None:
         with right:
             if brand_safety_score is not None:
                 bs_label, bs_color = _brand_safety_label(int(brand_safety_score))
-                st.badge(bs_label, color=bs_color)
+                bs_bg, bs_text = _BRAND_SAFETY_COLOR_MAP[bs_color]
+                st.markdown(
+                    f'<span style="background-color:{bs_bg};color:{bs_text};'
+                    f'padding:8px 14px;border-radius:20px;font-size:1rem;font-weight:700;">'
+                    f"{bs_label}</span>",
+                    unsafe_allow_html=True,
+                )
             if score is not None:
                 sent_label, sent_color = _sentiment_label(float(score))
                 st.badge(sent_label, color=sent_color)
