@@ -41,7 +41,7 @@ resource "aws_iam_role" "enrich_role" {
       }
     ]
   })
-}
+} 
 
 resource "aws_iam_policy" "enrich_policy" {
   name        = "${var.project_name}-enrich-policy"

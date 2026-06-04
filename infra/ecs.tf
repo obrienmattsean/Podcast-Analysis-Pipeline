@@ -43,7 +43,7 @@ resource "aws_security_group" "ecs_tasks" {
 # ECS Task Definition for Streamlit Dashboard
 # ==============================================================================
 resource "aws_ecs_task_definition" "streamlit" {
-  family                   = "c23-ecs-cluster-dashboard"
+  family                   = "c23-podex-ai-dashboard-ecs"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"

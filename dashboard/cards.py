@@ -4,6 +4,7 @@ import random
 from typing import Literal
 
 import streamlit as st
+from regex_expressions import remove_podcast_name
 
 _BadgeColor = Literal[
     "red", "orange", "yellow", "blue", "green", "violet", "gray", "grey", "primary"
@@ -102,11 +103,13 @@ def episode_card(episode: dict) -> None:
     brand_safe_color = "#28a745" if brand_safe else "#dc3545"
     brand_safe_label = "Brand Safe" if brand_safe else "Not Brand Safe"
 
+    cleaned_episode_title = remove_podcast_name(episode_title, podcast_title)
+
     with st.container(border=True):
         left, right = st.columns([4, 1], vertical_alignment="top")
         with left:
             left.caption(f":primary[**{podcast_title}**]")
-            left.subheader(episode_title, anchor=False, divider=False)
+            left.subheader(cleaned_episode_title, anchor=False, divider=False)
             badge_html = _build_badge_row(score, random.sample(keywords, k=min(5, len(keywords))))
             if badge_html:
                 left.markdown(badge_html, unsafe_allow_html=True)
