@@ -11,20 +11,20 @@ _BadgeColor = Literal[
 _STOPWORDS: frozenset[str] = frozenset({"the", "a", "an", "of", "in", "on", "at", "to", "for"})
 
 
-def _brand_safety_label(score: int) -> tuple[str, str, str]:
-    """Return (label, bg_color, text_color) for a brand safety score.
+def _brand_safety_label(score: int) -> tuple[str, _BadgeColor]:
+    """Return (label, badge_color) for a brand safety score.
 
     Args:
         score: Brand safety score between 0 and 100.
 
     Returns:
-        tuple[str, str, str]: A (label, bg_color, text_color) triple.
+        tuple[str, _BadgeColor]: A (label, badge_color) pair.
     """
     if score >= 70:
-        return f"\U0001f6e1\ufe0f Brand safe \u00b7 {score}/100", "#dcfce7", "#166534"
+        return f"\U0001f6e1\ufe0f Brand safe \u00b7 {score}/100", "green"
     if score >= 40:
-        return f"\U0001f6e1\ufe0f Brand safe \u00b7 {score}/100", "#fff3cd", "#856404"
-    return f"\u26a0\ufe0f Unsafe \u00b7 {score}/100", "#f8d7da", "#842029"
+        return f"\U0001f6e1\ufe0f Brand safe \u00b7 {score}/100", "orange"
+    return f"\u26a0\ufe0f Unsafe \u00b7 {score}/100", "red"
 
 
 def _sentiment_label(score: float) -> tuple[str, _BadgeColor]:
@@ -61,42 +61,7 @@ def _podcast_initials(title: str) -> str:
     return title[:2].upper()
 
 
-_SENTIMENT_COLOR_MAP: dict[str, str] = {
-    "green": "#28a745",
-    "red": "#dc3545",
-    "gray": "#6c757d",
-}
-
-
-def _build_badge_row(score: float | None) -> str:
-    """Build an HTML string of horizontally laid-out badge pills.
-
-    Args:
-        score: Sentiment score, or None to omit the sentiment pill.
-
-    Returns:
-        str: An HTML ``<div>`` containing inline ``<span>`` pill elements,
-            or an empty string if there is nothing to render.
-    """
-    if score is None:
-        return ""
-    label, color = _sentiment_label(float(score))
-    hex_color = _SENTIMENT_COLOR_MAP.get(color, "#6c757d")
-    span = (
-        f'<span style="background-color:{hex_color};color:white;'
-        f"padding:3px 10px;border-radius:12px;font-size:12px;"
-        f'font-weight:600;margin-right:6px;">{label}</span>'
-    )
-    return '<div style="margin-bottom:6px;">' + span + "</div>"
-
-
 def episode_card(episode: dict) -> None:
-    """Render a native Streamlit card for a single episode.
-
-    Args:
-        episode: Dict with keys ``episode_title``, ``podcast_title``,
-            ``sentiment_score``, ``brand_safety_score``, ``summary``, and ``time_since_published``.
-    """
     episode_title = episode.get("episode_title") or "Untitled Episode"
     podcast_title = episode.get("podcast_title") or "Unknown Podcast"
     score = episode.get("sentiment_score")
@@ -105,28 +70,24 @@ def episode_card(episode: dict) -> None:
     time_since_published = episode.get("time_since_published") or ""
 
     with st.container(border=True):
-        left, right = st.columns([4, 1], vertical_alignment="top")
-        with left:
-            left.caption(f":primary[**{podcast_title}**]")
-            left.subheader(episode_title, anchor=False, divider=False)
-            badge_html = _build_badge_row(score)
-            if badge_html:
-                left.markdown(badge_html, unsafe_allow_html=True)
-        with right:
-            right.markdown(
-                f'<p style="text-align:right;margin:0;"><small>{time_since_published}</small></p>',
-                unsafe_allow_html=True,
-            )
-            if brand_safety_score is not None:
-                bs_label, bs_bg, bs_color = _brand_safety_label(int(brand_safety_score))
-                right.markdown(
-                    f'<p style="text-align:right;margin-top:8px;">'
-                    f'<span style="background-color:{bs_bg};color:{bs_color};'
-                    f'padding:5px 12px;border-radius:20px;font-size:13px;font-weight:600;">'
-                    f"{bs_label}</span></p>",
-                    unsafe_allow_html=True,
-                )
+        # Row 1: podcast title (left) | time since published (right)
+        col1, col2 = st.columns([3, 1])
+        col1.caption(f":primary[**{podcast_title}**]")
+        col2.caption(time_since_published)
 
+        # Row 2: episode title (left) | brand safety badge (right)
+        col1, col2 = st.columns([3, 1])
+        col1.subheader(episode_title, anchor=False, divider=False)
+        if brand_safety_score is not None:
+            bs_label, bs_color = _brand_safety_label(int(brand_safety_score))
+            col2.badge(bs_label, color=bs_color)
+
+        # Sentiment badge
+        if score is not None:
+            sent_label, sent_color = _sentiment_label(float(score))
+            st.badge(sent_label, color=sent_color)
+
+        # Summary
         if summary:
             st.caption(summary)
 
