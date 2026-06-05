@@ -5,6 +5,25 @@ from pathlib import Path
 import streamlit as st
 
 st.set_page_config(page_title="Podex", layout="wide", initial_sidebar_state="expanded")
+
+# Toolbar logo - dark mode styling only
+st.markdown(
+    """
+    <style>
+    /* Dark mode for all logo instances */
+    @media (prefers-color-scheme: dark) {
+      .st-emotion-cache-1q56cwt img,
+      .stSidebar img,
+      aside img,
+      nav img {
+        filter: grayscale(1) brightness(2.2) invert(1) !important;
+      }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.logo(str(Path(__file__).parent / "static" / "podex-logo.svg"), size="large")
 
 pages = [

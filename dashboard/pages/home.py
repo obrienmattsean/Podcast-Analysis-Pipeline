@@ -1,18 +1,33 @@
 """Home page — landing page for the Podex dashboard."""
 
+from pathlib import Path
+
 import streamlit as st
+
+# Get logo path
+logo_path = Path(__file__).parent.parent / "static" / "podex-logo.svg"
 
 # CSS only for centering the hero — Streamlit has no native text-align
 st.markdown(
     """
     <style>
-    .hero { text-align: center; padding: 3.5rem 0 2rem; }
-    .hero-wordmark {
-        font-size: 3rem; letter-spacing: 0.2em; text-transform: uppercase;
-        opacity: 0.6; color: var(--text-color); margin: 0 0 1.5rem;
-        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    .hero { text-align: center; padding: 2rem 0; }
+    .hero-logo {
+        display: flex; justify-content: center; align-items: center;
+        gap: 1rem; margin-bottom: 1.5rem;
     }
-    .hero-wordmark img { height: 120px; width: 120px; }
+    .hero-logo img { width: 120px; height: 120px; }
+    /* Dark mode - make logo light to match text */
+    @media (prefers-color-scheme: dark) {
+        .hero-logo img {
+            filter: grayscale(1) brightness(2.2) invert(1) !important;
+        }
+    }
+    .hero-logo-text {
+        font-size: 4rem !important; font-weight: 900 !important;
+        letter-spacing: 0.1em; color: var(--text-color); margin: 0;
+        text-transform: uppercase; line-height: 1;
+    }
     .hero-title {
         font-size: 3rem; font-weight: 700; letter-spacing: -0.04em;
         line-height: 1.1; color: var(--text-color); margin: 0;
@@ -26,10 +41,10 @@ st.markdown(
     .feature-badge-wrap { text-align: center; margin-bottom: 1.25rem; }
     </style>
     <div class="hero">
-        <p class="hero-wordmark">
+        <div class="hero-logo">
             <img src="app/static/podex-logo.svg" alt="Podex logo" />
-            PODEX
-        </p>
+            <p class="hero-logo-text">Podex</p>
+        </div>
         <h1 class="hero-title">Understand every conversation.</h1>
     </div>
     """,
