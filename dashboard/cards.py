@@ -99,7 +99,7 @@ def episode_card(episode: dict) -> None:
     keywords = episode.get("keywords", [])
     time_since_published = episode.get("time_since_published") or ""
 
-    cleaned_episode_title = remove_podcast_name(episode_title, podcast_title)
+    remove_podcast_name(episode_title, podcast_title)
 
     with st.container(border=True):
         left, sep, right = st.columns([5, 0.3, 1.5], vertical_alignment="center")
