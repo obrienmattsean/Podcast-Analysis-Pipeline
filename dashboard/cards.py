@@ -108,7 +108,8 @@ def episode_card(episode: dict) -> None:
             st.caption(f":primary[**{podcast_title}**] :gray[· {time_since_published}]")
             st.subheader(episode_title, anchor=False, divider=False)
             if score is not None:
-                sent_label, sent_color = _sentiment_label(float(score))
+                sent_color = _sentiment_label(float(score))
+                sent_label = _sentiment_text(float(score))
                 sent_bg, sent_text = _SENTIMENT_COLOR_MAP[sent_color]
                 _pill = (
                     "padding:4px 10px;border-radius:12px;"
