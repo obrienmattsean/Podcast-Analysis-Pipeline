@@ -31,7 +31,11 @@ resource "aws_iam_policy" "scheduler_policy" {
       {
         Sid    = "AllowStepFunctionExecution"
         Effect = "Allow"
-        Resource = "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:${var.project_name}-state-machine"
+        Action = [
+          "states:StartExecution"
+        ]
+        Resource = "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:${var.project_name}-*"
+      }
     ]
   })
 }
@@ -57,6 +61,3 @@ resource "aws_scheduler_schedule" "daily_pipeline" {
     role_arn = aws_iam_role.scheduler_role.arn
   }
 }
-
-# Data source to get current AWS account ID
-data "aws_caller_identity" "current" {}

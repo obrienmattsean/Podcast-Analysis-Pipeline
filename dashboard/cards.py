@@ -3,6 +3,7 @@
 from typing import Literal
 
 import streamlit as st
+from regex_expressions import remove_podcast_name
 
 _BadgeColor = Literal[
     "red", "orange", "yellow", "blue", "green", "violet", "gray", "grey", "primary"
@@ -47,14 +48,29 @@ def _sentiment_label(score: float) -> tuple[str, _BadgeColor]:
         score: Sentiment score between -1.0 and 1.0.
 
     Returns:
-        tuple[str, str]: A (label, badge_color) pair where badge_color is a
-            Streamlit-named color accepted by ``st.badge``.
+        _BadgeColor: A Streamlit-named color accepted by ``st.badge``.
     """
     if score > 0.5:
-        return "↗ Positive", "green"
+        return "green"
     if score < -0.5:
-        return "↘ Negative", "red"
-    return "→ Neutral", "gray"
+        return "red"
+    return "gray"
+
+
+def _sentiment_text(score: float) -> str:
+    """Return human-friendly sentiment text for a score.
+
+    Args:
+        score: Sentiment score between -1.0 and 1.0.
+
+    Returns:
+        str: Sentiment direction and class text.
+    """
+    if score > 0.5:
+        return "↗ Positive"
+    if score < -0.5:
+        return "↘ Negative"
+    return "→ Neutral"
 
 
 def _podcast_initials(title: str) -> str:
@@ -82,6 +98,8 @@ def episode_card(episode: dict) -> None:
     summary = episode.get("summary")
     keywords = episode.get("keywords", [])
     time_since_published = episode.get("time_since_published") or ""
+
+    cleaned_episode_title = remove_podcast_name(episode_title, podcast_title)
 
     with st.container(border=True):
         left, sep, right = st.columns([5, 0.3, 1.5], vertical_alignment="center")
@@ -136,15 +154,15 @@ def podcast_card(podcast: dict) -> None:
 
     Args:
         podcast: Dict with keys ``podcast_title``, ``num_episodes``,
-            ``avg_sentiment_score``, and ``last_updated``.
+            ``avg_sentiment_score``, ``historical_sentiment_score``, and ``last_updated``.
     """
     title = podcast.get("podcast_title") or "Unknown Podcast"
     num_episodes = podcast.get("num_episodes") or 0
     avg_score = podcast.get("avg_sentiment_score")
+    historical_score = podcast.get("historical_sentiment_score")
     last_updated = podcast.get("last_updated") or ""
 
     initials = _podcast_initials(title)
-
     with st.container(border=True):
         st.subheader(f"{initials}  {title}", anchor=False)
         st.caption(f"Updated {last_updated}")
@@ -152,8 +170,19 @@ def podcast_card(podcast: dict) -> None:
         cols = st.columns(2)
         cols[0].metric("Episodes", num_episodes)
         if avg_score is not None:
-            label, color = _sentiment_label(float(avg_score))
-            cols[1].badge(label, color=color)
+            score_value = float(avg_score)
+            score_text = f"{score_value:+.2f}"
+            delta_text = None
+            if historical_score is not None:
+                delta_value = score_value - float(historical_score)
+                delta_text = f"{delta_value:+.2f}"
+            cols[1].metric(
+                "Avg Sentiment",
+                score_text,
+                delta=delta_text,
+                help="Shows the average sentiment score of top 5 most recent episodes. "
+                "Delta shows the change between this average and the previous 5-episode average.",
+            )
         st.page_link(
             "pages/podcast_details.py",
             label="View Analytics",

@@ -1,5 +1,7 @@
 """Visualization components for podcast analysis dashboard."""
 
+import textwrap
+
 import altair as alt
 import circlify
 import matplotlib.pyplot as plt
@@ -23,6 +25,46 @@ _BUBBLE_PALETTE = [
     "#d4956e",  # primaryColor lightened
     "#38bdf8",  # sky blue lightened
 ]
+# Matches [theme].font in .streamlit/config.toml
+_DASHBOARD_FONT_FAMILY = "SpaceGrotesk"
+
+
+def _fit_bubble_label(label: str, radius: float) -> tuple[str, int]:
+    """Wrap and size a label so it fits inside a bubble.
+
+    Args:
+        label: Raw keyword label text.
+        radius: Bubble radius from circlify.
+
+    Returns:
+        tuple[str, int]: Wrapped label text and a font size.
+    """
+    # Base font is explicitly tied to bubble radius (diameter-driven).
+    # Larger bubbles should clearly get larger labels.
+    diameter = radius * 2
+    start_font_size = max(5, min(16, int(diameter * 14)))
+
+    # Find the largest font that allows wrapped text to fit without mid-word truncation.
+    for font_size in range(start_font_size, 4, -1):
+        scale = start_font_size / font_size
+        chars_per_line = max(4, int(diameter * 12 * scale))
+        max_lines = max(1, int(diameter * 6 * scale))
+        wrapped_lines = textwrap.wrap(label, width=chars_per_line, break_long_words=False)
+
+        if not wrapped_lines:
+            wrapped_lines = [label]
+        if len(wrapped_lines) > max_lines:
+            continue
+
+        wrapped_label = "\n".join(wrapped_lines)
+        return wrapped_label, font_size
+
+    # Final fallback for extremely small bubbles or long unbroken tokens.
+    fallback_lines = textwrap.wrap(label, width=max(3, int(radius * 22)), break_long_words=True)
+    wrapped_label = (
+        "\n".join(fallback_lines[: max(1, int(radius * 10))]) if fallback_lines else label
+    )
+    return wrapped_label, 5
 
 
 def render_keyword_bubble_chart(conn: connection, podcast_id: int) -> None:
@@ -72,17 +114,21 @@ def render_keyword_bubble_chart(conn: connection, podcast_id: int) -> None:
         patch = plt.Circle((x, y), r, color=palette[i], alpha=0.90)
         ax.add_patch(patch)
 
-        fontsize = max(6, min(15, int(r * 38)))
-        ax.text(
+        wrapped_label, fontsize = _fit_bubble_label(label, r)
+        text = ax.text(
             x,
             y,
-            label,
+            wrapped_label,
             ha="center",
             va="center",
             fontsize=fontsize,
-            fontweight="bold",
+            fontfamily=_DASHBOARD_FONT_FAMILY,
+            fontweight="normal",
             color="white",
+            linespacing=0.95,
+            clip_on=True,
         )
+        text.set_clip_path(patch)
 
     ax.autoscale_view()
     plt.tight_layout(pad=0)

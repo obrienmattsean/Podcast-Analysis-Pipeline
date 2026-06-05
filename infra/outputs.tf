@@ -37,4 +37,9 @@ output "rds_instance_id" {
   description = "RDS instance identifier"
   value       = aws_db_instance.podcast_analysis.id
 }
+
+output "dashboard_url" {
+  description = "Public URL for the Streamlit dashboard"
+  value       = "http://${aws_lb.streamlit.dns_name}"
+}
     
