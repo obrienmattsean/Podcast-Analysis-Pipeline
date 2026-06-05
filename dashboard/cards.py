@@ -106,7 +106,8 @@ def episode_card(episode: dict) -> None:
                 )
                 st.markdown(
                     '<div style="display:flex;flex-wrap:wrap;gap:6px;'
-                    f'align-items:center;">{sent_pill}{kw_pills}</div>',
+                    'align-items:center;margin-top:0.5rem;margin-bottom:0.5rem;">'
+                    f"{sent_pill}{kw_pills}</div>",
                     unsafe_allow_html=True,
                 )
             if summary:

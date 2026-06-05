@@ -44,9 +44,49 @@ This score should reflect the overall sentiment of the transcript, taking into a
 The sentiment score should be calculated based on the entire transcript, not just individual sentences or sections.
 
 
-2. **brand_safety_score**" An integer value from 0 to 100 representing the brand safety score of the transcript, where 0 indicates extremely unsafe content and 100 indicates completely safe content.
-This score should be determined by analyzing the transcript for any potentially harmful or controversial content, such as hate speech, violence, adult content, or any other content that may be deemed inappropriate for advertising.
-The brand safety score should be calculated based on the overall content of the transcript, considering the frequency and severity of any potentially unsafe content, as well as the context in which it is presented.
+2. **brand_safety_score**: An integer from **0 to 100** representing the suitability of the transcript for brand advertising placement.
+
+**Scoring Philosophy**
+
+The score should follow a **risk-based model**, similar to content rating systems such as PEGI or ESRB, where the presence of certain high-risk content has a disproportionately large impact on the final score. Severe safety concerns should significantly reduce the score even if they occur infrequently.
+
+**Evaluation Criteria**
+
+Analyze the transcript for the presence, severity, prominence, and context of content that may pose a risk to advertisers, including but not limited to:
+
+* Hate speech, discrimination, or extremist content
+* Violence, graphic violence, or threats
+* Adult, sexual, or explicit content
+* Illegal activities, criminal behavior, or dangerous acts
+* Self-harm, suicide, or eating disorder content
+* Harassment, bullying, or abusive language
+* Drug, alcohol, tobacco, or substance abuse content
+* Misinformation, conspiracy theories, or harmful medical claims
+* Profanity or offensive language
+* Politically controversial or highly polarizing topics
+
+**Scoring Methodology**
+
+The score should prioritize the **highest-severity content detected**, not merely the average content quality.
+
+Apply the following principles:
+
+* A single instance of severe unsafe content can substantially lower the score.
+* Multiple categories of unsafe content should compound penalties.
+* Content that is graphic, celebratory, instructional, promotional, or encouraging of harmful behavior should receive stronger penalties than neutral discussion.
+* Repeated exposure to unsafe content should further reduce the score.
+* Educational, journalistic, documentary, historical, or critical discussion may mitigate penalties but should not eliminate them entirely.
+
+**Interpretation Guide**
+
+* **90–100:** Very safe for most brands; no meaningful safety concerns.
+* **75–89:** Generally safe; contains mild profanity, mature themes, or limited controversial discussion.
+* **50–74:** Moderate risk; contains recurring mature, violent, political, or sensitive content.
+* **25–49:** High risk; contains explicit discussions of violence, sex, drugs, hate, or other advertiser-sensitive topics.
+* **0–24:** Severe risk; contains graphic violence, hate speech, extremism, explicit sexual content, criminal instruction, self-harm promotion, or other content that many advertisers would categorically avoid.
+
+When uncertain between two scores, choose the lower score if advertiser risk is plausible.
+
 
 3. **summary**: A clear, concise and compelling summary of the podcast episode, limited to 2 sentences. 
 The summary should capture the main topics discussed, the overall theme of the episode, and any key insights or takeaways that would be relevant and interesting for advertisers.
