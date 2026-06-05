@@ -1,7 +1,14 @@
 CREATE EXTENSION IF NOT EXISTS vector;
 
 
-CREATE TABLE IF NOT EXISTS podcasts (
+DROP TABLE IF EXISTS episode_chunks CASCADE;
+DROP TABLE IF EXISTS episode_entities CASCADE;
+DROP TABLE IF EXISTS entities CASCADE;
+DROP TABLE IF EXISTS episodes CASCADE;
+DROP TABLE IF EXISTS podcasts CASCADE;
+
+
+CREATE TABLE podcasts (
     podcast_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     rss_url VARCHAR(500) NOT NULL UNIQUE,
@@ -10,7 +17,7 @@ CREATE TABLE IF NOT EXISTS podcasts (
 );
 
 
-CREATE TABLE IF NOT EXISTS episodes (
+CREATE TABLE episodes (
     episode_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     podcast_id INTEGER NOT NULL REFERENCES podcasts(podcast_id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -18,39 +25,26 @@ CREATE TABLE IF NOT EXISTS episodes (
     duration_seconds INTEGER,
     pub_date TIMESTAMP NOT NULL,
     sentiment_score DOUBLE PRECISION,
+    brand_safety_score INTEGER,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    summary TEXT,
-    harassment BOOLEAN,
-    harassment_threatening BOOLEAN,
-    hate BOOLEAN,
-    hate_threatening BOOLEAN,
-    illicit BOOLEAN,
-    illicit_violent BOOLEAN,
-    self_harm BOOLEAN,
-    self_harm_instructions BOOLEAN,
-    self_harm_intent BOOLEAN,
-    sexual BOOLEAN,
-    sexual_minors BOOLEAN,
-    violence BOOLEAN,
-    violence_graphic BOOLEAN,
-    flagged BOOLEAN
+    summary TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_episodes_podcast_id
+CREATE INDEX idx_episodes_podcast_id
     ON episodes(podcast_id);
 
-CREATE INDEX IF NOT EXISTS idx_episodes_pub_date
+CREATE INDEX idx_episodes_pub_date
     ON episodes(pub_date);
 
 
-CREATE TABLE IF NOT EXISTS entities (
+CREATE TABLE entities (
     entity_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     entity_type VARCHAR(100) NOT NULL
 );
 
 
-CREATE TABLE IF NOT EXISTS episode_entities (
+CREATE TABLE episode_entities (
     episode_id INTEGER NOT NULL REFERENCES episodes(episode_id) ON DELETE CASCADE,
     entity_id INTEGER NOT NULL REFERENCES entities(entity_id) ON DELETE CASCADE,
 
@@ -58,7 +52,7 @@ CREATE TABLE IF NOT EXISTS episode_entities (
 );
 
 
-CREATE TABLE IF NOT EXISTS episode_chunks (
+CREATE TABLE episode_chunks (
     episode_chunk_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     episode_id INTEGER NOT NULL REFERENCES episodes(episode_id) ON DELETE CASCADE,
@@ -79,17 +73,5 @@ CREATE TABLE IF NOT EXISTS episode_chunks (
         UNIQUE (episode_id, chunk_index)
 );
 
-CREATE INDEX IF NOT EXISTS idx_episode_chunks_episode_id
+CREATE INDEX idx_episode_chunks_episode_id
     ON episode_chunks(episode_id);
-
--- ==============================================================================
--- Vector Similarity Search Index
--- ==============================================================================
-
--- Uncomment once data exists and pgvector is confirmed working.
--- Adjust lists based on your embedding model and query patterns.
-
--- CREATE INDEX idx_episode_chunks_embedding
--- ON episode_chunks
--- USING ivfflat (embedding vector_cosine_ops)
--- WITH (lists = 100);
