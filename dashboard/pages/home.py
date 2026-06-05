@@ -77,20 +77,16 @@ with st.container(border=True):
 
     with col1:
         with st.container(border=True, height=100):
-            st.markdown("**Sentiment**")
-            st.caption("Tone scored per episode.")
+            st.markdown("**Sentiment** — Tone scored per episode.")
 
     with col2:
         with st.container(border=True, height=100):
-            st.markdown("**Keywords**")
-            st.caption("Top topics, auto-extracted.")
+            st.markdown("**Keywords** — Top topics, auto-extracted.")
 
     with col3:
         with st.container(border=True, height=100):
-            st.markdown("**AI Search**")
-            st.caption("Semantic search across all episodes.")
+            st.markdown("**AI Search** — Semantic search across all episodes.")
 
     with col4:
         with st.container(border=True, height=100):
-            st.markdown("**Brand Safety**")
-            st.caption("Flag risky content before you commit.")
+            st.markdown("**Brand Safety** — Flag risky content before you commit.")
