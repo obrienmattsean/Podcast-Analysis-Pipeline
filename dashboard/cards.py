@@ -101,8 +101,7 @@ def episode_card(episode: dict) -> None:
                     f"{sent_label}</span>"
                 )
                 kw_pills = "".join(
-                    f'<span style="background-color:#dbeafe;color:#1e40af;{_pill}">'
-                    f"{kw}</span>"
+                    f'<span style="background-color:#dbeafe;color:#1e40af;{_pill}">{kw}</span>'
                     for kw in (keywords or [])[:5]
                 )
                 st.markdown(
