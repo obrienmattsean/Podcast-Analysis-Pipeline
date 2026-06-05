@@ -4,7 +4,7 @@ from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
-from visualisation import render_sentiment_line_chart
+from visualisation import _fit_bubble_label, render_sentiment_line_chart
 
 
 @pytest.fixture
@@ -69,3 +69,28 @@ def test_render_sentiment_line_chart_with_single_point_renders_chart(
         render_sentiment_line_chart(mock_conn, podcast_id=3)
 
     mock_st.altair_chart.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# _fit_bubble_label
+# ---------------------------------------------------------------------------
+
+
+def test_fit_bubble_label_wraps_long_text_for_small_bubble() -> None:
+    wrapped, font_size = _fit_bubble_label("this is a very long keyword phrase", radius=0.2)
+
+    assert "\n" in wrapped
+    assert 5 <= font_size <= 12
+
+
+def test_fit_bubble_label_avoids_ellipsis_cutoff_for_small_bubble() -> None:
+    wrapped, _ = _fit_bubble_label("one two three four five six seven eight nine ten", radius=0.12)
+
+    assert "..." not in wrapped
+
+
+def test_fit_bubble_label_increases_font_for_larger_bubbles() -> None:
+    _, small_font = _fit_bubble_label("keyword", radius=0.12)
+    _, large_font = _fit_bubble_label("keyword", radius=0.35)
+
+    assert large_font > small_font
