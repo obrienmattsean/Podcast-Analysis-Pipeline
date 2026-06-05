@@ -160,36 +160,6 @@ def prompt_llm_for_enrichment(openai_client: OpenAI, transcript: str) -> dict:
         raise
 
 
-# def prompt_llm_for_moderation(llm_client: oa.OpenAI, transcript: str) -> dict:
-#     """Generates a moderation analysis of the podcast transcript using the OpenAI API.
-
-#     Args:
-#         llm_client (oa.OpenAI): The initialized OpenAI client.
-#         transcript (str): The podcast transcript to be analyzed.
-
-#     Returns:
-#         dict: A dictionary containing the moderation analysis from the podcast transcript
-#         keys have boolean values.
-
-#     Raises:
-#         Exception: If there is an error generating the moderation analysis from the OpenAI API,
-#         an exception will be raised with the error message.
-#     """
-
-#     try:
-#         logging.info("Analyzing podcast transcript for moderation.")
-#         response = llm_client.moderations.create(
-#             model="omni-moderation-latest",
-#             input=transcript,
-#         )
-#         logging.info("Transcript moderation analysis completed successfully.")
-#         return response.results[0].categories.model_dump()
-
-#     except Exception as e:
-#         logging.error(f"Failed to analyze transcript for moderation: {e}")
-#         raise
-
-
 def get_episode_metadata_from_s3(s3_client: BaseClient, s3_path: str) -> dict:
     """Retrieves the podcast transcript and additional metadata from S3.
 
