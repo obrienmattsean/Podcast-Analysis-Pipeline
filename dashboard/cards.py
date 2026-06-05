@@ -40,6 +40,34 @@ _SENTIMENT_COLOR_MAP: dict[str, tuple[str, str]] = {
     "gray": ("#e9ecef", "#495057"),
 }
 
+_AVATAR_PALETTE: list[tuple[str, str]] = [
+    ("#dbeafe", "#1e40af"),
+    ("#dcfce7", "#166534"),
+    ("#fef9c3", "#854d0e"),
+    ("#fce7f3", "#9d174d"),
+    ("#ede9fe", "#4c1d95"),
+    ("#ffedd5", "#9a3412"),
+    ("#cffafe", "#155e75"),
+    ("#f1f5f9", "#334155"),
+]
+
+
+def _avatar_colors(title: str) -> tuple[str, str]:
+    """Return (bg, text) colors for an initials avatar derived from the title."""
+    return _AVATAR_PALETTE[hash(title) % len(_AVATAR_PALETTE)]
+
+
+def _initials_avatar_html(initials: str, bg: str, text_color: str, size: int = 40) -> str:
+    """Return an HTML string for a circular initials avatar."""
+    font_size = round(size * 0.38)
+    return (
+        f'<div style="width:{size}px;height:{size}px;border-radius:50%;'
+        f"background-color:{bg};display:inline-flex;align-items:center;"
+        f"justify-content:center;font-size:{font_size}px;font-weight:700;"
+        f'color:{text_color};flex-shrink:0;vertical-align:middle;">'
+        f"{initials}</div>"
+    )
+
 
 def _sentiment_label(score: float) -> tuple[str, _BadgeColor]:
     """Return (label, badge_color) for a sentiment score.
@@ -101,11 +129,23 @@ def episode_card(episode: dict) -> None:
 
     remove_podcast_name(episode_title, podcast_title)
 
+    initials = _podcast_initials(podcast_title)
+    av_bg, av_text = _avatar_colors(podcast_title)
+    avatar_html = _initials_avatar_html(initials, av_bg, av_text, size=28)
+
     with st.container(border=True):
         left, sep, right = st.columns([5, 0.3, 1.5], vertical_alignment="center")
 
         with left:
-            st.caption(f":primary[**{podcast_title}**] :gray[· {time_since_published}]")
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">'
+                f"{avatar_html}"
+                f'<span style="font-size:0.875rem;font-weight:600;">'
+                f"{podcast_title}</span>"
+                f'<span style="font-size:0.875rem;color:#6b7280;">· {time_since_published}</span>'
+                f"</div>",
+                unsafe_allow_html=True,
+            )
             st.subheader(episode_title, anchor=False, divider=False)
             if score is not None:
                 sent_color = _sentiment_label(float(score))
@@ -164,8 +204,16 @@ def podcast_card(podcast: dict) -> None:
     last_updated = podcast.get("last_updated") or ""
 
     initials = _podcast_initials(title)
+    av_bg, av_text = _avatar_colors(title)
+    avatar_html = _initials_avatar_html(initials, av_bg, av_text, size=48)
     with st.container(border=True):
-        st.subheader(f"{initials}  {title}", anchor=False)
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">'
+            f"{avatar_html}"
+            f'<span style="font-size:1.25rem;font-weight:700;line-height:1.3;">{title}</span>'
+            f"</div>",
+            unsafe_allow_html=True,
+        )
         st.caption(f"Updated {last_updated}")
         st.divider()
         cols = st.columns(2)
