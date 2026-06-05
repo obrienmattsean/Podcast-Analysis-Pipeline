@@ -1,0 +1,16 @@
+[run]
+omit =
+    # Streamlit page-wiring files – no testable logic
+    app.py
+    pages/*.py
+    cards.py
+    # AI search config/utils – thin wrappers around external SDK calls
+    ai_search_config.py
+    ai_search_utils.py
+    # Deployment helpers
+    run.sh
+
+[report]
+exclude_lines =
+    # Never executed branches (defensive only)
+    if __name__ == .__main__.:
