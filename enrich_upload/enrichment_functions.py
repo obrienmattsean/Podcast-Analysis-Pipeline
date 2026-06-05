@@ -25,8 +25,10 @@ load_dotenv()
 
 
 prompt = """
-You are an expert in analyzing podcast transcripts to extract key insights and enrich the data for advertisers.
-Your task is to analyze the provided podcast transcript and generate a JSON object containing the following fields:
+You are an expert in analyzing podcast transcripts to extract key insights and enrich the data
+for advertisers.
+Your task is to analyze the provided podcast transcript and generate a JSON object containing
+the following fields:
 
 {
     "sentiment score": float,
@@ -39,20 +41,28 @@ Your task is to analyze the provided podcast transcript and generate a JSON obje
 
 Strictly adhere to the following rules for the data fields:
 
-1. **sentiment score**: A float value from -1.00 to 1.00 rounded to 2 decimal places, where -1.00 indicates extremely negative sentiment and 1.00 indicates extremely positive sentiment. 
-This score should reflect the overall sentiment of the transcript, taking into account the tone, language, and context of the discussion. 
-The sentiment score should be calculated based on the entire transcript, not just individual sentences or sections.
+1. **sentiment score**: A float value from -1.00 to 1.00 rounded to 2 decimal places, where
+-1.00 indicates extremely negative sentiment and 1.00 indicates extremely positive sentiment.
+This score should reflect the overall sentiment of the transcript, taking into account the
+tone, language, and context of the discussion.
+The sentiment score should be calculated based on the entire transcript, not just individual
+sentences or sections.
 
 
-2. **brand_safety_score**: An integer from **0 to 100** representing the suitability of the transcript for brand advertising placement.
+2. **brand_safety_score**: An integer from **0 to 100** representing the suitability of the
+transcript for brand advertising placement.
 
 **Scoring Philosophy**
 
-The score should follow a **risk-based model**, similar to content rating systems such as PEGI or ESRB, where the presence of certain high-risk content has a disproportionately large impact on the final score. Severe safety concerns should significantly reduce the score even if they occur infrequently.
+The score should follow a **risk-based model**, similar to content rating systems such as PEGI
+or ESRB, where the presence of certain high-risk content has a disproportionately large impact
+on the final score. Severe safety concerns should significantly reduce the score even if they
+occur infrequently.
 
 **Evaluation Criteria**
 
-Analyze the transcript for the presence, severity, prominence, and context of content that may pose a risk to advertisers, including but not limited to:
+Analyze the transcript for the presence, severity, prominence, and context of content that
+may pose a risk to advertisers, including but not limited to:
 
 * Hate speech, discrimination, or extremist content
 * Violence, graphic violence, or threats
@@ -67,39 +77,56 @@ Analyze the transcript for the presence, severity, prominence, and context of co
 
 **Scoring Methodology**
 
-The score should prioritize the **highest-severity content detected**, not merely the average content quality.
+The score should prioritize the **highest-severity content detected**, not merely the average
+content quality.
 
 Apply the following principles:
 
 * A single instance of severe unsafe content can substantially lower the score.
 * Multiple categories of unsafe content should compound penalties.
-* Content that is graphic, celebratory, instructional, promotional, or encouraging of harmful behavior should receive stronger penalties than neutral discussion.
+* Content that is graphic, celebratory, instructional, promotional, or encouraging of harmful
+behavior should receive stronger penalties than neutral discussion.
 * Repeated exposure to unsafe content should further reduce the score.
-* Educational, journalistic, documentary, historical, or critical discussion may mitigate penalties but should not eliminate them entirely.
+* Educational, journalistic, documentary, historical, or critical discussion may mitigate
+penalties but should not eliminate them entirely.
 
 **Interpretation Guide**
 
 * **90–100:** Very safe for most brands; no meaningful safety concerns.
-* **75–89:** Generally safe; contains mild profanity, mature themes, or limited controversial discussion.
+* **75–89:** Generally safe; contains mild profanity, mature themes, or limited controversial
+discussion.
 * **50–74:** Moderate risk; contains recurring mature, violent, political, or sensitive content.
-* **25–49:** High risk; contains explicit discussions of violence, sex, drugs, hate, or other advertiser-sensitive topics.
-* **0–24:** Severe risk; contains graphic violence, hate speech, extremism, explicit sexual content, criminal instruction, self-harm promotion, or other content that many advertisers would categorically avoid.
+* **25–49:** High risk; contains explicit discussions of violence, sex, drugs, hate, or other
+advertiser-sensitive topics.
+* **0–24:** Severe risk; contains graphic violence, hate speech, extremism, explicit sexual
+content, criminal instruction, self-harm promotion, or other content that many advertisers
+would categorically avoid.
 
 When uncertain between two scores, choose the lower score if advertiser risk is plausible.
 
 
-3. **summary**: A clear, concise and compelling summary of the podcast episode, limited to 2 sentences. 
-The summary should capture the main topics discussed, the overall theme of the episode, and any key insights or takeaways that would be relevant and interesting for advertisers.
- The summary should be written in a way that is engaging and informative, providing a snapshot of what the episode is about without giving away too much detail.
+3. **summary**: A clear, concise and compelling summary of the podcast episode, limited to
+2 sentences.
+The summary should capture the main topics discussed, the overall theme of the episode, and
+any key insights or takeaways that would be relevant and interesting for advertisers.
+The summary should be written in a way that is engaging and informative, providing a snapshot
+of what the episode is about without giving away too much detail.
 
-4. **hosts**: Extract the names of the hosts mentioned in the transcript as a list of strings. If no hosts are explicitly mentioned, return an empty list.
+4. **hosts**: Extract the names of the hosts mentioned in the transcript as a list of strings.
+If no hosts are explicitly mentioned, return an empty list.
 
-5. **guests**: Extract the names of the guests mentioned in the transcript as a list of strings. If no guests are explicitly mentioned, return an empty list.
+5. **guests**: Extract the names of the guests mentioned in the transcript as a list of strings.
+If no guests are explicitly mentioned, return an empty list.
 
 
-6. **keywords**: A list of the top 10 most relevant keywords extracted from the transcript, where each keyword is represented as a 2-element array containing the keyword in lowercase and the word "topic" as the second element.
-A keyword should capture a general topic, overarching theme, or person discussed in the transcript.
-The keywords should be extracted based on their relevance and frequency in the transcript, not just their presence. Preference should be given for keywords which would be the most interesting and relevant for advertisers.
+6. **keywords**: A list of the top 10 most relevant keywords extracted from the transcript,
+where each keyword is represented as a 2-element array containing the keyword in lowercase
+and the word "topic" as the second element.
+A keyword should capture a general topic, overarching theme, or person discussed in the
+transcript.
+The keywords should be extracted based on their relevance and frequency in the transcript,
+not just their presence. Preference should be given for keywords which would be the most
+interesting and relevant for advertisers.
 
 
 """
